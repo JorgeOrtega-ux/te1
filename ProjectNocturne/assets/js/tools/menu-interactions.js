@@ -233,6 +233,11 @@ const resetTimerMenu = (menuElement) => {
         countToTitle.removeAttribute('disabled');
         countToTitle.parentElement.classList.remove('disabled-interactive', 'input-error');
     }
+
+    const timerTypeDropdown = menuElement.querySelector('[data-action="toggleTimerTypeDropdown"]');
+    if (timerTypeDropdown) {
+        timerTypeDropdown.classList.remove('disabled-interactive');
+    }
     updateTimerTabView(menuElement);
     updateTimerDurationDisplay(menuElement);
     renderCalendar(menuElement);
@@ -334,6 +339,7 @@ export function prepareTimerForEdit(timerData) {
             titleInput.parentElement.classList.remove('disabled-interactive');
         }
     }
+    menuElement.querySelector('[data-action="toggleTimerTypeDropdown"]').classList.add('disabled-interactive');
     updateTimerDurationDisplay(menuElement);
     updateDisplay('#countdown-selected-sound', getSoundNameById(timerData.sound), menuElement);
     const createButton = menuElement.querySelector('.create-tool');
@@ -373,6 +379,7 @@ export function prepareCountToDateForEdit(timerData) {
             titleInput.parentElement.classList.remove('disabled-interactive');
         }
     }
+    menuElement.querySelector('[data-action="toggleTimerTypeDropdown"]').classList.add('disabled-interactive');
     state.timer.countTo.sound = timerData.sound;
     const targetDate = new Date(timerData.targetDate);
     state.timer.countTo.date = targetDate;
@@ -919,8 +926,20 @@ async function handleMenuClick(event, parentMenu) {
             }, 500);
             break;
         }
+         case 'prev-month': {
+            state.timer.countTo.date.setMonth(state.timer.countTo.date.getMonth() - 1);
+            renderCalendar(parentMenu);
+            break;
+        }
+        case 'next-month': {
+            state.timer.countTo.date.setMonth(state.timer.countTo.date.getMonth() + 1);
+            renderCalendar(parentMenu);
+            break;
+        }
     }
 }
+
+
 
 export function initMenuInteractions() {
     setupGlobalEventListeners();

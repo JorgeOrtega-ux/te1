@@ -80,6 +80,12 @@
     gap: 8px;
 }
 
+.sound-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .custom-select-content {
     display: flex;
     flex-direction: row;
