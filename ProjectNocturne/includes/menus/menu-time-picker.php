@@ -1,4 +1,4 @@
-<div class="menu-sounds disabled body-title" data-menu="Sounds">
+<div class="menu-time-picker disabled body-title" data-menu="TimePicker">
       <div class="pill-container">
         <div class="drag-handle"></div>
     </div>
@@ -8,22 +8,18 @@
                 <button class="menu-back-btn" data-action="back-to-previous-menu">
                     <span class="material-symbols-rounded">arrow_left</span>
                 </button>
-                <div class="search-content">
-                    <div class="search-content-icon">
-                        <span class="material-symbols-rounded">search</span>
-                    </div>
+                 <div class="search-content">
                     <div class="search-content-text">
-                        <input type="text" id="sound-search-input" class="body-title" autocomplete="off"
-                            data-translate="search_sounds_placeholder"
-                            data-translate-category="search"
-                            data-translate-target="placeholder">
+                        <span data-translate="select_time" data-translate-category="timer"></span>
                     </div>
                 </div>
             </div>
         </div>
         <div class="menu-content-scrolleable overflow-y">
             <div class="menu-section-center overflow-y">
-                <div class="sound-list-container">
+                <div class="time-picker-container">
+                    <div class="menu-list menu-list-grid active" data-list-type="hours"></div>
+                    <div class="menu-list menu-list-grid disabled" data-list-type="minutes"></div>
                 </div>
             </div>
         </div>

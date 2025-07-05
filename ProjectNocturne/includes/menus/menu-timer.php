@@ -82,31 +82,15 @@
                             <div class="menu-content-general">
                                 <div class="date-time-content">
                                     <div class="date-time-selector">
-                                        <div class="custom-select-content" data-action="toggleCalendarDropdown">
+                                        <div class="custom-select-content" data-action="open-calendar-menu">
                                             <div class="custom-select-content-left"><span id="selected-date-display">-- / -- / ----</span></div>
                                             <div class="custom-select-content-right"><span class="material-symbols-rounded">calendar_today</span></div>
                                         </div>
-                                        <div class="dropdown-menu-container calendar-container overflow-y disabled body-title" data-menu="calendar">
-                                            <div class="calendar-header">
-                                                <button class="calendar-nav" data-action="prev-month"><span class="material-symbols-rounded">arrow_left</span></button>
-                                                <span id="calendar-month-year"></span>
-                                                <button class="calendar-nav" data-action="next-month"><span class="material-symbols-rounded">arrow_right</span></button>
-                                            </div>
-                                            <div class="calendar-weekdays"><div>D</div><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div></div>
-                                            <div class="calendar-days"></div>
-                                        </div>
                                     </div>
-    
                                     <div class="date-time-selector">
-                                        <div class="custom-select-content" data-action="toggleTimerHourDropdown">
+                                        <div class="custom-select-content" data-action="open-time-picker-menu">
                                             <div class="custom-select-content-left"><span id="selected-hour-display">--</span> : <span id="selected-minute-display">--</span></div>
                                             <div class="custom-select-content-right"><span class="material-symbols-rounded">schedule</span></div>
-                                        </div>
-                                        <div class="dropdown-menu-container menu-timer-hour-selection overflow-y disabled body-title" data-menu="timerHourMenu">
-                                            <div class="menu-list menu-list-grid" data-list-type="hours"></div>
-                                        </div>
-                                        <div class="dropdown-menu-container menu-timer-minute-selection overflow-y disabled body-title" data-menu="timerMinuteMenu">
-                                            <div class="menu-list menu-list-grid" data-list-type="minutes"></div>
                                         </div>
                                     </div>
                                 </div>

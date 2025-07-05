@@ -1,4 +1,7 @@
 <div class="menu-timezone disabled body-title" data-menu="Timezone">
+      <div class="pill-container">
+        <div class="drag-handle"></div>
+    </div>
     <div class="menu-section">
         <div class="menu-section-top">
             <div class="menu-header-fixed">

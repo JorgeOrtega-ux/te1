@@ -1,4 +1,7 @@
 <div class="menu-country disabled body-title" data-menu="Country">
+      <div class="pill-container">
+        <div class="drag-handle"></div>
+    </div>
     <div class="menu-section">
         <div class="menu-section-top">
             <div class="menu-header-fixed">

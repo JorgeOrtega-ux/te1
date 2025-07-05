@@ -31,9 +31,6 @@ state.timer.countTo.date = new Date();
 
 const dropdownMap = {
     'toggleTimerEndActionDropdown': '.menu-timer-end-action',
-    'toggleCalendarDropdown': '.calendar-container',
-    'toggleTimerHourDropdown': '.menu-timer-hour-selection',
-    'toggleTimerMinuteDropdown': '.menu-timer-minute-selection',
     'toggleTimerTypeDropdown': '.menu-timer-type'
 };
 
@@ -44,23 +41,24 @@ const menuStack = [];
 
 /**
  * Resets the entire overlay navigation state.
- * Hides all sub-menus (like Sounds, Country, Timezone) and clears the navigation history stack.
+ * Hides all sub-menus (like Sounds, Country, Timezone, Calendar, TimePicker) and clears the navigation history stack.
  * This is intended to be called when the main overlay module is closed to prevent stale menu views.
  */
 export function resetOverlayNavigation() {
     const overlay = document.querySelector('.module-overlay');
     if (!overlay) return;
 
-    // Find and hide any active sub-menus. These are menus that are navigated to from a primary tool menu.
-    const subMenus = overlay.querySelectorAll('.menu-sounds, .menu-country, .menu-timezone');
+    // Find and hide any active sub-menus.
+    const subMenus = overlay.querySelectorAll('.menu-sounds, .menu-country, .menu-timezone, .menu-calendar, .menu-time-picker');
     subMenus.forEach(subMenu => {
         subMenu.classList.remove('active');
         subMenu.classList.add('disabled');
     });
 
-    // Clear the navigation history stack to ensure a clean state for the next session.
+    // Clear the navigation history stack.
     menuStack.length = 0;
 }
+
 
 function navigateToMenu(menuName) {
     const overlay = document.querySelector('.module-overlay');
@@ -88,6 +86,18 @@ function navigateBack() {
     if (currentMenu) {
         currentMenu.classList.remove('active');
         currentMenu.classList.add('disabled');
+        
+        // If we are leaving the time picker, reset its internal state to show the hour list again.
+        if (currentMenu.dataset.menu === 'TimePicker') {
+            const hourList = currentMenu.querySelector('[data-list-type="hours"]');
+            const minuteList = currentMenu.querySelector('[data-list-type="minutes"]');
+            if (hourList && minuteList) {
+                hourList.classList.remove('disabled');
+                hourList.classList.add('active');
+                minuteList.classList.remove('active');
+                minuteList.classList.add('disabled');
+            }
+        }
     }
 
     const previousMenuName = menuStack.pop();
@@ -126,7 +136,9 @@ function getMenuElement(menuName) {
     const menuSelectorMap = {
         'menuAlarm': '.menu-alarm[data-menu="Alarm"]',
         'menuTimer': '.menu-timer[data-menu="Timer"]',
-        'menuWorldClock': '.menu-worldClock[data-menu="WorldClock"]'
+        'menuWorldClock': '.menu-worldClock[data-menu="WorldClock"]',
+        'menuCalendar': '.menu-calendar[data-menu="Calendar"]',
+        'menuTimePicker': '.menu-time-picker[data-menu="TimePicker"]'
     };
     return document.querySelector(menuSelectorMap[menuName]);
 };
@@ -240,7 +252,7 @@ const resetTimerMenu = (menuElement) => {
     }
     updateTimerTabView(menuElement);
     updateTimerDurationDisplay(menuElement);
-    renderCalendar(menuElement);
+    renderCalendar();
     updateDisplay('#selected-date-display', '-- / -- / ----', menuElement);
     updateDisplay('#selected-hour-display', '--', menuElement);
     updateDisplay('#selected-minute-display', '--', menuElement);
@@ -391,7 +403,7 @@ export function prepareCountToDateForEdit(timerData) {
     updateDisplay('#selected-hour-display', String(targetDate.getHours()).padStart(2, '0'), menuElement);
     updateDisplay('#selected-minute-display', String(targetDate.getMinutes()).padStart(2, '0'), menuElement);
     updateDisplay('#count-to-date-selected-sound', getSoundNameById(timerData.sound), menuElement);
-    renderCalendar(menuElement);
+    renderCalendar();
     const createButton = menuElement.querySelector('.create-tool');
     if (createButton) {
         createButton.dataset.action = 'saveCountToDateChanges';
@@ -441,8 +453,8 @@ const initializeAlarmMenu = (menuElement) => {
 
 const initializeTimerMenu = (menuElement) => {
     updateTimerDurationDisplay(menuElement);
-    renderCalendar(menuElement);
-    populateHourSelectionMenu(menuElement);
+    renderCalendar();
+    populateHourSelectionMenu();
 };
 
 const initializeWorldClockMenu = (menuElement) => {
@@ -524,7 +536,6 @@ const updateTimerTabView = (timerMenu) => {
         iconDisplay.textContent = isCountdown ? 'timer' : 'event';
     }
     
-    // ===== BLOQUE DE CÓDIGO CORREGIDO PARA ACTUALIZAR LA CLASE ACTIVA =====
     const dropdown = timerMenu.querySelector('.menu-timer-type');
     if (dropdown) {
         dropdown.querySelectorAll('.menu-link').forEach(link => {
@@ -546,11 +557,14 @@ const updateTimerTabView = (timerMenu) => {
     }
 };
 
-const renderCalendar = (timerMenu) => {
-    if (!timerMenu) return;
-    const monthYearDisplay = timerMenu.querySelector('#calendar-month-year');
-    const daysContainer = timerMenu.querySelector('.calendar-days');
+const renderCalendar = () => {
+    const calendarMenu = getMenuElement('menuCalendar');
+    if (!calendarMenu) return;
+
+    const monthYearDisplay = calendarMenu.querySelector('#calendar-month-year');
+    const daysContainer = calendarMenu.querySelector('.calendar-days');
     if (!monthYearDisplay || !daysContainer) return;
+
     const date = state.timer.countTo.date;
     monthYearDisplay.textContent = date.toLocaleDateString(navigator.language, { month: 'long', year: 'numeric' });
     daysContainer.innerHTML = '';
@@ -562,22 +576,25 @@ const renderCalendar = (timerMenu) => {
         dayEl.className = 'day'; dayEl.textContent = i; dayEl.dataset.day = i;
         const today = new Date();
         if (i === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear()) dayEl.classList.add('today');
-        if (state.timer.countTo.selectedDate && i === new Date(state.timer.countTo.selectedDate).getDate() && date.getMonth() === new Date(state.timer.countTo.selectedDate).getMonth()) dayEl.classList.add('selected');
+        if (state.timer.countTo.selectedDate && i === new Date(state.timer.countTo.selectedDate).getDate() && date.getMonth() === new Date(state.timer.countTo.selectedDate).getMonth() && date.getFullYear() === new Date(state.timer.countTo.selectedDate).getFullYear()) {
+            dayEl.classList.add('selected');
+        }
         daysContainer.appendChild(dayEl);
     }
 };
 
-const selectCalendarDate = (day, timerMenu) => {
+const selectCalendarDate = (day) => {
     state.timer.countTo.selectedDate = new Date(state.timer.countTo.date.getFullYear(), state.timer.countTo.date.getMonth(), day).toISOString();
     const selectedDate = new Date(state.timer.countTo.selectedDate);
-    updateDisplay('#selected-date-display', getFormattedDate(selectedDate), timerMenu);
-    timerMenu.querySelector('.calendar-container')?.classList.add('disabled');
-    renderCalendar(timerMenu);
+    updateDisplay('#selected-date-display', getFormattedDate(selectedDate), getMenuElement('menuTimer'));
+    renderCalendar();
+    navigateBack();
 };
 
-const populateHourSelectionMenu = (timerMenu) => {
-    if (!timerMenu) return;
-    const hourMenu = timerMenu.querySelector('.menu-timer-hour-selection .menu-list');
+const populateHourSelectionMenu = () => {
+    const timePickerMenu = getMenuElement('menuTimePicker');
+    if (!timePickerMenu) return;
+    const hourMenu = timePickerMenu.querySelector('.menu-list[data-list-type="hours"]');
     if (!hourMenu || hourMenu.children.length > 0) return;
     hourMenu.innerHTML = '';
     for (let i = 0; i < 24; i++) {
@@ -589,9 +606,10 @@ const populateHourSelectionMenu = (timerMenu) => {
     }
 };
 
-const populateMinuteSelectionMenu = (hour, timerMenu) => {
-    if (!timerMenu) return;
-    const minuteMenu = timerMenu.querySelector('.menu-timer-minute-selection .menu-list');
+const populateMinuteSelectionMenu = (hour) => {
+    const timePickerMenu = getMenuElement('menuTimePicker');
+    if (!timePickerMenu) return;
+    const minuteMenu = timePickerMenu.querySelector('.menu-list[data-list-type="minutes"]');
     if (!minuteMenu) return;
     minuteMenu.innerHTML = '';
     for (let j = 0; j < 60; j += 5) {
@@ -666,8 +684,7 @@ function setupGlobalEventListeners() {
     document.addEventListener('click', (event) => {
         const isClickInsideDropdown = event.target.closest('.dropdown-menu-container');
         const isClickOnToggle = event.target.closest('[data-action]')?.dataset.action in dropdownMap;
-        const isCalendarNavigation = event.target.closest('.calendar-nav, .calendar-header, .calendar-weekdays, .day.other-month');
-        if (!isClickInsideDropdown && !isClickOnToggle && !isCalendarNavigation) {
+        if (!isClickInsideDropdown && !isClickOnToggle) {
             document.querySelectorAll('.dropdown-menu-container').forEach(d => d.classList.add('disabled'));
         }
     });
@@ -687,7 +704,7 @@ function setupGlobalEventListeners() {
     });
 
     document.body.addEventListener('click', (event) => {
-        const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timezone');
+        const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timezone, .menu-calendar, .menu-time-picker');
         if (!parentMenu || autoIncrementState.isActive) return;
         handleMenuClick(event, parentMenu);
     });
@@ -737,7 +754,7 @@ async function handleMenuClick(event, parentMenu) {
     const dayTarget = target.closest('.calendar-days .day:not(.other-month)');
     if (dayTarget && dayTarget.dataset.day) {
         event.stopPropagation();
-        selectCalendarDate(parseInt(dayTarget.dataset.day, 10), parentMenu);
+        selectCalendarDate(parseInt(dayTarget.dataset.day, 10));
         return;
     }
     
@@ -751,6 +768,14 @@ async function handleMenuClick(event, parentMenu) {
     }
     
     switch (action) {
+        case 'open-calendar-menu':
+            navigateToMenu('Calendar');
+            renderCalendar();
+            break;
+        case 'open-time-picker-menu':
+            navigateToMenu('TimePicker');
+            populateHourSelectionMenu();
+            break;
         case 'open-sounds-menu':
             soundSelectionContext = actionTarget.dataset.context;
             navigateToMenu('Sounds');
@@ -808,18 +833,27 @@ async function handleMenuClick(event, parentMenu) {
             event.stopPropagation();
             const hour = parseInt(actionTarget.dataset.hour, 10);
             state.timer.countTo.selectedHour = hour;
-            updateDisplay('#selected-hour-display', String(hour).padStart(2, '0'), parentMenu);
-            updateDisplay('#selected-minute-display', '--', parentMenu);
-            actionTarget.closest('.dropdown-menu-container')?.classList.add('disabled');
-            populateMinuteSelectionMenu(hour, parentMenu);
-            parentMenu.querySelector('.menu-timer-minute-selection')?.classList.remove('disabled');
+            const timerMenu = getMenuElement('menuTimer');
+            updateDisplay('#selected-hour-display', String(hour).padStart(2, '0'), timerMenu);
+            updateDisplay('#selected-minute-display', '--', timerMenu);
+
+            // Logic to switch from hour list to minute list inside TimePicker menu
+            const hourList = parentMenu.querySelector('[data-list-type="hours"]');
+            const minuteList = parentMenu.querySelector('[data-list-type="minutes"]');
+            if(hourList && minuteList) {
+                hourList.classList.remove('active');
+                hourList.classList.add('disabled');
+                minuteList.classList.remove('disabled');
+                minuteList.classList.add('active');
+                populateMinuteSelectionMenu(hour);
+            }
             break;
         case 'selectTimerMinute':
             event.stopPropagation();
             const minute = parseInt(actionTarget.dataset.minute, 10);
             state.timer.countTo.selectedMinute = minute;
-            updateDisplay('#selected-minute-display', String(minute).padStart(2, '0'), parentMenu);
-            actionTarget.closest('.dropdown-menu-container')?.classList.add('disabled');
+            updateDisplay('#selected-minute-display', String(minute).padStart(2, '0'), getMenuElement('menuTimer'));
+            navigateBack();
             break;
         case 'previewAlarmSound': stopSound(); playSound(state.alarm.sound); setTimeout(stopSound, 2000); break;
         case 'previewCountdownSound': stopSound(); playSound(state.timer.sound); setTimeout(stopSound, 2000); break;
@@ -928,12 +962,12 @@ async function handleMenuClick(event, parentMenu) {
         }
          case 'prev-month': {
             state.timer.countTo.date.setMonth(state.timer.countTo.date.getMonth() - 1);
-            renderCalendar(parentMenu);
+            renderCalendar();
             break;
         }
         case 'next-month': {
             state.timer.countTo.date.setMonth(state.timer.countTo.date.getMonth() + 1);
-            renderCalendar(parentMenu);
+            renderCalendar();
             break;
         }
     }

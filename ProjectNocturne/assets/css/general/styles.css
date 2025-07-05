@@ -410,13 +410,16 @@ body {
 .menu-back-btn:hover {
     background-color: #f5f5fa;
 }
+
 .menu-alarm,
 .menu-timer,
 .menu-worldClock,
 .menu-paletteColors,
 .menu-sounds,
 .menu-country,
-.menu-timezone {
+.menu-timezone,
+.menu-calendar,
+.menu-time-picker {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -1170,10 +1173,15 @@ body {
         background-color: #00000080;
     }
 
-    .menu-paletteColors,
-    .menu-alarm,
-    .menu-timer,
-    .menu-worldClock {
+.menu-alarm,
+.menu-timer,
+.menu-worldClock,
+.menu-paletteColors,
+.menu-sounds,
+.menu-country,
+.menu-timezone,
+.menu-calendar,
+.menu-time-picker {
         height: auto;
         max-height: 85%;
         border-bottom: 0;

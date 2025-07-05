@@ -141,6 +141,9 @@
 
 .menu-list-grid .menu-link {
     padding: 8px 4px;
+}/* Este selector es más específico y anulará la regla de 'display: grid' */
+.menu-list-grid.disabled {
+    display: none;
 }
 
 .menu-list-grid .menu-link .menu-link-text {
