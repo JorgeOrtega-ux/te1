@@ -235,7 +235,9 @@ function getModuleFromDragHandle(dragHandle) {
 
     const overlayModule = dragHandle.closest('.module-overlay');
     if (overlayModule) {
-        const activeOverlayMenu = overlayModule.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active');
+        // MODIFICACIÓN AQUÍ
+        const activeOverlayMenu = overlayModule.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active, .menu-sounds.active, .menu-country.active, .menu-timezone.active, .menu-calendar.active, .menu-time-picker.active');
+        
         if (activeOverlayMenu) {
             return {
                 module: overlayModule,
