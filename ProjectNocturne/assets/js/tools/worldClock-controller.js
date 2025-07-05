@@ -5,7 +5,7 @@ import { initializeSortable, handleWorldClockCardAction } from './general-tools.
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 import { getTranslation } from '../general/translations-controller.js';
-import { showConfirmation } from '../general/overlay-manager.js';
+import { showConfirmation } from '../general/confirmation-modal-controller.js';
 
 const clockIntervals = new Map();
 const CLOCKS_STORAGE_KEY = 'world-clocks';

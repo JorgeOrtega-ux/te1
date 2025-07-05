@@ -2,7 +2,7 @@
 
 import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES } from '../general/main.js';
-import { showConfirmation } from '../general/overlay-manager.js';
+import { showConfirmation } from '../general/confirmation-modal-controller.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 
 const DB_NAME = 'ProjectNocturneDB';

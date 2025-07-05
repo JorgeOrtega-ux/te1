@@ -220,6 +220,8 @@ function returnToOriginalPosition() {
 }
 
 // ========== HELPER FUNCTIONS ==========
+// jorgeortega-ux/te1/te1-7fc335df9e4e5805c3011f38ca511c4dd5ca1408/ProjectNocturne/assets/js/general/drag-controller.js
+
 function getModuleFromDragHandle(dragHandle) {
     const controlCenterModule = dragHandle.closest('.module-control-center');
     if (controlCenterModule) {
@@ -292,8 +294,9 @@ function disableDrag() {
     dragHandleElement = null;
 }
 
+
 function resetAllMenuStyles() {
-    const allMenus = document.querySelectorAll('.menu-control-center, .menu-alarm, .menu-timer, .menu-worldClock, .menu-paletteColors');
+    const allMenus = document.querySelectorAll('.menu-control-center, .menu-alarm, .menu-timer, .menu-worldClock, .menu-paletteColors, .menu-sounds, .menu-country, .menu-timezone, .menu-calendar, .menu-time-picker');
     allMenus.forEach(menu => {
         menu.classList.remove('closing', 'dragging');
         menu.style.transform = '';
