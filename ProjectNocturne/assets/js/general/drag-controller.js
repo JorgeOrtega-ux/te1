@@ -220,8 +220,6 @@ function returnToOriginalPosition() {
 }
 
 // ========== HELPER FUNCTIONS ==========
-// jorgeortega-ux/te1/te1-7fc335df9e4e5805c3011f38ca511c4dd5ca1408/ProjectNocturne/assets/js/general/drag-controller.js
-
 function getModuleFromDragHandle(dragHandle) {
     const controlCenterModule = dragHandle.closest('.module-control-center');
     if (controlCenterModule) {
@@ -237,9 +235,7 @@ function getModuleFromDragHandle(dragHandle) {
 
     const overlayModule = dragHandle.closest('.module-overlay');
     if (overlayModule) {
-        // MODIFICACIÓN AQUÍ
-        const activeOverlayMenu = overlayModule.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active, .menu-sounds.active, .menu-country.active, .menu-timezone.active, .menu-calendar.active, .menu-time-picker.active');
-        
+        const activeOverlayMenu = overlayModule.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active');
         if (activeOverlayMenu) {
             return {
                 module: overlayModule,
@@ -294,9 +290,8 @@ function disableDrag() {
     dragHandleElement = null;
 }
 
-
 function resetAllMenuStyles() {
-    const allMenus = document.querySelectorAll('.menu-control-center, .menu-alarm, .menu-timer, .menu-worldClock, .menu-paletteColors, .menu-sounds, .menu-country, .menu-timezone, .menu-calendar, .menu-time-picker');
+    const allMenus = document.querySelectorAll('.menu-control-center, .menu-alarm, .menu-timer, .menu-worldClock, .menu-paletteColors');
     allMenus.forEach(menu => {
         menu.classList.remove('closing', 'dragging');
         menu.style.transform = '';
