@@ -1,8 +1,8 @@
-// ========== MODULE-MANAGER.JS - WITH PROCESS CANCELLATION ON MENU CLOSE ==========
+// ========== MODULE-MANAGER.JS - WITH PROCESS CANCELLATION AND NAVIGATION RESET ==========
 
 // ========== IMPORTS AND DEPENDENCIES ==========
 
-import { initializeMenuForOverlay, resetMenuForOverlay } from '../tools/menu-interactions.js';
+import { initializeMenuForOverlay, resetMenuForOverlay, resetOverlayNavigation } from '../tools/menu-interactions.js';
 import { applyLanguageStates, getCurrentLanguage, initLanguageManager, isLanguageChanging, resetLanguageStates, setLanguage, setLanguageChangeCallback, setTranslationFunction as setLanguageTranslationFunction, setupLanguageEventListeners, updateLanguageLabel } from './language-manager.js';
 import { applyTheme, applyThemeStates, getCurrentTheme, initThemeManager, isThemeChanging, resetThemeStates, setThemeChangeCallback, setTranslationFunction as setThemeTranslationFunction, setupThemeEventListeners, updateThemeLabel } from './theme-manager.js';
 import { isLocationChanging, cleanLocationChangeStates } from './location-manager.js';
@@ -455,6 +455,11 @@ function performModuleDeactivation(moduleName) {
 
             if (overlayToReset) {
                 resetMenuForOverlay(overlayToReset);
+            }
+
+            // Reset sub-menu navigation state (e.g., close 'Sounds' menu) to ensure a clean slate.
+            if (typeof resetOverlayNavigation === 'function') {
+                resetOverlayNavigation();
             }
         }
     }

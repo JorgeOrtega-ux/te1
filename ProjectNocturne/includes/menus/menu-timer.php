@@ -66,21 +66,59 @@
                         </div>
                     </div>
     
-                    <div class="menu-content-wrapper disabled" data-tab-content="count_to_date">
+                   <div class="menu-content-wrapper disabled" data-tab-content="count_to_date">
                         <div class="menu-content">
-                            <div class="menu-content-header"><div class="menu-content-header-primary"><span class="material-symbols-rounded">label</span><span data-translate="timer_title" data-translate-category="timer"></span></div></div>
-                            <div class="menu-content-general"><div class="enter-text-tool"><input type="text" id="countto-title" data-translate="my_event_placeholder" data-translate-category="timer" data-translate-target="placeholder"></div></div>
+                            <div class="menu-content-header">
+                                <div class="menu-content-header-primary"><span class="material-symbols-rounded">label</span><span data-translate="timer_title" data-translate-category="timer"></span></div>
+                            </div>
+                            <div class="menu-content-general">
+                                <div class="enter-text-tool"><input type="text" id="countto-title" data-translate="my_event_placeholder" data-translate-category="timer" data-translate-target="placeholder"></div>
+                            </div>
                         </div>
                         <div class="menu-content">
-                            <div class="menu-content-header"><div class="menu-content-header-primary"><span class="material-symbols-rounded">calendar_month</span><span data-translate="select_date_time" data-translate-category="timer"></span></div></div>
+                            <div class="menu-content-header">
+                                <div class="menu-content-header-primary"><span class="material-symbols-rounded">calendar_month</span><span data-translate="select_date_time" data-translate-category="timer"></span></div>
+                            </div>
                             <div class="menu-content-general">
+                                <div class="date-time-content">
+                                    <div class="date-time-selector">
+                                        <div class="custom-select-content" data-action="toggleCalendarDropdown">
+                                            <div class="custom-select-content-left"><span id="selected-date-display">-- / -- / ----</span></div>
+                                            <div class="custom-select-content-right"><span class="material-symbols-rounded">calendar_today</span></div>
+                                        </div>
+                                        <div class="dropdown-menu-container calendar-container overflow-y disabled body-title" data-menu="calendar">
+                                            <div class="calendar-header">
+                                                <button class="calendar-nav" data-action="prev-month"><span class="material-symbols-rounded">arrow_left</span></button>
+                                                <span id="calendar-month-year"></span>
+                                                <button class="calendar-nav" data-action="next-month"><span class="material-symbols-rounded">arrow_right</span></button>
+                                            </div>
+                                            <div class="calendar-weekdays"><div>D</div><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div></div>
+                                            <div class="calendar-days"></div>
+                                        </div>
+                                    </div>
+    
+                                    <div class="date-time-selector">
+                                        <div class="custom-select-content" data-action="toggleTimerHourDropdown">
+                                            <div class="custom-select-content-left"><span id="selected-hour-display">--</span> : <span id="selected-minute-display">--</span></div>
+                                            <div class="custom-select-content-right"><span class="material-symbols-rounded">schedule</span></div>
+                                        </div>
+                                        <div class="dropdown-menu-container menu-timer-hour-selection overflow-y disabled body-title" data-menu="timerHourMenu">
+                                            <div class="menu-list menu-list-grid" data-list-type="hours"></div>
+                                        </div>
+                                        <div class="dropdown-menu-container menu-timer-minute-selection overflow-y disabled body-title" data-menu="timerMinuteMenu">
+                                            <div class="menu-list menu-list-grid" data-list-type="minutes"></div>
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
                         </div>
                          <div class="menu-content">
-                            <div class="menu-content-header"><div class="menu-content-header-primary"><span class="material-symbols-rounded">music_note</span><span data-translate="alarm_sound" data-translate-category="alarms"></span></div></div>
+                            <div class="menu-content-header">
+                                <div class="menu-content-header-primary"><span class="material-symbols-rounded">music_note</span><span data-translate="alarm_sound" data-translate-category="alarms"></span></div>
+                            </div>
                             <div class="menu-content-general">
                                 <div class="custom-select-wrapper">
-                                    <div class="custom-select-content" data-action="open-sounds-menu" data-context="count_to_date">
+                                     <div class="custom-select-content" data-action="open-sounds-menu" data-context="count_to_date">
                                         <div class="custom-select-content-left"><span id="count-to-date-selected-sound" data-translate="classic_beep" data-translate-category="sounds"></span></div>
                                         <div class="custom-select-content-right"><span class="material-symbols-rounded">arrow_forward_ios</span></div>
                                     </div>

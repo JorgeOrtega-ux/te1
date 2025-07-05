@@ -3,7 +3,7 @@
         <div class="menu-section-top">
             <div class="menu-header-fixed">
                 <button class="menu-back-btn" data-action="back-to-previous-menu">
-                    <span class="material-symbols-rounded">arrow_back</span>
+                    <span class="material-symbols-rounded">arrow_left</span>
                 </button>
                 <div class="search-content">
                     <div class="search-content-icon">
