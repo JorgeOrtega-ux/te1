@@ -1184,6 +1184,7 @@ body {
 .menu-time-picker {
         height: auto;
         max-height: 85%;
+        min-height: 85%;
         border-bottom: 0;
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;

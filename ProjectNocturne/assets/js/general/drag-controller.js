@@ -235,7 +235,7 @@ function getModuleFromDragHandle(dragHandle) {
 
     const overlayModule = dragHandle.closest('.module-overlay');
     if (overlayModule) {
-        const activeOverlayMenu = overlayModule.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active');
+        const activeOverlayMenu = overlayModule.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active, .menu-sounds.active, .menu-country.active, .menu-timezone.active, .menu-calendar.active, .menu-time-picker.active');
         if (activeOverlayMenu) {
             return {
                 module: overlayModule,
@@ -291,7 +291,7 @@ function disableDrag() {
 }
 
 function resetAllMenuStyles() {
-    const allMenus = document.querySelectorAll('.menu-control-center, .menu-alarm, .menu-timer, .menu-worldClock, .menu-paletteColors');
+    const allMenus = document.querySelectorAll('.menu-control-center, .menu-alarm, .menu-timer, .menu-worldClock, .menu-paletteColors, .menu-sounds, .menu-country, .menu-timezone, .menu-calendar, .menu-time-picker');
     allMenus.forEach(menu => {
         menu.classList.remove('closing', 'dragging');
         menu.style.transform = '';
