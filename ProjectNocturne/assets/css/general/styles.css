@@ -417,9 +417,9 @@ body {
 .menu-paletteColors,
 .menu-sounds,
 .menu-country,
-.menu-timezone,
+.menu-timeZone,
 .menu-calendar,
-.menu-time-picker {
+.menu-timePicker {
     display: flex;
     flex-direction: column;
     width: 100%;

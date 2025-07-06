@@ -845,7 +845,7 @@ async function handleMenuClick(event, parentMenu) {
             navigateToMenu('country');
             populateCountryDropdown(document.querySelector('.menu-country'));
             break;
-        case 'open-timezone-menu':
+   case 'open-timezone-menu':
             if (actionTarget.classList.contains('disabled-interactive')) return;
             navigateToMenu('timeZone');
             populateTimezoneDropdown(document.querySelector('.menu-timeZone'), state.worldClock.countryCode);
