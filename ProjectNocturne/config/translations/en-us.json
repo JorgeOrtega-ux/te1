@@ -137,7 +137,8 @@
     "search_clocks_placeholder": "Search clocks...",
     "search_cities_placeholder": "Search countries...",
     "search_countries_placeholder": "Search countries...",
-    "search_sounds_placeholder": "Search sounds..."
+    "search_sounds_placeholder": "Search sounds...",
+    "search_timezones_placeholder": "Search timezones..."
   },
   "search_sections": {
     "brightness_dark": "Darker Variations",

@@ -112,23 +112,23 @@
     "white": "Blanco",
     "yellow": "Amarillo"
   },
-"menu": {
-  "appearance": "Apariencia",
-  "dark_theme": "Tema oscuro",
-  "english_us": "English (Estados Unidos)",
-  "french_fr": "Français (Francia)",
-  "language": "Idioma",
-  "light_theme": "Tema claro",
-  "privacy_policy": "Política de Privacidad",
-  "settings": "Configuración",
-  "spanish_mx": "Español (México)",
-  "suggest_improvements": "Sugerir mejoras",
-  "sync_with_system": "Sincronizar con el sistema",
-  "location": "Ubicación",
-  "detecting": "Detectando...",
-  "none_selected": "No seleccionado"
-},
-"search": {
+  "menu": {
+    "appearance": "Apariencia",
+    "dark_theme": "Tema oscuro",
+    "english_us": "English (Estados Unidos)",
+    "french_fr": "Français (Francia)",
+    "language": "Idioma",
+    "light_theme": "Tema claro",
+    "privacy_policy": "Política de Privacidad",
+    "settings": "Configuración",
+    "spanish_mx": "Español (México)",
+    "suggest_improvements": "Sugerir mejoras",
+    "sync_with_system": "Sincronizar con el sistema",
+    "location": "Ubicación",
+    "detecting": "Detectando...",
+    "none_selected": "No seleccionado"
+  },
+  "search": {
     "no_results": "No se encontraron resultados para",
     "no_valid_results": "No se encontraron resultados válidos para el tema actual para",
     "search_error": "No se pudo procesar la búsqueda",
@@ -138,7 +138,8 @@
     "search_clocks_placeholder": "Buscar relojes...",
     "search_cities_placeholder": "Buscar países...",
     "search_countries_placeholder": "Buscar países...",
-    "search_sounds_placeholder": "Buscar sonidos..."
+    "search_sounds_placeholder": "Buscar sonidos...",
+    "search_timezones_placeholder": "Buscar zonas horarias..."
   },
   "search_sections": {
     "brightness_dark": "Variaciones más oscuras",
@@ -212,7 +213,7 @@
     "read_book": "Leer un libro",
     "take_a_break": "Tomar un descanso"
   },
-"world_clock": {
+  "world_clock": {
     "clock_title": "Título del reloj",
     "my_new_clock_placeholder": "Mi nuevo reloj",
     "select_country": "Selecciona un país",

@@ -138,7 +138,8 @@
     "search_clocks_placeholder": "Rechercher des horloges...",
     "search_cities_placeholder": "Rechercher des pays...",
     "search_countries_placeholder": "Rechercher des pays...",
-    "search_sounds_placeholder": "Rechercher des sons..."
+    "search_sounds_placeholder": "Rechercher des sons...",
+    "search_timezones_placeholder": "Rechercher des fuseaux horaires..."
   },
   "search_sections": {
     "brightness_dark": "Variations plus foncées",
