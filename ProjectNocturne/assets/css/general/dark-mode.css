@@ -102,8 +102,8 @@
 .dark-mode .menu-timer,
 .dark-mode .menu-worldClock,
 .dark-mode .menu-sounds,
-.dark-mode .menu-countrys,
-.dark-mode .time-zone,
+.dark-mode .menu-country,
+.dark-mode .menu-timeZone,
 .dark-mode .menu-calendar {
     color: #ffffff;
     background-color: #252627;

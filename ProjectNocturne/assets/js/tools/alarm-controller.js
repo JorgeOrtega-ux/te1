@@ -22,7 +22,9 @@ let defaultAlarmsState = [];
 let activeAlarmTimers = new Map();
 
 function renderAlarmSearchResults(searchTerm) {
-    const menuElement = document.querySelector('.menu-alarm[data-menu="Alarm"]');
+    // ================== INICIO DEL CÓDIGO CORREGIDO ==================
+    const menuElement = document.querySelector('.menu-alarm[data-menu="alarm"]');
+    // =================== FIN DEL CÓDIGO CORREGIDO ====================
     if (!menuElement) return;
 
     const resultsWrapper = menuElement.querySelector('.search-results-wrapper');

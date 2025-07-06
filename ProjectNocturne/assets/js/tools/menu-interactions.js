@@ -137,8 +137,8 @@ function getMenuElement(menuName) {
         'menuTimer': '.menu-timer[data-menu="timer"]',
         'menuWorldClock': '.menu-worldClock[data-menu="worldClock"]',
         'menuCalendar': '.menu-calendar[data-menu="calendar"]',
-        'timePicker': '.menu-timePicker[data-menu="timePicker"]', // CORREGIDO
-        'timeZone': '.menu-timeZone[data-menu="timeZone"]' // CORREGIDO
+        'timePicker': '.menu-timePicker[data-menu="timePicker"]',
+        'timeZone': '.menu-timeZone[data-menu="timeZone"]'
     };
     return document.querySelector(menuSelectorMap[menuName]);
 };
@@ -592,7 +592,7 @@ const selectCalendarDate = (day) => {
 };
 
 const populateHourSelectionMenu = () => {
-    const timePickerMenu = getMenuElement('timePicker'); // CORREGIDO
+    const timePickerMenu = getMenuElement('timePicker');
     if (!timePickerMenu) return;
     const hourMenu = timePickerMenu.querySelector('.menu-list[data-list-type="hours"]');
     if (!hourMenu || hourMenu.children.length > 0) return;
@@ -607,7 +607,7 @@ const populateHourSelectionMenu = () => {
 };
 
 const populateMinuteSelectionMenu = (hour) => {
-    const timePickerMenu = getMenuElement('timePicker'); // CORREGIDO
+    const timePickerMenu = getMenuElement('timePicker');
     if (!timePickerMenu) return;
     const minuteMenu = timePickerMenu.querySelector('.menu-list[data-list-type="minutes"]');
     if (!minuteMenu) return;
@@ -684,6 +684,15 @@ function populateSoundsMenu(context) {
 
 function setupGlobalEventListeners() {
     if (areGlobalListenersInitialized) return;
+
+    document.addEventListener('click', (event) => {
+        const soundMenuToggle = event.target.closest('[data-module="toggleSoundsMenu"]');
+        if (soundMenuToggle) {
+            const context = soundMenuToggle.dataset.context;
+            soundSelectionContext = context;
+            populateSoundsMenu(context);
+        }
+    }, true);
 
     document.addEventListener('click', (event) => {
         const isClickInsideDropdown = event.target.closest('.dropdown-menu-container');
@@ -763,7 +772,6 @@ function setupGlobalEventListeners() {
     });
 
     document.body.addEventListener('click', (event) => {
-        // CORREGIDO: Selector actualizado para coincidir con el HTML
         const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker');
         if (!parentMenu || autoIncrementState.isActive) return;
         handleMenuClick(event, parentMenu);
@@ -835,7 +843,6 @@ async function handleMenuClick(event, parentMenu) {
             navigateToMenu('timePicker');
             populateHourSelectionMenu();
             break;
-        // ELIMINADO: 'open-sounds-menu' ya no es necesario aquí.
         case 'open-country-menu':
             navigateToMenu('country');
             populateCountryDropdown(document.querySelector('.menu-country'));
@@ -919,7 +926,12 @@ async function handleMenuClick(event, parentMenu) {
             event.stopPropagation();
             deleteUserAudio(actionTarget.dataset.audioId, () => populateSoundsMenu(soundSelectionContext));
             break;
+        // ================== INICIO DEL CÓDIGO CORREGIDO ==================
         case 'createAlarm': {
+            if (window.alarmManager && window.alarmManager.getAlarmCount() >= window.alarmManager.getAlarmLimit()) {
+                showDynamicIslandNotification('system', 'limit_reached', null, 'notifications', { type: getTranslation('alarms', 'tooltips') });
+                return;
+            }
             const alarmTitleInput = parentMenu.querySelector('#alarm-title');
             if (!validateField(alarmTitleInput.parentElement, alarmTitleInput.value.trim())) return;
             addSpinnerToCreateButton(actionTarget);
@@ -930,6 +942,10 @@ async function handleMenuClick(event, parentMenu) {
             break;
         }
         case 'createTimer': {
+            if (window.timerManager && window.timerManager.getTimersCount() >= window.timerManager.getTimerLimit()) {
+                showDynamicIslandNotification('system', 'limit_reached', null, 'notifications', { type: getTranslation('timer', 'tooltips') });
+                return;
+            }
             if (state.timer.currentTab === 'countdown') {
                 const timerTitleInput = parentMenu.querySelector('#timer-title');
                 const { hours, minutes, seconds } = state.timer.duration;
@@ -954,6 +970,10 @@ async function handleMenuClick(event, parentMenu) {
             break;
         }
         case 'addWorldClock': {
+            if (window.worldClockManager && window.worldClockManager.getClockCount() >= window.worldClockManager.getClockLimit()) {
+                showDynamicIslandNotification('system', 'limit_reached', null, 'notifications', { type: getTranslation('world_clock', 'tooltips') });
+                return;
+            }
             const clockTitleInput = parentMenu.querySelector('#worldclock-title');
             const { country, timezone } = state.worldClock;
             if (!validateField(clockTitleInput.parentElement, clockTitleInput.value.trim()) || !country || !timezone) return;
@@ -964,6 +984,7 @@ async function handleMenuClick(event, parentMenu) {
             }, 500);
             break;
         }
+        // =================== FIN DEL CÓDIGO CORREGIDO ====================
         case 'saveAlarmChanges': {
             const editingId = parentMenu.getAttribute('data-editing-id');
             const alarmTitleInput = parentMenu.querySelector('#alarm-title');

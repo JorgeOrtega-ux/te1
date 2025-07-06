@@ -53,7 +53,9 @@ function updatePinnedTimerNameDisplay() {
 }
 
 function renderTimerSearchResults(searchTerm) {
-    const menuElement = document.querySelector('.menu-timer[data-menu="Timer"]');
+    // ================== INICIO DEL CÓDIGO CORREGIDO ==================
+    const menuElement = document.querySelector('.menu-timer[data-menu="timer"]');
+    // =================== FIN DEL CÓDIGO CORREGIDO ====================
     if (!menuElement) return;
 
     const resultsWrapper = menuElement.querySelector('.search-results-wrapper');

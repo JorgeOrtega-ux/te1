@@ -121,8 +121,8 @@
                                 </div>
                             </div>
                             <div class="menu-content-general">
-                                <div class="custom-select-wrapper">
-                                    <div class="custom-select-content" data-module="toggleSoundsMenu" data-context="countdown">
+                                <div class="custom-select-wrapper custom-select-wrapper--row">
+                                <div class="custom-select-content" data-module="toggleSoundsMenu" data-context="countdown">
                                         <div class="custom-select-content-left">
                                             <span id="countdown-selected-sound" 
                                                   data-translate="classic_beep" 
@@ -197,8 +197,8 @@
                                 </div>
                             </div>
                             <div class="menu-content-general">
-                                <div class="custom-select-wrapper">
-                                    <div class="custom-select-content" data-module="toggleSoundsMenu" data-context="count_to_date">
+                                <div class="custom-select-wrapper custom-select-wrapper--row">
+                                <div class="custom-select-content" data-module="toggleSoundsMenu" data-context="count_to_date">
                                         <div class="custom-select-content-left">
                                             <span id="count-to-date-selected-sound" 
                                                   data-translate="classic_beep" 

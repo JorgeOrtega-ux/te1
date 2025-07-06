@@ -1499,3 +1499,18 @@ html.light-mode .dynamic-island {
 .custom-select-content.input-error {
     border-color: #d32f2f;
 }
+
+/* ================== INICIO DEL CÓDIGO CORREGIDO ================== */
+.custom-select-wrapper--row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.custom-select-wrapper--row > .custom-select-content {
+    flex: 1; /* Hace que el selector de sonido ocupe el espacio disponible */
+}
+
+.custom-select-wrapper--row > .menu-action-button {
+    flex-shrink: 0; /* Evita que el botón de play se encoja */
+}
+/* =================== FIN DEL CÓDIGO CORREGIDO ==================== */

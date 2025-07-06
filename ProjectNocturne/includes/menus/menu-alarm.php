@@ -75,7 +75,7 @@
                                 </div>
                             </div>
                             <div class="menu-content-general">
-                                <div class="custom-select-wrapper">
+                                <div class="custom-select-wrapper custom-select-wrapper--row">
                                     <div class="custom-select-content" data-module="toggleSoundsMenu" data-context="alarm">
                                         <div class="custom-select-content-left">
                                             <span id="alarm-selected-sound" 

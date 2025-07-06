@@ -13,7 +13,9 @@ let userClocks = [];
 let mainDisplayInterval = null;
 
 function renderWorldClockSearchResults(searchTerm) {
-    const menuElement = document.querySelector('.menu-worldClock[data-menu="WorldClock"]');
+    // ================== INICIO DEL CÓDIGO CORREGIDO ==================
+    const menuElement = document.querySelector('.menu-worldClock[data-menu="worldClock"]');
+    // =================== FIN DEL CÓDIGO CORREGIDO ====================
     if (!menuElement) return;
 
     const resultsWrapper = menuElement.querySelector('.search-results-wrapper');
