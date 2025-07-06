@@ -136,7 +136,9 @@
     "search_alarms_placeholder": "Rechercher des alarmes...",
     "search_timers_placeholder": "Rechercher des minuteurs...",
     "search_clocks_placeholder": "Rechercher des horloges...",
-    "search_cities_placeholder": "Rechercher des pays..."
+    "search_cities_placeholder": "Rechercher des pays...",
+    "search_countries_placeholder": "Rechercher des pays...",
+    "search_sounds_placeholder": "Rechercher des sons..."
   },
   "search_sections": {
     "brightness_dark": "Variations plus foncées",
@@ -217,6 +219,7 @@
     "select_a_country": "Sélectionner un pays",
     "select_timezone": "Sélectionnez un fuseau horaire",
     "select_a_timezone": "Sélectionner un fuseau horaire",
+    "country_and_timezone": "Pays et Fuseau Horaire",
     "loading_countries": "Chargement des pays...",
     "error_loading_countries": "Erreur lors du chargement des pays.",
     "no_timezones_found": "Aucun fuseau horaire trouvé.",

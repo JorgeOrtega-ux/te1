@@ -669,15 +669,25 @@ async function populateTimezoneDropdown(parentMenu, countryCode) {
 function populateSoundsMenu(context) {
     const soundsMenu = document.querySelector('.menu-sounds');
     if (!soundsMenu) return;
-    const listContainer = soundsMenu.querySelector('.sound-list-container');
-    let activeSoundId = '';
-    if (context === 'alarm') activeSoundId = state.alarm.sound;
-    else if (context === 'countdown') activeSoundId = state.timer.sound;
-    else if (context === 'count_to_date') activeSoundId = state.timer.countTo.sound;
-    
-    generateSoundList(listContainer, 'selectSound', activeSoundId);
-}
 
+    // --- INICIO DE LA CORRECCIÓN ---
+    // Apuntamos a los nuevos IDs de los contenedores
+    const uploadContainer = soundsMenu.querySelector('#upload-audio-wrapper');
+    const listContainer = soundsMenu.querySelector('#sound-list-wrapper');
+    // --- FIN DE LA CORRECCIÓN ---
+
+    let activeSoundId = '';
+    if (context === 'alarm') {
+        activeSoundId = state.alarm.sound;
+    } else if (context === 'countdown') {
+        activeSoundId = state.timer.sound;
+    } else if (context === 'count_to_date') {
+        activeSoundId = state.timer.countTo.sound;
+    }
+    
+    // Pasamos los dos contenedores a la función
+    generateSoundList(uploadContainer, listContainer, 'selectSound', activeSoundId);
+}
 function setupGlobalEventListeners() {
     if (areGlobalListenersInitialized) return;
 

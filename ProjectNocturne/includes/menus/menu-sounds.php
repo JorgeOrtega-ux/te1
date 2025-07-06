@@ -1,5 +1,5 @@
 <div class="menu-sounds disabled body-title" data-menu="Sounds">
-      <div class="pill-container">
+    <div class="pill-container">
         <div class="drag-handle"></div>
     </div>
     <div class="menu-section">
@@ -21,9 +21,14 @@
                 </div>
             </div>
         </div>
+
+
+
         <div class="menu-content-scrolleable overflow-y">
-            <div class="menu-section-center overflow-y">
-                <div class="sound-list-container">
+            <div class="sounds-creation-wrapper">
+                <div class="menu-section-center" id="upload-audio-wrapper">
+                </div>
+                <div class="menu-section-bottom  overflow-y" id="sound-list-wrapper">
                 </div>
             </div>
         </div>

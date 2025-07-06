@@ -265,22 +265,22 @@ export function stopSound() {
 }
 
 // ===== FUNCIÓN generateSoundList ACTUALIZADA =====
-export async function generateSoundList(listElement, actionName, activeSoundId = null) {
+export async function generateSoundList(uploadElement, listElement, actionName, activeSoundId = null) {
     await populateAudioCache();
-    if (!listElement) return;
+    if (!uploadElement || !listElement) {
+        console.error('Sound list generation failed: target elements not found.');
+        return;
+    }
 
-    listElement.innerHTML = ''; // Limpiar contenido previo
+    // Limpiar contenido previo de ambos contenedores
+    uploadElement.innerHTML = '';
+    listElement.innerHTML = '';
 
-    const getTranslation = window.getTranslation || ((key, category) => key);
+    const getTranslation = window.getTranslation || ((key) => key);
 
-    // --- Poblar Cuerpo ---
-    const availableSounds = getAvailableSounds();
-    const defaultSounds = availableSounds.filter(s => !s.isCustom);
-    const userAudios = availableSounds.filter(s => s.isCustom);
-    
-    // Contenedor para la carga de archivos
-    const uploadContainer = document.createElement('div');
-    uploadContainer.className = 'menu-list';
+    // 1. Crear y colocar el enlace "Subir Audio" en su contenedor dedicado
+    const uploadListContainer = document.createElement('div');
+    uploadListContainer.className = 'menu-list';
     const uploadLink = document.createElement('div');
     uploadLink.className = 'menu-link';
     uploadLink.dataset.action = 'upload-audio';
@@ -288,40 +288,42 @@ export async function generateSoundList(listElement, actionName, activeSoundId =
         <div class="menu-link-icon"><span class="material-symbols-rounded">upload_file</span></div>
         <div class="menu-link-text"><span data-translate="upload_audio" data-translate-category="sounds">${getTranslation('upload_audio', 'sounds')}</span></div>
     `;
-    uploadContainer.appendChild(uploadLink);
-    listElement.appendChild(uploadContainer);
+    uploadListContainer.appendChild(uploadLink);
+    uploadElement.appendChild(uploadListContainer);
 
-    // Lista principal para los sonidos
-    const soundListWrapper = document.createElement('div');
-    soundListWrapper.className = 'menu-list';
-    
-    // Encabezado para sonidos predeterminados
+    // 2. Crear y colocar las listas de sonidos en su contenedor dedicado
+    const soundListContainer = document.createElement('div');
+    soundListContainer.className = 'menu-list';
+
+    const availableSounds = getAvailableSounds();
+    const defaultSounds = availableSounds.filter(s => !s.isCustom);
+    const userAudios = availableSounds.filter(s => s.isCustom);
+
+    // Sección de sonidos predeterminados
     const defaultSoundsHeader = document.createElement('div');
-    defaultSoundsHeader.className = 'menu-content-header-sm'; // Clase actualizada
+    defaultSoundsHeader.className = 'menu-content-header-sm';
     defaultSoundsHeader.innerHTML = `<span>${getTranslation('default_audios', 'sounds')}</span>`;
-    soundListWrapper.appendChild(defaultSoundsHeader);
-
+    soundListContainer.appendChild(defaultSoundsHeader);
     defaultSounds.forEach(sound => {
         const menuLink = createSoundMenuItem(sound, actionName, activeSoundId, false);
-        soundListWrapper.appendChild(menuLink);
+        soundListContainer.appendChild(menuLink);
     });
 
+    // Sección de sonidos del usuario
     if (userAudios.length > 0) {
-        // Encabezado para sonidos de usuario
         const userAudiosHeader = document.createElement('div');
-        userAudiosHeader.className = 'menu-content-header-sm'; // Clase actualizada
+        userAudiosHeader.className = 'menu-content-header-sm';
         userAudiosHeader.innerHTML = `<span>${getTranslation('uploaded_audios', 'sounds')}</span>`;
-        soundListWrapper.appendChild(userAudiosHeader);
-
+        soundListContainer.appendChild(userAudiosHeader);
         userAudios.forEach(sound => {
             const menuLink = createSoundMenuItem(sound, actionName, activeSoundId, true);
-            soundListWrapper.appendChild(menuLink);
+            soundListContainer.appendChild(menuLink);
         });
     }
-    
-    listElement.appendChild(soundListWrapper);
-}
 
+    // Añadir la lista completa al elemento de destino
+    listElement.appendChild(soundListContainer);
+}
 function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
     const menuLink = document.createElement('div');
     menuLink.className = 'menu-link';

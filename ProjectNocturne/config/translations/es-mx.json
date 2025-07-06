@@ -128,7 +128,7 @@
     "detecting": "Detectando...",
     "none_selected": "No seleccionado"
   },
-  "search": {
+"search": {
     "no_results": "No se encontraron resultados para",
     "no_valid_results": "No se encontraron resultados válidos para el tema actual para",
     "search_error": "No se pudo procesar la búsqueda",
@@ -136,7 +136,9 @@
     "search_alarms_placeholder": "Buscar alarmas...",
     "search_timers_placeholder": "Buscar temporizadores...",
     "search_clocks_placeholder": "Buscar relojes...",
-    "search_cities_placeholder": "Buscar países..."
+    "search_cities_placeholder": "Buscar países...",
+    "search_countries_placeholder": "Buscar países...",
+    "search_sounds_placeholder": "Buscar sonidos..."
   },
   "search_sections": {
     "brightness_dark": "Variaciones más oscuras",
@@ -210,13 +212,14 @@
     "read_book": "Leer un libro",
     "take_a_break": "Tomar un descanso"
   },
-  "world_clock": {
+"world_clock": {
     "clock_title": "Título del reloj",
     "my_new_clock_placeholder": "Mi nuevo reloj",
     "select_country": "Selecciona un país",
     "select_a_country": "Seleccionar un país",
     "select_timezone": "Selecciona una zona horaria",
     "select_a_timezone": "Seleccionar una zona horaria",
+    "country_and_timezone": "País y Zona Horaria",
     "loading_countries": "Cargando países...",
     "error_loading_countries": "Error al cargar los países.",
     "no_timezones_found": "No se encontraron zonas horarias.",
