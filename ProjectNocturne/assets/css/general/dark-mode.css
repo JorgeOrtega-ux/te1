@@ -133,7 +133,7 @@
 .dark-mode .add-menu-container {
     filter: unset;
     border-color: #ffffff20;
-}.dark-mode .widget-clock {
+}.dark-mode .widget.widget-clock {
     border-color: #ffffff20;
 }
 
