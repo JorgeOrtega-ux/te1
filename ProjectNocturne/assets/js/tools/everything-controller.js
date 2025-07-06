@@ -110,11 +110,17 @@ function updateActionCounts() {
         alarmMenuItem.classList.toggle('disabled-interactions', isDisabled);
     }
 
-    const timerMenuItem = document.querySelector('.add-menu-custom .menu-link[data-module="toggleMenuTimer"]');
+ const timerMenuItem = document.querySelector('.add-menu-custom .menu-link[data-module="toggleMenuTimer"]');
     if (timerMenuItem && window.timerManager) {
         const count = window.timerManager.getTimersCount();
         const limit = window.timerManager.getTimerLimit();
-        const isDisabled = count >= limit;
+        
+        // --- AÑADIR ESTA LÍNEA ---
+        const isAnyTimerRunning = window.timerManager.getRunningTimersCount() > 0;
+
+        // --- MODIFICAR ESTA LÍNEA ---
+        const isDisabled = count >= limit || isAnyTimerRunning;
+
         timerMenuItem.classList.toggle('disabled-interactions', isDisabled);
     }
 
