@@ -67,7 +67,7 @@
                                             <span id="alarm-selected-sound" data-translate="classic_beep" data-translate-category="sounds"></span>
                                         </div>
                                         <div class="custom-select-content-right">
-                                            <span class="material-symbols-rounded">arrow_forward_ios</span>
+                                            <span class="material-symbols-rounded">arrow_right</span>
                                         </div>
                                     </div>
                                     <div class="menu-action-button" data-action="previewAlarmSound">
