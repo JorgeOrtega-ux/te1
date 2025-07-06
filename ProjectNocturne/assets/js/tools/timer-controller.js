@@ -23,7 +23,7 @@ const DEFAULT_TIMERS = [
 function formatTimeSince(timestamp) {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
     if (seconds < 60) return `${seconds} ${getTranslation('seconds', 'timer')}`;
-    
+
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes} ${getTranslation('minutes', 'timer')}`;
 
@@ -480,12 +480,12 @@ function startTimer(timerId) {
 
 function startCountdownTimer(timer) {
     timer.isRunning = true;
-    
+
     const tick = () => {
         if (!timer.isRunning) {
             if (activeTimers.has(timer.id)) {
-                 clearTimeout(activeTimers.get(timer.id));
-                 activeTimers.delete(timer.id);
+                clearTimeout(activeTimers.get(timer.id));
+                activeTimers.delete(timer.id);
             }
             return;
         }
@@ -503,7 +503,7 @@ function startCountdownTimer(timer) {
             activeTimers.set(timer.id, timeoutId);
         }
     };
-    
+
     tick();
 }
 
@@ -513,8 +513,8 @@ function startCountToDateTimer(timer) {
     const tick = () => {
         if (!timer.isRunning) {
             if (activeTimers.has(timer.id)) {
-                 clearTimeout(activeTimers.get(timer.id));
-                 activeTimers.delete(timer.id);
+                clearTimeout(activeTimers.get(timer.id));
+                activeTimers.delete(timer.id);
             }
             return;
         }
@@ -886,14 +886,14 @@ function updateMainControlsState() {
         addTimerBtn?.classList.remove('disabled-interactive');
         return;
     }
-    
+
     addTimerBtn?.classList.toggle('disabled-interactive', isRinging);
 
     if (isRunning) {
         startBtn?.classList.add('disabled-interactive');
         pauseBtn?.classList.remove('disabled-interactive');
         resetBtn?.classList.remove('disabled-interactive');
-    } 
+    }
     else {
         startBtn?.classList.remove('disabled-interactive');
         pauseBtn?.classList.add('disabled-interactive');
@@ -1288,30 +1288,3 @@ document.addEventListener('translationsApplied', () => {
 
 
 export { initializeTimerController };
-
-
-// Archivo: ProjectNocturne/assets/js/tools/timer-controller.js
-
-export function initializeScrollShadow() {
-    const menus = document.querySelectorAll('[data-menu]');
-
-    menus.forEach(menu => {
-        const topContainer = menu.querySelector('.menu-section-top, .menu-header');
-        const scrollableContainer = menu.querySelector('.overflow-y');
-
-        if (topContainer && scrollableContainer) {
-            const handleScroll = () => {
-                if (scrollableContainer.scrollTop > 0) {
-                    topContainer.classList.add('shadow');
-                } else {
-                    topContainer.classList.remove('shadow');
-                }
-            };
-            
-            scrollableContainer.removeEventListener('scroll', handleScroll);
-            scrollableContainer.addEventListener('scroll', handleScroll);
-        }
-    });
-}
-
-initializeScrollShadow();

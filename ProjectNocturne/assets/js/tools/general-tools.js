@@ -1179,6 +1179,27 @@ export function initializeTextStyleManager() {
         document.dispatchEvent(event);
     }
 }
+export function initializeScrollShadow() {
+    const menus = document.querySelectorAll('[data-menu]');
+
+    menus.forEach(menu => {
+        const topContainer = menu.querySelector('.menu-section-top, .menu-header');
+        const scrollableContainer = menu.querySelector('.overflow-y');
+
+        if (topContainer && scrollableContainer) {
+            const handleScroll = () => {
+                if (scrollableContainer.scrollTop > 0) {
+                    topContainer.classList.add('shadow');
+                } else {
+                    topContainer.classList.remove('shadow');
+                }
+            };
+            
+            scrollableContainer.removeEventListener('scroll', handleScroll);
+            scrollableContainer.addEventListener('scroll', handleScroll);
+        }
+    });
+}
 export function initializeFullScreenManager() {
     if (!document.documentElement.requestFullscreen) {
         console.warn('Fullscreen API is not supported in this browser.');

@@ -4,7 +4,7 @@ import { initLocationManager, resetLocationSearch } from '../general/location-ma
 
 import { initColorSearchSystem } from '../tools/color-search-system.js';
 import { initializeEverything } from '../tools/everything-controller.js';
-import { initializeCategorySliderService, initializeCentralizedFontManager, initializeFullScreenManager, initializeCardEventListeners } from '../tools/general-tools.js';
+import { initializeCategorySliderService, initializeCentralizedFontManager, initializeFullScreenManager, initializeCardEventListeners, initializeScrollShadow } from '../tools/general-tools.js';
 import { initColorTextSystem, refreshColorSystem, applyCollapsedSectionsState, setupCollapsibleSectionEvents } from '../tools/palette-colors.js';
 import { initializeZoneInfoTool } from '../tools/zoneinfo-controller.js';
 
@@ -348,6 +348,7 @@ function initializeMainComponents() {
     setupEventListeners();
     batchMigrateTooltips();
     initializeMobileSidebarTooltips();
+    initializeScrollShadow();
 }
 
 function finalizeInitialization() {
