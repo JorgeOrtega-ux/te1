@@ -2,7 +2,8 @@
 import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
 import { playSound as playAlarmSound, stopSound as stopAlarmSound, initializeSortable, getAvailableSounds, handleAlarmCardAction, getSoundNameById, createExpandableToolContainer } from './general-tools.js';
-import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
+// Corrección:
+import { showDynamicIslandNotification, hideDynamicIsland } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 import { getTranslation } from '../general/translations-controller.js';
 import { showConfirmation } from '../general/confirmation-modal-controller.js';
@@ -409,9 +410,7 @@ function dismissAlarm(alarmId) {
     if (alarm && alarm.enabled) {
         console.log(`Alarm ${alarmId} dismissed.`);
     }
-    if (window.hideDynamicIsland) {
-        window.hideDynamicIsland();
-    }
+   hideDynamicIsland(); // Llamada directa, ya no se necesita el 'if'
 }
 
 function findAlarmById(alarmId) {

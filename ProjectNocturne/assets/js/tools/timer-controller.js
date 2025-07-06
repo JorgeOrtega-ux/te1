@@ -3,7 +3,8 @@ import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
 import { playSound, stopSound, initializeSortable, getAvailableSounds, handleTimerCardAction, getSoundNameById, createExpandableToolContainer } from './general-tools.js';
-import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
+// Corrección:
+import { showDynamicIslandNotification, hideDynamicIsland } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 import { showConfirmation } from '../general/confirmation-modal-controller.js';
 
@@ -444,7 +445,7 @@ function startTimer(timerId) {
     updateTimerCardControls(timerId);
     updateMainControlsState();
     refreshSearchResults();
- updateEverythingWidgets();
+    updateEverythingWidgets();
     const isUserTimer = userTimers.some(t => t.id === timerId);
     if (isUserTimer) {
         saveTimersToStorage();
@@ -1179,21 +1180,18 @@ function dismissTimer(timerId) {
             optionsContainer.classList.remove('active');
         }
     }
-    if (window.hideDynamicIsland) {
-        window.hideDynamicIsland();
-    }
+    hideDynamicIsland(); // Llamada directa, ya no se necesita el 'if'
     const timer = findTimerById(timerId);
 
-    // --- INICIO DEL CÓDIGO MODIFICADO ---
-    if (timer) {
-        timer.isRinging = false; // Detiene el estado de "sonando"
-        if (timer.type === 'countdown') {
-            // Siempre reinicia el temporizador de cuenta regresiva, lo que lo pausará.
-            resetTimer(timerId);
-        }
-        // Para los temporizadores de 'count_to_date', no se hace nada al descartar.
+    // --- AÑADIR ESTA LÍNEA ---
+    if (timer) timer.isRinging = false;
+
+    if (timer && timer.type === 'countdown' && timer.endAction === 'stop') {
+        resetTimer(timerId);
+    } else if (timer && timer.type === 'count_to_date') {
+        // No hacer nada
     }
-    // --- FIN DEL CÓDIGO MODIFICADO ---
+
 }
 document.addEventListener('translationsApplied', () => {
     const allTimers = [...userTimers, ...defaultTimersState];
@@ -1217,7 +1215,7 @@ export function initializeScrollShadow() {
     menus.forEach(menu => {
         // El encabezado que recibirá la sombra.
         const topContainer = menu.querySelector('.menu-section-top, .menu-header');
-        
+
         // El contenedor con la barra de scroll.
         const scrollableContainer = menu.querySelector('.overflow-y');
 
@@ -1230,7 +1228,7 @@ export function initializeScrollShadow() {
                     topContainer.classList.remove('shadow');
                 }
             };
-            
+
             // Se asegura de que el listener se añada solo una vez.
             scrollableContainer.removeEventListener('scroll', handleScroll);
             scrollableContainer.addEventListener('scroll', handleScroll);
