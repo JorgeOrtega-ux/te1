@@ -37,12 +37,14 @@
 /* ============= SIDEBAR ================ */
 /* ====================================== */
 .dark-mode .sidebar-wrapper.desktop-sidebar .sidebar {
-    background-color: #252627;
+    background-color: #18191b;
     border-color: #ffffff20;
 }
-
+.dark-mode #upload-audio-wrapper {
+    border-color: #ffffff20;
+}
 .dark-mode .sidebar-wrapper.mobile-sidebar .sidebar {
-    background-color: #252627;
+    background-color: #18191b;
     border-color: #ffffff20;
 }
 
@@ -68,7 +70,7 @@
 /* ========== GENERAL CONTENT =========== */
 /* ====================================== */
 .dark-mode .general-content {
-    background-color: #252627;
+    background-color: #18191b;
     border-color: #ffffff20;
 }
 
