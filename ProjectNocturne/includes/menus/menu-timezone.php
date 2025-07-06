@@ -1,4 +1,4 @@
-<div class="menu-timezone disabled body-title" data-menu="Timezone">
+<div class="menu-timezone disabled body-title" data-menu="timeZone">
     <div class="pill-container">
         <div class="drag-handle"></div>
     </div>

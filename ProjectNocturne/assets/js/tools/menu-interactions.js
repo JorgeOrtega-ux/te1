@@ -88,7 +88,7 @@ function navigateBack() {
         currentMenu.classList.add('disabled');
 
         // If we are leaving the time picker, reset its internal state to show the hour list again.
-        if (currentMenu.dataset.menu === 'TimePicker') {
+        if (currentMenu.dataset.menu === 'timepicker') {
             const hourList = currentMenu.querySelector('[data-list-type="hours"]');
             const minuteList = currentMenu.querySelector('[data-list-type="minutes"]');
             if (hourList && minuteList) {
@@ -134,11 +134,11 @@ const toggleDropdown = (action, parentMenu) => {
 
 function getMenuElement(menuName) {
     const menuSelectorMap = {
-        'menuAlarm': '.menu-alarm[data-menu="Alarm"]',
-        'menuTimer': '.menu-timer[data-menu="Timer"]',
-        'menuWorldClock': '.menu-worldClock[data-menu="WorldClock"]',
-        'menuCalendar': '.menu-calendar[data-menu="Calendar"]',
-        'menuTimePicker': '.menu-time-picker[data-menu="TimePicker"]'
+        'menuAlarm': '.menu-alarm[data-menu="alarm"]',
+        'menuTimer': '.menu-timer[data-menu="timer"]',
+        'menuWorldClock': '.menu-worldClock[data-menu="worldClock"]',
+        'menuCalendar': '.menu-calendar[data-menu="calendar"]',
+        'menuTimePicker': '.menu-time-picker[data-menu="timePicker"]'
     };
     return document.querySelector(menuSelectorMap[menuName]);
 };
@@ -829,25 +829,25 @@ async function handleMenuClick(event, parentMenu) {
 
     switch (action) {
         case 'open-calendar-menu':
-            navigateToMenu('Calendar');
+            navigateToMenu('calendar');
             renderCalendar();
             break;
         case 'open-time-picker-menu':
-            navigateToMenu('TimePicker');
+            navigateToMenu('timepicker');
             populateHourSelectionMenu();
             break;
         case 'open-sounds-menu':
             soundSelectionContext = actionTarget.dataset.context;
-            navigateToMenu('Sounds');
+            navigateToMenu('sounds');
             populateSoundsMenu(soundSelectionContext);
             break;
         case 'open-country-menu':
-            navigateToMenu('Country');
+            navigateToMenu('country');
             populateCountryDropdown(document.querySelector('.menu-country'));
             break;
         case 'open-timezone-menu':
             if (actionTarget.classList.contains('disabled-interactive')) return;
-            navigateToMenu('Timezone');
+            navigateToMenu('timezone');
             populateTimezoneDropdown(document.querySelector('.menu-timezone'), state.worldClock.countryCode);
             break;
         case 'back-to-previous-menu':

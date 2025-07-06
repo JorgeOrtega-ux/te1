@@ -1,4 +1,4 @@
-<div class="menu-time-picker disabled body-title" data-menu="TimePicker">
+<div class="menu-time-picker disabled body-title" data-menu="timePicker">
     <div class="pill-container">
         <div class="drag-handle"></div>
     </div>

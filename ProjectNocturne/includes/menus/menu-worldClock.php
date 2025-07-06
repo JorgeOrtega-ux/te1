@@ -1,4 +1,4 @@
-<div class="menu-worldClock disabled body-title" data-menu="WorldClock">
+<div class="menu-worldClock disabled body-title" data-menu="worldClock">
     <div class="pill-container">
         <div class="drag-handle"></div>
     </div>

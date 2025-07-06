@@ -1,4 +1,4 @@
-<div class="menu-timer disabled body-title" data-menu="Timer">
+<div class="menu-timer disabled body-title" data-menu="timer">
     <div class="pill-container">
         <div class="drag-handle"></div>
     </div>

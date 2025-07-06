@@ -49,9 +49,9 @@ const CONTROL_CENTER_MENUS = {
 };
 
 const INDEPENDENT_OVERLAYS = {
-    'menuAlarm': '[data-menu="Alarm"]',
-    'menuTimer': '[data-menu="Timer"]',
-    'menuWorldClock': '[data-menu="WorldClock"]',
+    'menuAlarm': '[data-menu="alarm"]',
+    'menuTimer': '[data-menu="timer"]',
+    'menuWorldClock': '[data-menu="worldClock"]',
     'menuPaletteColors': '[data-menu="paletteColors"]'
 };
 
@@ -393,14 +393,12 @@ function deactivateModuleWithAnimation(moduleName, source) {
     if (moduleName === 'controlCenter') {
         const controlCenterModule = domCache.controlCenter.module;
         activeMenu = controlCenterModule?.querySelector('.menu-control-center.active');
-   // ----- CÓDIGO NUEVO -----
-} else if (moduleName === 'overlayContainer') {
-    const overlayContainer = domCache.overlayContainer.module;
-    if (overlayContainer) {
-        // Encuentra CUALQUIER menú o submenú activo dentro del overlay
-        activeMenu = overlayContainer.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active, .menu-sounds.active, .menu-country.active, .menu-timezone.active, .menu-calendar.active, .menu-time-picker.active');
-    }
-
+    } else if (moduleName === 'overlayContainer') {
+        const overlayContainer = domCache.overlayContainer.module;
+        if (overlayContainer) {
+            // Encuentra CUALQUIER menú o submenú activo dentro del overlay
+            activeMenu = overlayContainer.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active, .menu-sounds.active, .menu-country.active, .menu-timezone.active, .menu-calendar.active, .menu-time-picker.active');
+        }
     }
 
     if (activeMenu) {
