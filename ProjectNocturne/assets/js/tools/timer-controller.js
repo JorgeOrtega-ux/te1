@@ -476,9 +476,20 @@ function startTimer(timerId) {
     updateEverythingWidgets();
 }
 
+// ================== INICIO DE LA MODIFICACIÓN =====================
+
 function startCountdownTimer(timer) {
     timer.isRunning = true;
-    const interval = setInterval(() => {
+    
+    const tick = () => {
+        if (!timer.isRunning) {
+            if (activeTimers.has(timer.id)) {
+                 clearTimeout(activeTimers.get(timer.id));
+                 activeTimers.delete(timer.id);
+            }
+            return;
+        }
+
         timer.remaining = timer.targetTime ? timer.targetTime - Date.now() : 0;
 
         updateCardDisplay(timer.id);
@@ -486,23 +497,42 @@ function startCountdownTimer(timer) {
 
         if (timer.remaining <= 0) {
             handleTimerEnd(timer.id);
+        } else {
+            const msUntilNextSecond = 1000 - (new Date().getMilliseconds());
+            const timeoutId = setTimeout(tick, msUntilNextSecond);
+            activeTimers.set(timer.id, timeoutId);
         }
-    }, 1000);
-    activeTimers.set(timer.id, interval);
+    };
+    
+    tick();
 }
 
 function startCountToDateTimer(timer) {
     timer.isRunning = true;
-    const interval = setInterval(() => {
+
+    const tick = () => {
+        if (!timer.isRunning) {
+            if (activeTimers.has(timer.id)) {
+                 clearTimeout(activeTimers.get(timer.id));
+                 activeTimers.delete(timer.id);
+            }
+            return;
+        }
+
         timer.remaining = new Date(timer.targetDate).getTime() - Date.now();
         updateCardDisplay(timer.id);
         if (timer.id === pinnedTimerId) updateMainDisplay();
 
         if (timer.remaining <= 0) {
             handleTimerEnd(timer.id);
+        } else {
+            const msUntilNextSecond = 1000 - (new Date().getMilliseconds());
+            const timeoutId = setTimeout(tick, msUntilNextSecond);
+            activeTimers.set(timer.id, timeoutId);
         }
-    }, 1000);
-    activeTimers.set(timer.id, interval);
+    };
+
+    tick();
 }
 
 function pauseTimer(timerId) {
@@ -510,8 +540,10 @@ function pauseTimer(timerId) {
     if (!timer || !timer.isRunning) return;
 
     timer.isRunning = false;
-    clearInterval(activeTimers.get(timerId));
-    activeTimers.delete(timerId);
+    if (activeTimers.has(timer.id)) {
+        clearTimeout(activeTimers.get(timer.id));
+        activeTimers.delete(timer.id);
+    }
 
     delete timer.targetTime;
 
@@ -526,8 +558,10 @@ function pauseTimer(timerId) {
     updateMainControlsState();
     refreshSearchResults();
     updateEverythingWidgets();
-    updateEverythingWidgets();
 }
+
+// =================== FIN DE LA MODIFICACIÓN =======================
+
 
 function resetTimer(timerId) {
     const timer = findTimerById(timerId);
@@ -652,7 +686,7 @@ export function updateTimer(timerId, newData) {
     if (timerIndex === -1 && defaultTimerIndex === -1) return;
 
     if (activeTimers.has(timerId)) {
-        clearInterval(activeTimers.get(timerId));
+        clearTimeout(activeTimers.get(timerId));
         activeTimers.delete(timerId);
     }
 
@@ -821,8 +855,6 @@ function updateMainDisplay() {
     updatePinnedTimerNameDisplay();
 }
 
-// ================== INICIO DE LA FUNCIÓN CORREGIDA ==================
-// ================== INICIO DE LA FUNCIÓN CORREGIDA ==================
 function updateMainControlsState() {
     const section = document.querySelector('.section-timer');
     if (!section) return;
@@ -834,7 +866,6 @@ function updateMainControlsState() {
 
     const pinnedTimer = findTimerById(pinnedTimerId);
 
-    // Si no hay temporizador fijado, desactivar todos los controles excepto añadir.
     if (!pinnedTimer) {
         startBtn?.classList.add('disabled-interactive');
         pauseBtn?.classList.add('disabled-interactive');
@@ -848,7 +879,6 @@ function updateMainControlsState() {
     const isAtInitialState = pinnedTimer.remaining === pinnedTimer.initialDuration;
     const isCountToDate = pinnedTimer.type === 'count_to_date';
 
-    // Para los temporizadores de tipo 'Contar hasta fecha', todos los controles están desactivados.
     if (isCountToDate) {
         startBtn?.classList.add('disabled-interactive');
         pauseBtn?.classList.add('disabled-interactive');
@@ -857,32 +887,25 @@ function updateMainControlsState() {
         return;
     }
     
-    // El botón de añadir SIEMPRE está activo, a menos que un temporizador esté sonando.
     addTimerBtn?.classList.toggle('disabled-interactive', isRinging);
 
-    // Si el temporizador está corriendo:
     if (isRunning) {
-        startBtn?.classList.add('disabled-interactive');      // No se puede iniciar de nuevo.
-        pauseBtn?.classList.remove('disabled-interactive');    // Se puede pausar.
-        resetBtn?.classList.remove('disabled-interactive');  // <-- ¡LÍNEA MODIFICADA! Ahora se puede reiniciar mientras corre.
+        startBtn?.classList.add('disabled-interactive');
+        pauseBtn?.classList.remove('disabled-interactive');
+        resetBtn?.classList.remove('disabled-interactive');
     } 
-    // Si el temporizador está pausado o detenido:
     else {
-        startBtn?.classList.remove('disabled-interactive');    // Se puede iniciar.
-        pauseBtn?.classList.add('disabled-interactive');       // No se puede pausar.
-
-        // El botón de reiniciar solo se activa si el temporizador NO está en su estado inicial.
+        startBtn?.classList.remove('disabled-interactive');
+        pauseBtn?.classList.add('disabled-interactive');
         resetBtn?.classList.toggle('disabled-interactive', isAtInitialState || isRinging);
     }
 
-    // Si está sonando, todos los controles de tiempo se desactivan.
     if (isRinging) {
         startBtn?.classList.add('disabled-interactive');
         pauseBtn?.classList.add('disabled-interactive');
         resetBtn?.classList.add('disabled-interactive');
     }
 }
-// =================== FIN DE LA FUNCIÓN CORREGIDA ====================
 
 function updateCardDisplay(timerId) {
     const timer = findTimerById(timerId);
@@ -996,7 +1019,7 @@ function handleTimerEnd(timerId) {
 
     timer.isRunning = false;
     if (activeTimers.has(timerId)) {
-        clearInterval(activeTimers.get(timerId));
+        clearTimeout(activeTimers.get(timerId));
         activeTimers.delete(timerId);
     }
     timer.remaining = 0;
@@ -1141,7 +1164,7 @@ function handleDeleteTimer(timerId) {
 
     showConfirmation('timer', timerName, () => {
         if (activeTimers.has(timerId)) {
-            clearInterval(activeTimers.get(timerId));
+            clearTimeout(activeTimers.get(timerId));
             activeTimers.delete(timerId);
         }
         const originalTitle = timerToDelete.id.startsWith('default-timer-') ? getTranslation(timerToDelete.title, 'timer') : timerToDelete.title;
@@ -1270,18 +1293,13 @@ export { initializeTimerController };
 // Archivo: ProjectNocturne/assets/js/tools/timer-controller.js
 
 export function initializeScrollShadow() {
-    // Selector genérico para encontrar todos los menús.
     const menus = document.querySelectorAll('[data-menu]');
 
     menus.forEach(menu => {
-        // El encabezado que recibirá la sombra.
         const topContainer = menu.querySelector('.menu-section-top, .menu-header');
-        
-        // El contenedor con la barra de scroll.
         const scrollableContainer = menu.querySelector('.overflow-y');
 
         if (topContainer && scrollableContainer) {
-            // Función para manejar el evento de scroll.
             const handleScroll = () => {
                 if (scrollableContainer.scrollTop > 0) {
                     topContainer.classList.add('shadow');
@@ -1290,12 +1308,10 @@ export function initializeScrollShadow() {
                 }
             };
             
-            // Se asegura de que el listener se añada solo una vez.
             scrollableContainer.removeEventListener('scroll', handleScroll);
             scrollableContainer.addEventListener('scroll', handleScroll);
         }
     });
 }
 
-// Se llama a la función para que se ejecute.
 initializeScrollShadow();

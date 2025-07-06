@@ -2,7 +2,6 @@
 import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
 import { playSound as playAlarmSound, stopSound as stopAlarmSound, initializeSortable, getAvailableSounds, handleAlarmCardAction, getSoundNameById, createExpandableToolContainer } from './general-tools.js';
-// Corrección:
 import { showDynamicIslandNotification, hideDynamicIsland } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 import { getTranslation } from '../general/translations-controller.js';
@@ -17,15 +16,64 @@ const DEFAULT_ALARMS = [
     { id: 'default-5', title: 'take_a_break', hour: 16, minute: 0, sound: 'gentle_chime', enabled: false, type: 'default' }
 ];
 
-let clockInterval = null;
 let userAlarms = [];
 let defaultAlarmsState = [];
-let activeAlarmTimers = new Map();
+
+// ================== INICIO DE LA MODIFICACIÓN =====================
+
+/**
+ * Comprueba si alguna alarma debe sonar en el minuto actual.
+ * Se ejecuta una vez por segundo para máxima precisión, pero solo actúa
+ * en el segundo 0 de cada minuto.
+ */
+function checkAlarms() {
+    const now = new Date();
+    // Para asegurar que la alarma suene exactamente a las XX:XX:00
+    if (now.getSeconds() !== 0) {
+        return;
+    }
+
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const allAlarms = [...userAlarms, ...defaultAlarmsState];
+
+    allAlarms.forEach(alarm => {
+        if (alarm.enabled && alarm.hour === currentHour && alarm.minute === currentMinute) {
+             // Evita que la alarma suene múltiples veces si la comprobación se ejecuta rápidamente.
+            if (!alarm.lastTriggered || (now.getTime() - alarm.lastTriggered) > 59000) {
+                alarm.lastTriggered = now.getTime(); // Registra cuándo sonó
+                triggerAlarm(alarm);
+            }
+        }
+    });
+}
+
+/**
+ * Inicia el reloj de alta precisión que se auto-ajusta cada segundo.
+ * Este reloj es responsable de actualizar la hora en la UI y de
+ * comprobar las alarmas.
+ */
+function startClock() {
+    function tick() {
+        // Actualiza la hora mostrada en la sección de Alarma
+        updateLocalTime();
+        // Comprueba si alguna alarma debe sonar
+        checkAlarms();
+
+        // Calcula los milisegundos exactos hasta el próximo segundo
+        const now = new Date();
+        const msUntilNextSecond = 1000 - now.getMilliseconds();
+
+        // Se programa a sí mismo para ejecutarse en el momento exacto del siguiente segundo
+        setTimeout(tick, msUntilNextSecond);
+    }
+    tick(); // Inicia el ciclo
+}
+
+// =================== FIN DE LA MODIFICACIÓN =======================
 
 function renderAlarmSearchResults(searchTerm) {
-    // ================== INICIO DEL CÓDIGO CORREGIDO ==================
     const menuElement = document.querySelector('.menu-alarm[data-menu="alarm"]');
-    // =================== FIN DEL CÓDIGO CORREGIDO ====================
     if (!menuElement) return;
 
     const resultsWrapper = menuElement.querySelector('.search-results-wrapper');
@@ -247,7 +295,6 @@ function createAlarm(title, hour, minute, sound) {
     userAlarms.push(alarm);
     saveAlarmsToStorage();
     renderAllAlarmCards();
-    scheduleAlarm(alarm);
     updateAlarmCounts();
     showDynamicIslandNotification('alarm', 'created', 'alarm_created', 'notifications', { title: alarm.title });
     updateEverythingWidgets();
@@ -343,25 +390,6 @@ function addCardEventListeners(card) {
     }
 }
 
-function scheduleAlarm(alarm) {
-    if (!alarm.enabled) return;
-    const now = new Date();
-    const alarmTime = new Date();
-    alarmTime.setHours(alarm.hour, alarm.minute, 0, 0);
-    if (alarmTime <= now) {
-        alarmTime.setDate(alarmTime.getDate() + 1);
-    }
-    const timeUntilAlarm = alarmTime.getTime() - now.getTime();
-    if (activeAlarmTimers.has(alarm.id)) {
-        clearTimeout(activeAlarmTimers.get(alarm.id));
-    }
-    const timerId = setTimeout(() => {
-        triggerAlarm(alarm);
-        activeAlarmTimers.delete(alarm.id);
-    }, timeUntilAlarm);
-    activeAlarmTimers.set(alarm.id, timerId);
-}
-
 function triggerAlarm(alarm) {
     let soundToPlay = alarm.sound;
     const availableSounds = getAvailableSounds();
@@ -394,7 +422,6 @@ function triggerAlarm(alarm) {
             dismissAlarm(alarm.id);
         }
     });
-    scheduleAlarm(alarm);
 }
 
 function dismissAlarm(alarmId) {
@@ -404,32 +431,20 @@ function dismissAlarm(alarmId) {
     const alarm = findAlarmById(alarmId);
     if (!alarm) return;
 
-    // --- INICIO DE LA CORRECCIÓN ---
-    // Si la alarma estaba activada, la desactivamos.
     if (alarm.enabled) {
         alarm.enabled = false;
 
-        // Limpiamos el temporizador para que no se reprograme.
-        if (activeAlarmTimers.has(alarmId)) {
-            clearTimeout(activeAlarmTimers.get(alarmId));
-            activeAlarmTimers.delete(alarmId);
-        }
-
-        // Guardamos el nuevo estado (desactivado).
         if (alarm.type === 'user') {
             saveAlarmsToStorage();
         } else if (alarm.type === 'default') {
             saveDefaultAlarmsOrder();
         }
 
-        // Actualizamos la interfaz para reflejar el cambio.
         updateAlarmCardVisuals(alarm);
         updateEverythingWidgets();
         refreshSearchResults();
     }
-    // --- FIN DE LA CORRECCIÓN ---
 
-    // Ocultamos el botón "Descartar" de la tarjeta.
     const alarmCard = document.getElementById(alarmId);
     if (alarmCard) {
         const optionsContainer = alarmCard.querySelector('.card-options-container');
@@ -452,14 +467,7 @@ function toggleAlarm(alarmId) {
     } else if (alarm.type === 'default') {
         saveDefaultAlarmsOrder();
     }
-    if (alarm.enabled) {
-        scheduleAlarm(alarm);
-    } else {
-        if (activeAlarmTimers.has(alarmId)) {
-            clearTimeout(activeAlarmTimers.get(alarmId));
-            activeAlarmTimers.delete(alarmId);
-        }
-    }
+    
     updateAlarmCardVisuals(alarm);
     refreshSearchResults();
     updateEverythingWidgets();
@@ -472,10 +480,7 @@ function deleteAlarm(alarmId) {
         console.warn(`Attempted to delete default alarm: ${alarmId}. Deletion is not allowed for default alarms.`);
         return;
     }
-    if (activeAlarmTimers.has(alarmId)) {
-        clearTimeout(activeAlarmTimers.get(alarmId));
-        activeAlarmTimers.delete(alarmId);
-    }
+
     const originalTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
     if (alarm.type === 'user') {
         userAlarms = userAlarms.filter(a => a.id !== alarmId);
@@ -506,13 +511,7 @@ function updateAlarm(alarmId, newData) {
     } else if (alarm.type === 'default') {
         saveDefaultAlarmsOrder();
     }
-    if (activeAlarmTimers.has(alarmId)) {
-        clearTimeout(activeAlarmTimers.get(alarmId));
-        activeAlarmTimers.delete(alarmId);
-    }
-    if (alarm.enabled) {
-        scheduleAlarm(alarm);
-    }
+    
     updateAlarmCardVisuals(alarm);
     refreshSearchResults();
     const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
@@ -583,15 +582,11 @@ function loadAlarmsFromStorage() {
     }
     userAlarms.forEach(alarm => {
         alarm.type = 'user';
-        if (alarm.enabled) scheduleAlarm(alarm);
     });
 }
 
 function loadDefaultAlarms() {
     loadDefaultAlarmsOrder();
-    defaultAlarmsState.forEach(alarm => {
-        if (alarm.enabled) scheduleAlarm(alarm);
-    });
 }
 
 function formatTime(hour, minute) {
@@ -621,12 +616,6 @@ function updateLocalTime() {
         const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: !use24HourFormat };
         el.textContent = now.toLocaleTimeString(navigator.language, options);
     }
-}
-
-function startClock() {
-    if (clockInterval) return;
-    updateLocalTime();
-    clockInterval = setInterval(updateLocalTime, 1000);
 }
 
 function initializeSortableGrids() {
