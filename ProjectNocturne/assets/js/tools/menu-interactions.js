@@ -699,19 +699,69 @@ function setupGlobalEventListeners() {
         }
     });
 
-    document.body.addEventListener('input', (event) => {
-        const target = event.target;
-        if (target.matches('#country-search-input-new, #timezone-search-input, #sound-search-input')) {
-            const searchTerm = target.value.toLowerCase();
-            const listContainer = target.closest('.menu-section').querySelector('.menu-list, .sound-list-container');
-            if (!listContainer) return;
-            const items = listContainer.querySelectorAll('.menu-link');
-            items.forEach(item => {
-                const itemName = item.querySelector('.menu-link-text span')?.textContent.toLowerCase();
-                if(itemName) item.style.display = itemName.includes(searchTerm) ? 'flex' : 'none';
-            });
+   document.body.addEventListener('input', (event) => {
+    const target = event.target;
+
+    // Condicional para manejar específicamente la búsqueda de sonidos
+    if (target.id === 'sound-search-input') {
+        const searchTerm = target.value.toLowerCase();
+        
+        // 1. Ocultar o mostrar el botón de "Subir Audio"
+        const uploadAudioWrapper = document.getElementById('upload-audio-wrapper');
+        if (uploadAudioWrapper) {
+            uploadAudioWrapper.style.display = searchTerm ? 'none' : 'block';
         }
-    });
+
+        // 2. Filtrar la lista de sonidos y sus cabeceras de sección
+        const soundListContainer = document.querySelector('#sound-list-wrapper .menu-list');
+        if (!soundListContainer) return;
+
+        const allSoundItems = soundListContainer.querySelectorAll('.menu-link[data-sound]');
+
+        // Primero, filtramos todos los sonidos individualmente
+        allSoundItems.forEach(item => {
+            const itemNameElement = item.querySelector('.menu-link-text span');
+            if (itemNameElement) {
+                const itemName = itemNameElement.textContent.toLowerCase();
+                // Muestra el item si coincide, de lo contrario lo oculta
+                item.style.display = itemName.includes(searchTerm) ? 'flex' : 'none';
+            }
+        });
+
+        // Ahora, verificamos la visibilidad de cada sección
+        const headers = soundListContainer.querySelectorAll('.menu-content-header-sm');
+        headers.forEach(header => {
+            let nextElement = header.nextElementSibling;
+            let hasVisibleItemsInSection = false;
+
+            // Buscamos si algún elemento visible pertenece a esta sección
+            while (nextElement && !nextElement.classList.contains('menu-content-header-sm')) {
+                if (nextElement.matches('.menu-link[data-sound]') && nextElement.style.display !== 'none') {
+                    hasVisibleItemsInSection = true;
+                    break; // Si encontramos uno, ya no necesitamos seguir buscando en esta sección
+                }
+                nextElement = nextElement.nextElementSibling;
+            }
+
+            // Ocultamos la cabecera si no hay elementos visibles en su sección
+            header.style.display = hasVisibleItemsInSection ? 'flex' : 'none';
+        });
+
+    } 
+    // Mantenemos la lógica original para las otras búsquedas
+    else if (target.matches('#country-search-input-new, #timezone-search-input')) {
+        const searchTerm = target.value.toLowerCase();
+        const listContainer = target.closest('.menu-section').querySelector('.menu-list, .sound-list-container');
+        if (!listContainer) return;
+        const items = listContainer.querySelectorAll('.menu-link');
+        items.forEach(item => {
+            const itemName = item.querySelector('.menu-link-text span')?.textContent.toLowerCase();
+            if (itemName) {
+                item.style.display = itemName.includes(searchTerm) ? 'flex' : 'none';
+            }
+        });
+    }
+});
 
     document.body.addEventListener('click', (event) => {
         const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timezone, .menu-calendar, .menu-time-picker');
