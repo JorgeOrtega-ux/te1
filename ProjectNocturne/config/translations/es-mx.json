@@ -269,7 +269,9 @@
     "short_break_5": "Descanso corto (5 min)",
     "exercise_30": "Ejercicio (30 min)",
     "study_session_45": "Sesión de estudio (45 min)",
-    "pinned_timer_tooltip": "Temporizador fijado"
+    "pinned_timer_tooltip": "Temporizador fijado",
+    "select_date": "Seleccionar fecha",
+    "select_time": "Seleccionar hora"
   },
   "world_clock_options": {
     "options": "Opciones del reloj",

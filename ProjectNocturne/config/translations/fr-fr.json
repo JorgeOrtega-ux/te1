@@ -269,7 +269,9 @@
     "short_break_5": "Courte pause (5 min)",
     "exercise_30": "Exercice (30 min)",
     "study_session_45": "Session d'étude (45 min)",
-    "pinned_timer_tooltip": "Minuteur épinglé"
+    "pinned_timer_tooltip": "Minuteur épinglé",
+    "select_date": "Sélectionner la date",
+    "select_time": "Sélectionner l'heure"
   },
   "world_clock_options": {
     "options": "Options de l'horloge",

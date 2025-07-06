@@ -1,4 +1,4 @@
-<div class="menu-paletteColors disabled body-title" data-menu="PaletteColors">
+<div class="menu-paletteColors disabled body-title" data-menu="paletteColors">
     <div class="pill-container">
         <div class="drag-handle"></div>
     </div>

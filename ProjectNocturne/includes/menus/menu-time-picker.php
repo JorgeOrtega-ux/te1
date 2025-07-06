@@ -1,4 +1,4 @@
-<div class="menu-timePicker disabled body-title" data-menu="TimePicker">
+<div class="menu-time-picker disabled body-title" data-menu="TimePicker">
     <div class="pill-container">
         <div class="drag-handle"></div>
     </div>
@@ -9,6 +9,9 @@
                     <span class="material-symbols-rounded">arrow_left</span>
                 </button>
                 <div class="search-content">
+                    <div class="search-content-icon">
+                        <span class="material-symbols-rounded">acute</span>
+                    </div>
                     <div class="search-content-text">
                         <span data-translate="select_time" data-translate-category="timer"></span>
                     </div>

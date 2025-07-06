@@ -99,10 +99,14 @@ function setupResizeListener() {
 function handleDragStart(e) {
     if (!isEnabled) return;
 
-    const dragHandle = e.target.closest('.drag-handle');
-    if (!dragHandle) return;
+    // ----- CÓDIGO CORREGIDO -----
+    // Se cambia el selector para incluir '.pill-container'
+    const dragTarget = e.target.closest('.drag-handle, .pill-container');
+    if (!dragTarget) return;
 
-    const moduleInfo = getModuleFromDragHandle(dragHandle);
+    const moduleInfo = getModuleFromDragTarget(dragTarget);
+    // ----- FIN DEL CÓDIGO CORREGIDO -----
+
     if (!moduleInfo || !moduleInfo.module.classList.contains('active')) {
         return;
     }
@@ -110,7 +114,7 @@ function handleDragStart(e) {
     isDragging = true;
     activeModule = moduleInfo.module;
     activeMenu = moduleInfo.menu;
-    dragHandleElement = dragHandle;
+    dragHandleElement = dragTarget; // Se usa la nueva variable
 
     if (e.type === 'touchstart') {
         startY = e.touches[0].clientY;
@@ -220,8 +224,11 @@ function returnToOriginalPosition() {
 }
 
 // ========== HELPER FUNCTIONS ==========
-function getModuleFromDragHandle(dragHandle) {
-    const controlCenterModule = dragHandle.closest('.module-control-center');
+// ----- CÓDIGO CORREGIDO -----
+// Se renombra la función para mayor claridad
+function getModuleFromDragTarget(dragTarget) {
+    const controlCenterModule = dragTarget.closest('.module-control-center');
+    // ----- FIN DEL CÓDIGO CORREGIDO -----
     if (controlCenterModule) {
         const activeControlMenu = controlCenterModule.querySelector('.menu-control-center.active');
         if (activeControlMenu) {
@@ -233,7 +240,7 @@ function getModuleFromDragHandle(dragHandle) {
         }
     }
 
-    const overlayModule = dragHandle.closest('.module-overlay');
+    const overlayModule = dragTarget.closest('.module-overlay');
     if (overlayModule) {
         const activeOverlayMenu = overlayModule.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active, .menu-sounds.active, .menu-country.active, .menu-timezone.active, .menu-calendar.active, .menu-time-picker.active');
         if (activeOverlayMenu) {

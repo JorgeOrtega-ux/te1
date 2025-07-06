@@ -9,6 +9,9 @@
                     <span class="material-symbols-rounded">arrow_left</span>
                 </button>
                 <div class="search-content">
+                    <div class="search-content-icon">
+                        <span class="material-symbols-rounded">event</span>
+                    </div>
                     <div class="search-content-text">
                         <span data-translate="select_date" data-translate-category="timer"></span>
                     </div>

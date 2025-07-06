@@ -96,7 +96,7 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 10;
+    z-index: 999;
 }
 
 .sidebar-wrapper.mobile-sidebar .sidebar {
@@ -382,7 +382,7 @@ body {
 
 .module-overlay {
     position: absolute;
-    z-index: 999;
+    z-index: 998;
     width: 360px;
     height: 100%;
     padding: 8px;
