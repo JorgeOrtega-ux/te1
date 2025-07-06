@@ -399,6 +399,37 @@ function triggerAlarm(alarm) {
 
 function dismissAlarm(alarmId) {
     stopAlarmSound();
+    hideDynamicIsland();
+
+    const alarm = findAlarmById(alarmId);
+    if (!alarm) return;
+
+    // --- INICIO DE LA CORRECCIÓN ---
+    // Si la alarma estaba activada, la desactivamos.
+    if (alarm.enabled) {
+        alarm.enabled = false;
+
+        // Limpiamos el temporizador para que no se reprograme.
+        if (activeAlarmTimers.has(alarmId)) {
+            clearTimeout(activeAlarmTimers.get(alarmId));
+            activeAlarmTimers.delete(alarmId);
+        }
+
+        // Guardamos el nuevo estado (desactivado).
+        if (alarm.type === 'user') {
+            saveAlarmsToStorage();
+        } else if (alarm.type === 'default') {
+            saveDefaultAlarmsOrder();
+        }
+
+        // Actualizamos la interfaz para reflejar el cambio.
+        updateAlarmCardVisuals(alarm);
+        updateEverythingWidgets();
+        refreshSearchResults();
+    }
+    // --- FIN DE LA CORRECCIÓN ---
+
+    // Ocultamos el botón "Descartar" de la tarjeta.
     const alarmCard = document.getElementById(alarmId);
     if (alarmCard) {
         const optionsContainer = alarmCard.querySelector('.card-options-container');
@@ -406,11 +437,6 @@ function dismissAlarm(alarmId) {
             optionsContainer.classList.remove('active');
         }
     }
-    const alarm = findAlarmById(alarmId);
-    if (alarm && alarm.enabled) {
-        console.log(`Alarm ${alarmId} dismissed.`);
-    }
-   hideDynamicIsland(); // Llamada directa, ya no se necesita el 'if'
 }
 
 function findAlarmById(alarmId) {

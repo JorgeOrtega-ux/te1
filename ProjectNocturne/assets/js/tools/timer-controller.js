@@ -445,7 +445,7 @@ function startTimer(timerId) {
     updateTimerCardControls(timerId);
     updateMainControlsState();
     refreshSearchResults();
-    updateEverythingWidgets();
+ updateEverythingWidgets();
     const isUserTimer = userTimers.some(t => t.id === timerId);
     if (isUserTimer) {
         saveTimersToStorage();
@@ -1180,18 +1180,16 @@ function dismissTimer(timerId) {
             optionsContainer.classList.remove('active');
         }
     }
-    hideDynamicIsland(); // Llamada directa, ya no se necesita el 'if'
+    hideDynamicIsland();
     const timer = findTimerById(timerId);
 
-    // --- AÑADIR ESTA LÍNEA ---
-    if (timer) timer.isRinging = false;
-
-    if (timer && timer.type === 'countdown' && timer.endAction === 'stop') {
-        resetTimer(timerId);
-    } else if (timer && timer.type === 'count_to_date') {
-        // No hacer nada
+    if (timer) {
+        timer.isRinging = false;
+        // Se ha eliminado la condición '&& timer.endAction === 'stop''
+        if (timer.type === 'countdown') {
+            resetTimer(timerId);
+        }
     }
-
 }
 document.addEventListener('translationsApplied', () => {
     const allTimers = [...userTimers, ...defaultTimersState];
@@ -1215,7 +1213,7 @@ export function initializeScrollShadow() {
     menus.forEach(menu => {
         // El encabezado que recibirá la sombra.
         const topContainer = menu.querySelector('.menu-section-top, .menu-header');
-
+        
         // El contenedor con la barra de scroll.
         const scrollableContainer = menu.querySelector('.overflow-y');
 
@@ -1228,7 +1226,7 @@ export function initializeScrollShadow() {
                     topContainer.classList.remove('shadow');
                 }
             };
-
+            
             // Se asegura de que el listener se añada solo una vez.
             scrollableContainer.removeEventListener('scroll', handleScroll);
             scrollableContainer.addEventListener('scroll', handleScroll);
