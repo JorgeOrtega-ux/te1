@@ -1,4 +1,4 @@
-<div class="menu-paletteColors disabled body-title" data-menu="paletteColors">
+<div class="menu-paletteColors disabled body-title" data-menu="PaletteColors">
     <div class="pill-container">
         <div class="drag-handle"></div>
     </div>
@@ -25,7 +25,6 @@
                         </div>
                         <div class="menu-content-general" id="main-colors-content" data-section-collapsed="false">
                             <div class="color-wrapper">
-                                <!-- Color Automático - ACTUALIZADO -->
                                 <div class="color-content" data-color="auto" data-section="mainColors" data-hex="auto"
                                     data-translate="auto"
                                     data-translate-category="tooltips"
@@ -53,7 +52,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="menu-content" data-section="recent-colors" data-collapsible-section="true">
                         <div class="menu-content-header">
                             <div class="menu-content-header-primary">
@@ -64,7 +62,6 @@
                         <div class="menu-content-general" id="recent-colors-content" data-section-collapsed="false">
                         </div>
                     </div>
-
                     <div class="menu-content" data-section="default-colors" data-collapsible-section="true">
                         <div class="menu-content-header">
                             <div class="menu-content-header-primary">
@@ -92,7 +89,6 @@
                                 <div class="color-content" data-color="white" data-section="default" data-hex="#ffffff">
                                     <div class="color white-color"></div>
                                 </div>
-
                                 <div class="color-content" data-color="bright_red" data-section="default" data-hex="#ff2f2f">
                                     <div class="color brightred-color"></div>
                                 </div>
@@ -111,7 +107,6 @@
                                 <div class="color-content" data-color="violet" data-section="default" data-hex="#5c15e9">
                                     <div class="color violet-color"></div>
                                 </div>
-
                                 <div class="color-content" data-color="dark_turquoise" data-section="default" data-hex="#0095b0">
                                     <div class="color darkturquoise-color"></div>
                                 </div>
@@ -130,7 +125,6 @@
                                 <div class="color-content" data-color="cobalt_blue" data-section="default" data-hex="#0048ab">
                                     <div class="color cobaltblue-color"></div>
                                 </div>
-
                                 <div class="color-content" data-color="green" data-section="default" data-hex="#00bd61">
                                     <div class="color green-color"></div>
                                 </div>
@@ -157,7 +151,8 @@
                     <div class="menu-content disabled" data-section="search-colors"></div>
                 </div>
             </div>
-            <div class="menu-section-bottom disabled"></div>
+        </div>
+        <div class="menu-section-bottom disabled">
         </div>
     </div>
 </div>

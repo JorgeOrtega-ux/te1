@@ -14,23 +14,22 @@
                     </div>
                     <div class="search-content-text">
                         <input type="text" id="sound-search-input" class="body-title" autocomplete="off"
-                            data-translate="search_sounds_placeholder"
-                            data-translate-category="search"
-                            data-translate-target="placeholder">
+                               data-translate="search_sounds_placeholder"
+                               data-translate-category="search"
+                               data-translate-target="placeholder">
                     </div>
                 </div>
             </div>
         </div>
-
-
-
         <div class="menu-content-scrolleable overflow-y">
-            <div class="sounds-creation-wrapper">
+            <div class="creation-wrapper">
                 <div class="menu-section-center" id="upload-audio-wrapper">
                 </div>
-                <div class="menu-section-bottom  overflow-y" id="sound-list-wrapper">
+                <div class="menu-section-center overflow-y" id="sound-list-wrapper">
                 </div>
             </div>
+        </div>
+        <div class="menu-section-bottom disabled">
         </div>
     </div>
 </div>

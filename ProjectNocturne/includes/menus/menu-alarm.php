@@ -9,13 +9,16 @@
                     <span class="material-symbols-rounded">search</span>
                 </div>
                 <div class="search-content-text">
-                    <input type="text" id="alarm-search-input" class="body-title" autocomplete="off" data-translate="search_alarms_placeholder" data-translate-category="search" data-translate-target="placeholder">
+                    <input type="text" id="alarm-search-input" class="body-title" autocomplete="off" 
+                           data-translate="search_alarms_placeholder" 
+                           data-translate-category="search" 
+                           data-translate-target="placeholder">
                 </div>
             </div>
         </div>
         <div class="menu-content-scrolleable overflow-y">
-            <div class="alarm-search-results-wrapper disabled"></div>
-            <div class="alarm-creation-wrapper active">
+            <div class="search-results-wrapper disabled"></div>
+            <div class="creation-wrapper active">
                 <div class="menu-section-center overflow-y">
                     <div class="menu-content-wrapper active">
                         <div class="menu-content">
@@ -27,7 +30,10 @@
                             </div>
                             <div class="menu-content-general">
                                 <div class="enter-text-tool">
-                                    <input type="text" id="alarm-title" data-translate="my_new_alarm_placeholder" data-translate-category="alarms" data-translate-target="placeholder">
+                                    <input type="text" id="alarm-title" 
+                                           data-translate="my_new_alarm_placeholder" 
+                                           data-translate-category="alarms" 
+                                           data-translate-target="placeholder">
                                 </div>
                             </div>
                         </div>
@@ -41,14 +47,22 @@
                             <div class="menu-content-general">
                                 <div class="enter-date-content">
                                     <div class="enter-date-tool">
-                                        <div class="enter-date-tool-left" data-action="decreaseHour"><span class="material-symbols-rounded">arrow_left</span></div>
+                                        <div class="enter-date-tool-left" data-action="decreaseHour">
+                                            <span class="material-symbols-rounded">arrow_left</span>
+                                        </div>
                                         <div class="enter-date-tool-center" id="hour-display">--:--</div>
-                                        <div class="enter-date-tool-right" data-action="increaseHour"><span class="material-symbols-rounded">arrow_right</span></div>
+                                        <div class="enter-date-tool-right" data-action="increaseHour">
+                                            <span class="material-symbols-rounded">arrow_right</span>
+                                        </div>
                                     </div>
                                     <div class="enter-date-tool">
-                                        <div class="enter-date-tool-left" data-action="decreaseMinute"><span class="material-symbols-rounded">arrow_left</span></div>
+                                        <div class="enter-date-tool-left" data-action="decreaseMinute">
+                                            <span class="material-symbols-rounded">arrow_left</span>
+                                        </div>
                                         <div class="enter-date-tool-center" id="minute-display">0 minutos</div>
-                                        <div class="enter-date-tool-right" data-action="increaseMinute"><span class="material-symbols-rounded">arrow_right</span></div>
+                                        <div class="enter-date-tool-right" data-action="increaseMinute">
+                                            <span class="material-symbols-rounded">arrow_right</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -64,7 +78,9 @@
                                 <div class="custom-select-wrapper">
                                     <div class="custom-select-content" data-action="open-sounds-menu" data-context="alarm">
                                         <div class="custom-select-content-left">
-                                            <span id="alarm-selected-sound" data-translate="classic_beep" data-translate-category="sounds"></span>
+                                            <span id="alarm-selected-sound" 
+                                                  data-translate="classic_beep" 
+                                                  data-translate-category="sounds"></span>
                                         </div>
                                         <div class="custom-select-content-right">
                                             <span class="material-symbols-rounded">arrow_right</span>
@@ -78,14 +94,12 @@
                         </div>
                     </div>
                 </div>
-
             </div>
-           
         </div>
-         <div class="menu-section-bottom">
-                <div class="create-tool" data-action="createAlarm">
-                    <span data-translate="create_alarm" data-translate-category="alarms"></span>
-                </div>
+        <div class="menu-section-bottom">
+            <div class="create-tool" data-action="createAlarm">
+                <span data-translate="create_alarm" data-translate-category="alarms"></span>
             </div>
+        </div>
     </div>
 </div>

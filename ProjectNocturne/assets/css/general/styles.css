@@ -455,10 +455,14 @@ body {
     flex: 0 0 auto;
     flex-direction: column;
     padding: 8px;
+    border-bottom: 1px solid;
     gap: 8px;
     overflow: auto;
 }
-
+.creation-wrapper {
+    display: flex;
+    flex-direction: column;
+}
 .menu-section-bottom {
     width: 100%;
     height: auto;

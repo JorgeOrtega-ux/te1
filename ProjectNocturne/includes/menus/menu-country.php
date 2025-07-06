@@ -1,5 +1,5 @@
 <div class="menu-country disabled body-title" data-menu="Country">
-      <div class="pill-container">
+    <div class="pill-container">
         <div class="drag-handle"></div>
     </div>
     <div class="menu-section">
@@ -13,10 +13,10 @@
                         <span class="material-symbols-rounded">search</span>
                     </div>
                     <div class="search-content-text">
-                        <input type="text" id="country-search-input-new" class="body-title" autocomplete="off"
-                            data-translate="search_countries_placeholder"
-                            data-translate-category="search"
-                            data-translate-target="placeholder">
+                        <input type="text" id="country-search-input" class="body-title" autocomplete="off"
+                               data-translate="search_countries_placeholder"
+                               data-translate-category="search"
+                               data-translate-target="placeholder">
                     </div>
                 </div>
             </div>
@@ -26,6 +26,8 @@
                 <div class="country-list-container menu-list">
                 </div>
             </div>
+        </div>
+        <div class="menu-section-bottom disabled">
         </div>
     </div>
 </div>
