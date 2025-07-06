@@ -868,6 +868,12 @@ async function handleMenuClick(event, parentMenu) {
             navigateToMenu('timeZone');
             populateTimezoneDropdown(document.querySelector('.menu-timeZone'), state.worldClock.countryCode);
             break;
+        case 'open-sounds-menu':
+            const context = actionTarget.dataset.context;
+            soundSelectionContext = context; // Guarda el contexto (alarm, countdown, etc.)
+            navigateToMenu('sounds');
+            populateSoundsMenu(context);
+            break;
         case 'back-to-previous-menu':
             navigateBack();
             break;
@@ -942,7 +948,6 @@ async function handleMenuClick(event, parentMenu) {
             event.stopPropagation();
             deleteUserAudio(actionTarget.dataset.audioId, () => populateSoundsMenu(soundSelectionContext));
             break;
-        // ================== INICIO DEL CÓDIGO CORREGIDO ==================
         case 'createAlarm': {
             if (window.alarmManager && window.alarmManager.getAlarmCount() >= window.alarmManager.getAlarmLimit()) {
                 showDynamicIslandNotification('system', 'limit_reached', null, 'notifications', { type: getTranslation('alarms', 'tooltips') });
@@ -1000,7 +1005,6 @@ async function handleMenuClick(event, parentMenu) {
             }, 500);
             break;
         }
-        // =================== FIN DEL CÓDIGO CORREGIDO ====================
         case 'saveAlarmChanges': {
             const editingId = parentMenu.getAttribute('data-editing-id');
             const alarmTitleInput = parentMenu.querySelector('#alarm-title');
