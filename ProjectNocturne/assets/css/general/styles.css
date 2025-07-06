@@ -429,7 +429,11 @@ body {
     border: 1px solid transparent;
     filter: drop-shadow(0 4px 12px #00000020);
 }
-
+#upload-audio-wrapper {
+    border-bottom: 1px solid #00000020;
+}.dark-mode #upload-audio-wrapper {
+    border-color: #ffffff20;
+}
 .menu-section {
     display: flex;
     flex-direction: column;
@@ -455,7 +459,6 @@ body {
     flex: 0 0 auto;
     flex-direction: column;
     padding: 8px;
-    border-bottom: 1px solid;
     gap: 8px;
     overflow: auto;
 }
