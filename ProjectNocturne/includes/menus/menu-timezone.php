@@ -22,6 +22,7 @@
             </div>
         </div>
         <div class="menu-content-scrolleable overflow-y">
+            <div class="search-results-wrapper disabled"></div>
             <div class="creation-wrapper active">
                 <div class="menu-section-center overflow-y">
                     <div class="timezone-list-container menu-list">

@@ -86,7 +86,7 @@ function navigateBack() {
     if (currentMenu) {
         currentMenu.classList.remove('active');
         currentMenu.classList.add('disabled');
-        
+
         // If we are leaving the time picker, reset its internal state to show the hour list again.
         if (currentMenu.dataset.menu === 'TimePicker') {
             const hourList = currentMenu.querySelector('[data-list-type="hours"]');
@@ -118,7 +118,7 @@ const toggleDropdown = (action, parentMenu) => {
     const targetDropdown = parentMenu.querySelector(targetSelector);
     if (!targetDropdown) return;
     const isCurrentlyOpen = !targetDropdown.classList.contains('disabled');
-    
+
     document.querySelectorAll('.dropdown-menu-container').forEach(d => {
         if (d !== targetDropdown) {
             d.classList.add('disabled');
@@ -280,7 +280,7 @@ const resetWorldClockMenu = (menuElement) => {
     }
     updateDisplay('#worldclock-selected-country', getTranslation('select_a_country', 'world_clock'), menuElement);
     updateDisplay('#worldclock-selected-timezone', getTranslation('select_a_timezone', 'world_clock'), menuElement);
-    
+
     const timezoneSelector = menuElement.querySelector('[data-action="open-timezone-menu"]');
     if (timezoneSelector) {
         timezoneSelector.classList.add('disabled-interactive');
@@ -510,7 +510,7 @@ const updateAlarmDisplay = (parent) => {
         hour12 = hour12 ? hour12 : 12;
         finalHourText = String(hour12).padStart(2, '0');
     }
-    
+
     updateDisplay('#hour-display', finalHourText, parent);
     updateDisplay('#minute-display', `${String(minute).padStart(2, '0')}${finalAmPm ? ' ' + finalAmPm : ''}`, parent);
 };
@@ -535,7 +535,7 @@ const updateTimerTabView = (timerMenu) => {
         display.textContent = getTranslation(key, 'timer');
         iconDisplay.textContent = isCountdown ? 'timer' : 'event';
     }
-    
+
     const dropdown = timerMenu.querySelector('.menu-timer-type');
     if (dropdown) {
         dropdown.querySelectorAll('.menu-link').forEach(link => {
@@ -695,53 +695,72 @@ function setupGlobalEventListeners() {
 
     document.body.addEventListener('input', (event) => {
         const target = event.target;
+        if (!['sound-search-input', 'country-search-input', 'timezone-search-input'].includes(target.id)) return;
+
+        const menu = target.closest('.menu-sounds, .menu-country, .menu-timezone');
+        if (!menu) return;
+
         const searchTerm = target.value.toLowerCase();
-        let listContainer;
+        const creationWrapper = menu.querySelector('.creation-wrapper');
+        const resultsWrapper = menu.querySelector('.search-results-wrapper');
+        const originalListContainer = creationWrapper.querySelector('.menu-list, #sound-list-wrapper');
 
-        switch (target.id) {
-            case 'sound-search-input':
-                const uploadAudioWrapper = document.getElementById('upload-audio-wrapper');
-                if (uploadAudioWrapper) {
-                    uploadAudioWrapper.style.display = searchTerm ? 'none' : 'block';
-                }
-                listContainer = document.querySelector('#sound-list-wrapper .menu-list');
-                if (!listContainer) return;
+        if (!creationWrapper || !resultsWrapper || !originalListContainer) return;
 
-                const soundItems = listContainer.querySelectorAll('.menu-link[data-sound]');
-                soundItems.forEach(item => {
-                    const itemNameElement = item.querySelector('.menu-link-text span');
-                    if (itemNameElement) {
-                        const itemName = itemNameElement.textContent.toLowerCase();
-                        item.style.display = itemName.includes(searchTerm) ? 'flex' : 'none';
-                    }
-                });
+        if (!searchTerm) {
+            resultsWrapper.innerHTML = '';
+            resultsWrapper.classList.add('disabled');
+            creationWrapper.classList.remove('disabled');
+            return;
+        }
 
-                const headers = listContainer.querySelectorAll('.menu-content-header-sm');
+        creationWrapper.classList.add('disabled');
+        resultsWrapper.classList.remove('disabled');
+        resultsWrapper.innerHTML = '';
+
+        const allItems = originalListContainer.querySelectorAll('.menu-link');
+        const filteredItems = Array.from(allItems).filter(item => {
+            const itemName = item.querySelector('.menu-link-text span')?.textContent.toLowerCase();
+            return itemName && itemName.includes(searchTerm);
+        });
+
+        if (filteredItems.length > 0) {
+            const newList = document.createElement('div');
+            newList.className = 'menu-list';
+            // Para sonidos, mantenemos las cabeceras si hay elementos visibles
+            if (target.id === 'sound-search-input') {
+                const headers = originalListContainer.querySelectorAll('.menu-content-header-sm');
                 headers.forEach(header => {
+                    const sectionItems = [];
                     let nextElement = header.nextElementSibling;
-                    let hasVisibleItemsInSection = false;
                     while (nextElement && !nextElement.classList.contains('menu-content-header-sm')) {
-                        if (nextElement.matches('.menu-link[data-sound]') && nextElement.style.display !== 'none') {
-                            hasVisibleItemsInSection = true;
-                            break;
+                        if (filteredItems.includes(nextElement)) {
+                            sectionItems.push(nextElement);
                         }
                         nextElement = nextElement.nextElementSibling;
                     }
-                    header.style.display = hasVisibleItemsInSection ? 'flex' : 'none';
-                });
-                break;
-            case 'country-search-input':
-            case 'timezone-search-input':
-                listContainer = target.closest('.menu-section').querySelector('.menu-list');
-                if (!listContainer) return;
-                const items = listContainer.querySelectorAll('.menu-link');
-                items.forEach(item => {
-                    const itemName = item.querySelector('.menu-link-text span')?.textContent.toLowerCase();
-                    if (itemName) {
-                        item.style.display = itemName.includes(searchTerm) ? 'flex' : 'none';
+                    if (sectionItems.length > 0) {
+                        newList.appendChild(header.cloneNode(true));
+                        sectionItems.forEach(item => newList.appendChild(item.cloneNode(true)));
                     }
                 });
-                break;
+                // También manejar el botón de subida si está en los resultados
+                const uploadLink = originalListContainer.querySelector('[data-action="upload-audio"]');
+                if (uploadLink && uploadLink.textContent.toLowerCase().includes(searchTerm)){
+                     newList.prepend(uploadLink.cloneNode(true));
+                }
+
+            } else {
+                 filteredItems.forEach(item => newList.appendChild(item.cloneNode(true)));
+            }
+             if (newList.hasChildNodes()){
+               resultsWrapper.appendChild(newList);
+             } else {
+                 resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
+             }
+
+        } else {
+            resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
         }
     });
 
@@ -777,7 +796,7 @@ function setupGlobalEventListeners() {
     ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(eventType => {
         document.addEventListener(eventType, stopAutoIncrement);
     });
-    
+
     areGlobalListenersInitialized = true;
 }
 async function handleMenuClick(event, parentMenu) {
@@ -798,16 +817,16 @@ async function handleMenuClick(event, parentMenu) {
         selectCalendarDate(parseInt(dayTarget.dataset.day, 10));
         return;
     }
-    
+
     const actionTarget = target.closest('[data-action]');
     if (!actionTarget) return;
     const action = actionTarget.dataset.action;
 
     if (dropdownMap[action]) {
         toggleDropdown(action, parentMenu);
-        return; 
+        return;
     }
-    
+
     switch (action) {
         case 'open-calendar-menu':
             navigateToMenu('Calendar');

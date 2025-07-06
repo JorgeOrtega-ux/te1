@@ -22,7 +22,8 @@
             </div>
         </div>
         <div class="menu-content-scrolleable overflow-y">
-            <div class="creation-wrapper">
+            <div class="search-results-wrapper disabled"></div>
+            <div class="creation-wrapper active">
                 <div class="menu-section-center" id="upload-audio-wrapper"></div>
                 <div class="menu-section-center overflow-y" id="sound-list-wrapper"></div>
             </div>
