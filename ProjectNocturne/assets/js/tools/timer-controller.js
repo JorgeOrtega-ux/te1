@@ -56,9 +56,9 @@ function renderTimerSearchResults(searchTerm) {
     const menuElement = document.querySelector('.menu-timer[data-menu="Timer"]');
     if (!menuElement) return;
 
-    const resultsWrapper = menuElement.querySelector('.timer-search-results-wrapper');
-    const creationWrapper = menuElement.querySelector('.timer-creation-wrapper');
-    const typeSelector = menuElement.querySelector('.menu-content-selector');
+    const resultsWrapper = menuElement.querySelector('.search-results-wrapper');
+    const creationWrapper = menuElement.querySelector('.creation-wrapper');
+    const typeSelector = menuElement.querySelector('.menu-section-selector');
 
     if (!resultsWrapper || !creationWrapper || !typeSelector) return;
 
@@ -73,7 +73,7 @@ function renderTimerSearchResults(searchTerm) {
     const allTimers = [...userTimers, ...defaultTimersState];
     const filteredTimers = allTimers.filter(timer => {
         const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
-        return translatedTitle.toLowerCase().includes(searchTerm);
+        return translatedTitle.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
     creationWrapper.classList.add('disabled');
@@ -1181,6 +1181,7 @@ document.addEventListener('translationsApplied', () => {
 });
 
 
+
 export { initializeTimerController };
 
 
@@ -1191,19 +1192,15 @@ export function initializeScrollShadow() {
     menus.forEach(menu => {
         const topContainer = menu.querySelector('.menu-section-top, .menu-header');
         
-        // Búsqueda mejorada para el contenedor de scroll
         let scrollableContainer = menu.querySelector('.menu-section-center.overflow-y');
         
-        // Si no lo encuentra, usa los selectores anteriores como respaldo (para el Centro de Control)
         if (!scrollableContainer) {
            scrollableContainer = menu.querySelector('.menu-content-scrolleable, .menu-body.overflow-y');
         }
 
         if (topContainer && scrollableContainer) {
-            // Elimina listeners antiguos para evitar duplicados si la función se llama de nuevo
             scrollableContainer.removeEventListener('scroll', handleScroll);
             
-            // Define una función con nombre para poder eliminarla después
             function handleScroll() {
                 if (scrollableContainer.scrollTop > 0) {
                     topContainer.classList.add('shadow');
@@ -1216,4 +1213,4 @@ export function initializeScrollShadow() {
         }
     });
 }
- initializeScrollShadow() 
+ initializeScrollShadow()

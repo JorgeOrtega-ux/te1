@@ -669,13 +669,8 @@ async function populateTimezoneDropdown(parentMenu, countryCode) {
 function populateSoundsMenu(context) {
     const soundsMenu = document.querySelector('.menu-sounds');
     if (!soundsMenu) return;
-
-    // --- INICIO DE LA CORRECCIÓN ---
-    // Apuntamos a los nuevos IDs de los contenedores
     const uploadContainer = soundsMenu.querySelector('#upload-audio-wrapper');
     const listContainer = soundsMenu.querySelector('#sound-list-wrapper');
-    // --- FIN DE LA CORRECCIÓN ---
-
     let activeSoundId = '';
     if (context === 'alarm') {
         activeSoundId = state.alarm.sound;
@@ -684,10 +679,9 @@ function populateSoundsMenu(context) {
     } else if (context === 'count_to_date') {
         activeSoundId = state.timer.countTo.sound;
     }
-    
-    // Pasamos los dos contenedores a la función
     generateSoundList(uploadContainer, listContainer, 'selectSound', activeSoundId);
 }
+
 function setupGlobalEventListeners() {
     if (areGlobalListenersInitialized) return;
 
@@ -699,69 +693,57 @@ function setupGlobalEventListeners() {
         }
     });
 
-   document.body.addEventListener('input', (event) => {
-    const target = event.target;
-
-    // Condicional para manejar específicamente la búsqueda de sonidos
-    if (target.id === 'sound-search-input') {
+    document.body.addEventListener('input', (event) => {
+        const target = event.target;
         const searchTerm = target.value.toLowerCase();
-        
-        // 1. Ocultar o mostrar el botón de "Subir Audio"
-        const uploadAudioWrapper = document.getElementById('upload-audio-wrapper');
-        if (uploadAudioWrapper) {
-            uploadAudioWrapper.style.display = searchTerm ? 'none' : 'block';
-        }
+        let listContainer;
 
-        // 2. Filtrar la lista de sonidos y sus cabeceras de sección
-        const soundListContainer = document.querySelector('#sound-list-wrapper .menu-list');
-        if (!soundListContainer) return;
-
-        const allSoundItems = soundListContainer.querySelectorAll('.menu-link[data-sound]');
-
-        // Primero, filtramos todos los sonidos individualmente
-        allSoundItems.forEach(item => {
-            const itemNameElement = item.querySelector('.menu-link-text span');
-            if (itemNameElement) {
-                const itemName = itemNameElement.textContent.toLowerCase();
-                // Muestra el item si coincide, de lo contrario lo oculta
-                item.style.display = itemName.includes(searchTerm) ? 'flex' : 'none';
-            }
-        });
-
-        // Ahora, verificamos la visibilidad de cada sección
-        const headers = soundListContainer.querySelectorAll('.menu-content-header-sm');
-        headers.forEach(header => {
-            let nextElement = header.nextElementSibling;
-            let hasVisibleItemsInSection = false;
-
-            // Buscamos si algún elemento visible pertenece a esta sección
-            while (nextElement && !nextElement.classList.contains('menu-content-header-sm')) {
-                if (nextElement.matches('.menu-link[data-sound]') && nextElement.style.display !== 'none') {
-                    hasVisibleItemsInSection = true;
-                    break; // Si encontramos uno, ya no necesitamos seguir buscando en esta sección
+        switch (target.id) {
+            case 'sound-search-input':
+                const uploadAudioWrapper = document.getElementById('upload-audio-wrapper');
+                if (uploadAudioWrapper) {
+                    uploadAudioWrapper.style.display = searchTerm ? 'none' : 'block';
                 }
-                nextElement = nextElement.nextElementSibling;
-            }
+                listContainer = document.querySelector('#sound-list-wrapper .menu-list');
+                if (!listContainer) return;
 
-            // Ocultamos la cabecera si no hay elementos visibles en su sección
-            header.style.display = hasVisibleItemsInSection ? 'flex' : 'none';
-        });
+                const soundItems = listContainer.querySelectorAll('.menu-link[data-sound]');
+                soundItems.forEach(item => {
+                    const itemNameElement = item.querySelector('.menu-link-text span');
+                    if (itemNameElement) {
+                        const itemName = itemNameElement.textContent.toLowerCase();
+                        item.style.display = itemName.includes(searchTerm) ? 'flex' : 'none';
+                    }
+                });
 
-    } 
-    // Mantenemos la lógica original para las otras búsquedas
-    else if (target.matches('#country-search-input-new, #timezone-search-input')) {
-        const searchTerm = target.value.toLowerCase();
-        const listContainer = target.closest('.menu-section').querySelector('.menu-list, .sound-list-container');
-        if (!listContainer) return;
-        const items = listContainer.querySelectorAll('.menu-link');
-        items.forEach(item => {
-            const itemName = item.querySelector('.menu-link-text span')?.textContent.toLowerCase();
-            if (itemName) {
-                item.style.display = itemName.includes(searchTerm) ? 'flex' : 'none';
-            }
-        });
-    }
-});
+                const headers = listContainer.querySelectorAll('.menu-content-header-sm');
+                headers.forEach(header => {
+                    let nextElement = header.nextElementSibling;
+                    let hasVisibleItemsInSection = false;
+                    while (nextElement && !nextElement.classList.contains('menu-content-header-sm')) {
+                        if (nextElement.matches('.menu-link[data-sound]') && nextElement.style.display !== 'none') {
+                            hasVisibleItemsInSection = true;
+                            break;
+                        }
+                        nextElement = nextElement.nextElementSibling;
+                    }
+                    header.style.display = hasVisibleItemsInSection ? 'flex' : 'none';
+                });
+                break;
+            case 'country-search-input':
+            case 'timezone-search-input':
+                listContainer = target.closest('.menu-section').querySelector('.menu-list');
+                if (!listContainer) return;
+                const items = listContainer.querySelectorAll('.menu-link');
+                items.forEach(item => {
+                    const itemName = item.querySelector('.menu-link-text span')?.textContent.toLowerCase();
+                    if (itemName) {
+                        item.style.display = itemName.includes(searchTerm) ? 'flex' : 'none';
+                    }
+                });
+                break;
+        }
+    });
 
     document.body.addEventListener('click', (event) => {
         const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timezone, .menu-calendar, .menu-time-picker');
@@ -896,8 +878,6 @@ async function handleMenuClick(event, parentMenu) {
             const timerMenu = getMenuElement('menuTimer');
             updateDisplay('#selected-hour-display', String(hour).padStart(2, '0'), timerMenu);
             updateDisplay('#selected-minute-display', '--', timerMenu);
-
-            // Logic to switch from hour list to minute list inside TimePicker menu
             const hourList = parentMenu.querySelector('[data-list-type="hours"]');
             const minuteList = parentMenu.querySelector('[data-list-type="minutes"]');
             if(hourList && minuteList) {
@@ -1032,8 +1012,6 @@ async function handleMenuClick(event, parentMenu) {
         }
     }
 }
-
-
 
 export function initMenuInteractions() {
     setupGlobalEventListeners();

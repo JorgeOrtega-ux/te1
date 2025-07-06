@@ -22,8 +22,11 @@ let defaultAlarmsState = [];
 let activeAlarmTimers = new Map();
 
 function renderAlarmSearchResults(searchTerm) {
-    const resultsWrapper = document.querySelector('.alarm-search-results-wrapper');
-    const creationWrapper = document.querySelector('.alarm-creation-wrapper');
+    const menuElement = document.querySelector('.menu-alarm[data-menu="Alarm"]');
+    if (!menuElement) return;
+
+    const resultsWrapper = menuElement.querySelector('.search-results-wrapper');
+    const creationWrapper = menuElement.querySelector('.creation-wrapper');
 
     if (!resultsWrapper || !creationWrapper) return;
 
@@ -37,7 +40,7 @@ function renderAlarmSearchResults(searchTerm) {
     const allAlarms = [...userAlarms, ...defaultAlarmsState];
     const filteredAlarms = allAlarms.filter(alarm => {
         const translatedTitle = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
-        return translatedTitle.toLowerCase().includes(searchTerm);
+        return translatedTitle.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
     creationWrapper.classList.add('disabled');
@@ -219,15 +222,13 @@ export function getAlarmLimit() {
 function createAlarm(title, hour, minute, sound) {
     const alarmLimit = getAlarmLimit();
     if (userAlarms.length >= alarmLimit) {
-        // --- INICIO DE LA LÓGICA SIMPLIFICADA ---
         showDynamicIslandNotification(
             'system',
-            'limit_reached', // Acción genérica
-            null, // El controlador de notificaciones elegirá el mensaje
+            'limit_reached',
+            null,
             'notifications',
             { type: getTranslation('alarms', 'tooltips') }
         );
-        // --- FIN DE LA LÓGICA SIMPLIFICADA ---
         return false;
     }
     const alarm = {
@@ -699,7 +700,7 @@ export function initializeAlarmClock() {
     }
     const searchInput = document.getElementById('alarm-search-input');
     if (searchInput) {
-        searchInput.addEventListener('input', (e) => renderAlarmSearchResults(e.target.value.toLowerCase()));
+        searchInput.addEventListener('input', (e) => renderAlarmSearchResults(e.target.value));
     }
 
     window.alarmManager = {

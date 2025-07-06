@@ -13,9 +13,14 @@ let userClocks = [];
 let mainDisplayInterval = null;
 
 function renderWorldClockSearchResults(searchTerm) {
-    const resultsWrapper = document.querySelector('.worldclock-search-results-wrapper');
-    const creationWrapper = document.querySelector('.worldclock-creation-wrapper');
+    const menuElement = document.querySelector('.menu-worldClock[data-menu="WorldClock"]');
+    if (!menuElement) return;
+
+    const resultsWrapper = menuElement.querySelector('.search-results-wrapper');
+    const creationWrapper = menuElement.querySelector('.creation-wrapper');
+
     if (!resultsWrapper || !creationWrapper) return;
+
     if (!searchTerm) {
         resultsWrapper.classList.add('disabled');
         creationWrapper.classList.remove('disabled');
@@ -23,7 +28,7 @@ function renderWorldClockSearchResults(searchTerm) {
         return;
     }
     const filteredClocks = userClocks.filter(clock =>
-        clock.title.toLowerCase().includes(searchTerm)
+        clock.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
     creationWrapper.classList.add('disabled');
     resultsWrapper.classList.remove('disabled');
@@ -304,15 +309,13 @@ function createAndStartClockCard(title, country, timezone, existingId = null, sa
     const hasLocalClock = document.querySelector('.local-clock-card');
     const actualCurrentClocks = hasLocalClock && existingId !== 'local' ? totalCurrentClocks - 1 : totalCurrentClocks;
     if (save && actualCurrentClocks >= totalClockLimit) {
-        // --- INICIO DE LA LÓGICA SIMPLIFICADA ---
         showDynamicIslandNotification(
             'system',
-            'limit_reached', // Acción genérica
-            null, // El controlador de notificaciones elegirá el mensaje
+            'limit_reached',
+            null,
             'notifications',
             { type: getTranslation('world_clock', 'tooltips') }
         );
-        // --- FIN DE LA LÓGICA SIMPLIFICADA ---
         return;
     }
     const ct = window.ct;
