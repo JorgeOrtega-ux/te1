@@ -76,7 +76,7 @@
                             </div>
                             <div class="menu-content-general">
                                 <div class="custom-select-wrapper">
-                                    <div class="custom-select-content" data-action="open-sounds-menu" data-context="alarm">
+                                    <div class="custom-select-content" data-module="toggleSoundsMenu" data-context="alarm">
                                         <div class="custom-select-content-left">
                                             <span id="alarm-selected-sound" 
                                                   data-translate="classic_beep" 

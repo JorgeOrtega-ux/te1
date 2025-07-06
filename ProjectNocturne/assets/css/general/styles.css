@@ -1189,14 +1189,14 @@ body {
     }
 
 .menu-alarm,
-.menu-timer,
-.menu-worldClock,
-.menu-paletteColors,
-.menu-sounds,
-.menu-country,
-.menu-timezone,
-.menu-calendar,
-.menu-time-picker {
+    .menu-timer,
+    .menu-worldClock,
+    .menu-paletteColors,
+    .menu-sounds,
+    .menu-country,
+    .menu-timeZone,   /* CORREGIDO */
+    .menu-calendar,
+    .menu-timePicker { /* CORREGIDO */
         height: auto;
         max-height: 85%;
         min-height: 85%;

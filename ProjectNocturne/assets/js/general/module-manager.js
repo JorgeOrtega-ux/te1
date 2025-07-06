@@ -52,7 +52,8 @@ const INDEPENDENT_OVERLAYS = {
     'menuAlarm': '[data-menu="alarm"]',
     'menuTimer': '[data-menu="timer"]',
     'menuWorldClock': '[data-menu="worldClock"]',
-    'menuPaletteColors': '[data-menu="paletteColors"]'
+    'menuPaletteColors': '[data-menu="paletteColors"]',
+    'menuSounds': '[data-menu="sounds"]'
 };
 
 const TOGGLE_TO_MODULE_MAP = {
@@ -60,7 +61,8 @@ const TOGGLE_TO_MODULE_MAP = {
     'toggleMenuAlarm': 'overlayContainer',
     'toggleMenuTimer': 'overlayContainer',
     'toggleMenuWorldClock': 'overlayContainer',
-    'togglePaletteColors': 'overlayContainer'
+    'togglePaletteColors': 'overlayContainer',
+    'toggleSoundsMenu': 'overlayContainer'
 };
 
 // ========== CENTRALIZED STATE ==========
@@ -272,7 +274,7 @@ function initializeEventListeners() {
 
 // ========== UPDATED CORE FUNCTIONS ==========
 
-function activateModule(moduleName) {
+function activateModule(moduleName, options = {}) {
     const normalizedName = normalizeModuleName(moduleName);
 
     if (!MODULE_CONFIG[normalizedName] || moduleState.isModuleChanging) {
@@ -287,7 +289,7 @@ function activateModule(moduleName) {
     if (normalizedName === 'controlCenter') {
         activateControlCenter();
     } else if (normalizedName === 'overlayContainer') {
-        activateOverlayContainer(moduleName);
+        activateOverlayContainer(moduleName, options);
     }
 
     dispatchModuleEvent('moduleActivated', { module: moduleName });
@@ -316,7 +318,7 @@ function deactivateModule(moduleName, options = {}) {
     }
 }
 
-function toggleModule(moduleName) {
+function toggleModule(moduleName, options = {}) {
     const normalizedName = normalizeModuleName(moduleName);
 
     if (!MODULE_CONFIG[normalizedName]) {
@@ -330,12 +332,12 @@ function toggleModule(moduleName) {
         const overlayContainer = domCache.overlayContainer.module;
         const currentToggle = getToggleFromOverlay(moduleState.modules.overlayContainer.currentOverlay);
         if (normalizedName === 'overlayContainer' && currentToggle !== moduleName) {
-            activateModule(moduleName);
+            activateModule(moduleName, options);
         } else {
             deactivateModule(normalizedName);
         }
     } else {
-        activateModule(moduleName);
+        activateModule(moduleName, options);
     }
 }
 
@@ -364,7 +366,7 @@ function activateControlCenter() {
     }
 }
 
-function activateOverlayContainer(originalToggleName) {
+function activateOverlayContainer(originalToggleName, options = {}) {
     const overlayContainer = domCache.overlayContainer.module;
 
     if (overlayContainer) {
@@ -377,7 +379,7 @@ function activateOverlayContainer(originalToggleName) {
             showSpecificOverlay(overlayToShow);
             moduleState.modules.overlayContainer.currentOverlay = overlayToShow;
 
-            initializeMenuForOverlay(overlayToShow);
+            initializeMenuForOverlay(overlayToShow, options.context);
         }
     }
 }
@@ -527,7 +529,7 @@ function normalizeModuleName(moduleName) {
         return TOGGLE_TO_MODULE_MAP[moduleName];
     }
 
-    if (moduleName.startsWith('toggleMenu') || moduleName === 'togglePaletteColors') {
+    if (moduleName.startsWith('toggleMenu') || moduleName === 'togglePaletteColors' || moduleName === 'toggleSoundsMenu') {
         return 'overlayContainer';
     }
 
@@ -539,7 +541,8 @@ function getOverlayFromToggle(toggleName) {
         'toggleMenuAlarm': 'menuAlarm',
         'toggleMenuTimer': 'menuTimer',
         'toggleMenuWorldClock': 'menuWorldClock',
-        'togglePaletteColors': 'menuPaletteColors'
+        'togglePaletteColors': 'menuPaletteColors',
+        'toggleSoundsMenu': 'menuSounds'
     };
 
     return toggleToOverlayMap[toggleName] || null;
@@ -550,7 +553,8 @@ function getToggleFromOverlay(overlayName) {
         'menuAlarm': 'toggleMenuAlarm',
         'menuTimer': 'toggleMenuTimer',
         'menuWorldClock': 'toggleMenuWorldClock',
-        'menuPaletteColors': 'togglePaletteColors'
+        'menuPaletteColors': 'togglePaletteColors',
+        'menuSounds': 'toggleSoundsMenu'
     };
     return overlayToToggleMap[overlayName] || null;
 }
@@ -777,14 +781,16 @@ function setupModuleEvents() {
         { selector: '[data-module="toggleMenuAlarm"]', toggle: 'toggleMenuAlarm' },
         { selector: '[data-module="toggleMenuTimer"]', toggle: 'toggleMenuTimer' },
         { selector: '[data-module="toggleMenuWorldClock"]', toggle: 'toggleMenuWorldClock' },
-        { selector: '[data-module="togglePaletteColors"]', toggle: 'togglePaletteColors' }
+        { selector: '[data-module="togglePaletteColors"]', toggle: 'togglePaletteColors' },
+        { selector: '[data-module="toggleSoundsMenu"]', toggle: 'toggleSoundsMenu' }
     ];
 
     overlayToggles.forEach(item => {
         const elements = document.querySelectorAll(item.selector);
         elements.forEach(element => {
-            element.addEventListener('click', () => {
-                toggleModule(item.toggle);
+            element.addEventListener('click', (e) => {
+                const context = e.currentTarget.dataset.context;
+                toggleModule(item.toggle, { context });
             });
         });
     });
@@ -858,7 +864,7 @@ function handleDesktopOutsideClick(e) {
         const overlayContainer = domCache.overlayContainer.module;
 
         const isClickInOverlay = overlayContainer?.contains(e.target);
-        const isClickInToggle = e.target.closest('[data-module^="toggleMenu"], [data-module="togglePaletteColors"]');
+        const isClickInToggle = e.target.closest('[data-module^="toggleMenu"], [data-module="togglePaletteColors"], [data-module="toggleSoundsMenu"]');
 
         if (!isClickInOverlay && !isClickInToggle) {
             deactivateModule('overlayContainer', { source: 'desktop-outside-click' });
@@ -938,7 +944,7 @@ function isModuleCurrentlyChanging() {
         controlCenterModule?.querySelector('.menu-control-center.closing') || false;
 
     const isOverlayBusy = overlayContainer?.classList.contains('closing') ||
-        overlayContainer?.querySelector('.menu-alarm.closing, .menu-timer.closing, .menu-worldClock.closing, .menu-paletteColors.closing') || false;
+        overlayContainer?.querySelector('.menu-alarm.closing, .menu-timer.closing, .menu-worldClock.closing, .menu-paletteColors.closing, .menu-sounds.closing') || false;
 
     return moduleState.isModuleChanging || isControlCenterBusy || isOverlayBusy;
 }

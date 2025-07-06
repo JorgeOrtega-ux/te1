@@ -112,22 +112,22 @@
     "white": "Blanco",
     "yellow": "Amarillo"
   },
-  "menu": {
-    "appearance": "Apariencia",
-    "dark_theme": "Tema oscuro",
-    "english_us": "English (US)",
-    "french_fr": "Français (France)",
-    "language": "Idioma",
-    "light_theme": "Tema claro",
-    "privacy_policy": "Política de Privacidad",
-    "settings": "Configuración",
-    "spanish_mx": "Español (MX)",
-    "suggest_improvements": "Sugerir mejoras",
-    "sync_with_system": "Sincronizar con el sistema",
-    "location": "Ubicación",
-    "detecting": "Detectando...",
-    "none_selected": "No seleccionado"
-  },
+"menu": {
+  "appearance": "Apariencia",
+  "dark_theme": "Tema oscuro",
+  "english_us": "English (Estados Unidos)",
+  "french_fr": "Français (Francia)",
+  "language": "Idioma",
+  "light_theme": "Tema claro",
+  "privacy_policy": "Política de Privacidad",
+  "settings": "Configuración",
+  "spanish_mx": "Español (México)",
+  "suggest_improvements": "Sugerir mejoras",
+  "sync_with_system": "Sincronizar con el sistema",
+  "location": "Ubicación",
+  "detecting": "Detectando...",
+  "none_selected": "No seleccionado"
+},
 "search": {
     "no_results": "No se encontraron resultados para",
     "no_valid_results": "No se encontraron resultados válidos para el tema actual para",

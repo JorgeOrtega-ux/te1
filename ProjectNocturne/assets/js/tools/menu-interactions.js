@@ -87,7 +87,7 @@ function navigateBack() {
         currentMenu.classList.add('disabled');
 
         // If we are leaving the time picker, reset its internal state to show the hour list again.
-        if (currentMenu.dataset.menu === 'timepicker') {
+        if (currentMenu.dataset.menu === 'timePicker') {
             const hourList = currentMenu.querySelector('[data-list-type="hours"]');
             const minuteList = currentMenu.querySelector('[data-list-type="minutes"]');
             if (hourList && minuteList) {
@@ -137,8 +137,8 @@ function getMenuElement(menuName) {
         'menuTimer': '.menu-timer[data-menu="timer"]',
         'menuWorldClock': '.menu-worldClock[data-menu="worldClock"]',
         'menuCalendar': '.menu-calendar[data-menu="calendar"]',
-        'timePicker': '.menu-timePicker[data-menu="timePicker"]', // Clave y selector corregidos
-        'timeZone': '.menu-timeZone[data-menu="timeZone"]' // Añadido para consistencia
+        'timePicker': '.menu-timePicker[data-menu="timePicker"]', // CORREGIDO
+        'timeZone': '.menu-timeZone[data-menu="timeZone"]' // CORREGIDO
     };
     return document.querySelector(menuSelectorMap[menuName]);
 };
@@ -592,7 +592,7 @@ const selectCalendarDate = (day) => {
 };
 
 const populateHourSelectionMenu = () => {
-    const timePickerMenu = getMenuElement('menuTimePicker');
+    const timePickerMenu = getMenuElement('timePicker'); // CORREGIDO
     if (!timePickerMenu) return;
     const hourMenu = timePickerMenu.querySelector('.menu-list[data-list-type="hours"]');
     if (!hourMenu || hourMenu.children.length > 0) return;
@@ -607,7 +607,7 @@ const populateHourSelectionMenu = () => {
 };
 
 const populateMinuteSelectionMenu = (hour) => {
-    const timePickerMenu = getMenuElement('menuTimePicker');
+    const timePickerMenu = getMenuElement('timePicker'); // CORREGIDO
     if (!timePickerMenu) return;
     const minuteMenu = timePickerMenu.querySelector('.menu-list[data-list-type="minutes"]');
     if (!minuteMenu) return;
@@ -697,7 +697,7 @@ function setupGlobalEventListeners() {
         const target = event.target;
         if (!['sound-search-input', 'country-search-input', 'timezone-search-input'].includes(target.id)) return;
 
-        const menu = target.closest('.menu-sounds, .menu-country, .menu-timezone');
+        const menu = target.closest('.menu-sounds, .menu-country, .menu-timeZone');
         if (!menu) return;
 
         const searchTerm = target.value.toLowerCase();
@@ -727,7 +727,6 @@ function setupGlobalEventListeners() {
         if (filteredItems.length > 0) {
             const newList = document.createElement('div');
             newList.className = 'menu-list';
-            // Para sonidos, mantenemos las cabeceras si hay elementos visibles
             if (target.id === 'sound-search-input') {
                 const headers = originalListContainer.querySelectorAll('.menu-content-header-sm');
                 headers.forEach(header => {
@@ -744,7 +743,6 @@ function setupGlobalEventListeners() {
                         sectionItems.forEach(item => newList.appendChild(item.cloneNode(true)));
                     }
                 });
-                // También manejar el botón de subida si está en los resultados
                 const uploadLink = originalListContainer.querySelector('[data-action="upload-audio"]');
                 if (uploadLink && uploadLink.textContent.toLowerCase().includes(searchTerm)) {
                     newList.prepend(uploadLink.cloneNode(true));
@@ -765,7 +763,8 @@ function setupGlobalEventListeners() {
     });
 
     document.body.addEventListener('click', (event) => {
-        const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timezone, .menu-calendar, .menu-time-picker');
+        // CORREGIDO: Selector actualizado para coincidir con el HTML
+        const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker');
         if (!parentMenu || autoIncrementState.isActive) return;
         handleMenuClick(event, parentMenu);
     });
@@ -836,11 +835,7 @@ async function handleMenuClick(event, parentMenu) {
             navigateToMenu('timePicker');
             populateHourSelectionMenu();
             break;
-        case 'open-sounds-menu':
-            soundSelectionContext = actionTarget.dataset.context;
-            navigateToMenu('sounds');
-            populateSoundsMenu(soundSelectionContext);
-            break;
+        // ELIMINADO: 'open-sounds-menu' ya no es necesario aquí.
         case 'open-country-menu':
             navigateToMenu('country');
             populateCountryDropdown(document.querySelector('.menu-country'));

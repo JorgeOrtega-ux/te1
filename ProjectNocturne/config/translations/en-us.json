@@ -115,20 +115,19 @@
   "menu": {
     "appearance": "Appearance",
     "dark_theme": "Dark Theme",
-    "english_us": "English (US)",
+    "english_us": "English (United States)",
     "french_fr": "Français (France)",
     "language": "Language",
     "light_theme": "Light Theme",
     "privacy_policy": "Privacy Policy",
     "settings": "Settings",
-    "spanish_mx": "Español (MX)",
-    "suggest_improvements": "Suggest Improvements",
+    "spanish_mx": "Español (México)",
     "sync_with_system": "Sync with System",
     "location": "Location",
     "detecting": "Detecting...",
     "none_selected": "None Selected"
   },
-"search": {
+  "search": {
     "no_results": "No results found for",
     "no_valid_results": "No valid results for current theme for",
     "search_error": "Could not process search",
