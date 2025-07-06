@@ -336,60 +336,73 @@ function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
     const soundName = isCustom ? sound.nameKey : getTranslation(sound.nameKey, 'sounds');
     const translationAttrs = isCustom ? '' : `data-translate="${sound.nameKey}" data-translate-category="sounds"`;
 
-    // 1. Primer div: Ícono del sonido (siempre visible)
     const iconDiv = document.createElement('div');
     iconDiv.className = 'menu-link-icon';
     iconDiv.innerHTML = `<span class="material-symbols-rounded">${sound.icon}</span>`;
 
-    // 2. Segundo div: Texto del sonido (siempre visible)
     const textDiv = document.createElement('div');
     textDiv.className = 'menu-link-text';
-    textDiv.dataset.action = actionName; // La acción de selección va aquí
+    textDiv.dataset.action = actionName;
     textDiv.innerHTML = `<span ${translationAttrs}>${soundName}</span>`;
 
-    // Añadir los dos divs base al contenedor principal
     menuLink.appendChild(iconDiv);
     menuLink.appendChild(textDiv);
 
-    // Evento para AÑADIR el tercer div al pasar el mouse
-    menuLink.addEventListener('mouseenter', () => {
-        // Evitar duplicados si el mouse se mueve rápido
-        if (menuLink.querySelector('.menu-link-actions-container')) return;
+    // --- INICIO DE LA LÓGICA MODIFICADA ---
 
-        // 3. Tercer div: Contenedor para los botones (creado dinámicamente)
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'menu-link-icon menu-link-actions-container'; // Clase para identificarlo
-
-        const actionsWrapper = document.createElement('div');
-        actionsWrapper.className = 'menu-link-actions-wrapper';
-
-        // Botón de prueba
+    if (isCustom) {
+        // LÓGICA PARA SONIDOS SUBIDOS: Botones siempre visibles en su propio contenedor
+        
+        // Contenedor para el botón de prueba
+        const testButtonContainer = document.createElement('div');
+        testButtonContainer.className = 'menu-link-icon'; // Usa la clase para que se alinee como un ícono
+        
         const testButton = document.createElement('div');
         testButton.className = 'interactive-icon sound-test-btn';
         testButton.dataset.action = 'test-sound';
         testButton.innerHTML = `<span class="material-symbols-rounded">play_arrow</span>`;
-        actionsWrapper.appendChild(testButton);
+        testButtonContainer.appendChild(testButton);
 
-        // Botón de eliminar (si es personalizado)
-        if (isCustom) {
-            const deleteButton = document.createElement('div');
-            deleteButton.className = 'interactive-icon';
-            deleteButton.dataset.action = 'delete-user-audio';
-            deleteButton.innerHTML = `<span class="material-symbols-rounded">delete</span>`;
-            actionsWrapper.appendChild(deleteButton);
-        }
+        // Contenedor para el botón de eliminar
+        const deleteButtonContainer = document.createElement('div');
+        deleteButtonContainer.className = 'menu-link-icon';
 
-        actionsDiv.appendChild(actionsWrapper);
-        menuLink.appendChild(actionsDiv);
-    });
+        const deleteButton = document.createElement('div');
+        deleteButton.className = 'interactive-icon';
+        deleteButton.dataset.action = 'delete-user-audio';
+        deleteButton.innerHTML = `<span class="material-symbols-rounded">delete</span>`;
+        deleteButtonContainer.appendChild(deleteButton);
 
-    // Evento para ELIMINAR el tercer div al quitar el mouse
-    menuLink.addEventListener('mouseleave', () => {
-        const actionsDiv = menuLink.querySelector('.menu-link-actions-container');
-        if (actionsDiv) {
-            actionsDiv.remove();
-        }
-    });
+        // Añadir los nuevos contenedores de botones al final de la fila
+        menuLink.appendChild(deleteButtonContainer);
+        menuLink.appendChild(testButtonContainer);
+
+    } else {
+        // LÓGICA PARA SONIDOS PREDETERMINADOS: El botón de prueba aparece al pasar el mouse
+        
+        menuLink.addEventListener('mouseenter', () => {
+            if (menuLink.querySelector('.menu-link-actions-container')) return;
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'menu-link-icon menu-link-actions-container';
+
+            const testButton = document.createElement('div');
+            testButton.className = 'interactive-icon sound-test-btn';
+            testButton.dataset.action = 'test-sound';
+            testButton.innerHTML = `<span class="material-symbols-rounded">play_arrow</span>`;
+            
+            actionsDiv.appendChild(testButton);
+            menuLink.appendChild(actionsDiv);
+        });
+
+        menuLink.addEventListener('mouseleave', () => {
+            const actionsDiv = menuLink.querySelector('.menu-link-actions-container');
+            if (actionsDiv) {
+                actionsDiv.remove();
+            }
+        });
+    }
+    // --- FIN DE LA LÓGICA MODIFICADA ---
 
     return menuLink;
 }

@@ -830,61 +830,79 @@ async function handleMenuClick(event, parentMenu) {
     if (!target) return;
 
     const action = target.dataset.action;
-
-    // Lógica unificada para la prueba de sonidos
     const testSoundActions = ['test-sound', 'previewAlarmSound', 'previewCountdownSound', 'previewCountToDateSound'];
 
     if (testSoundActions.includes(action)) {
         event.stopPropagation();
         
         let soundId;
-        const soundTestButton = target.closest('.sound-test-btn');
+        const soundTestButton = target.closest('.sound-test-btn') || target;
+        const menuLink = soundTestButton.closest('.menu-link');
 
         if (action === 'test-sound') {
-            soundId = target.closest('.menu-link').dataset.soundId;
+            soundId = menuLink.dataset.soundId;
         } else {
-            // Obtener el ID del sonido desde el estado actual
+            // Lógica para sonidos de alarma/temporizador (no necesita cambios)
             if (action === 'previewAlarmSound') soundId = state.alarm.sound;
             if (action === 'previewCountdownSound') soundId = state.timer.sound;
             if (action === 'previewCountToDateSound') soundId = state.timer.countTo.sound;
         }
 
-        const icon = target.querySelector('.material-symbols-rounded');
+        const icon = soundTestButton.querySelector('.material-symbols-rounded');
 
-        // Si se está reproduciendo el mismo sonido, detenerlo
         if (currentlyPlayingSound && currentlyPlayingSound.id === soundId) {
             stopSound();
             clearTimeout(soundTimeout);
             if (icon) icon.textContent = 'play_arrow';
-            if (soundTestButton) soundTestButton.classList.remove('playing');
+            if (menuLink) menuLink.classList.remove('sound-playing');
             currentlyPlayingSound = null;
         } else {
-            // Detener cualquier otro sonido que se esté reproduciendo
             if (currentlyPlayingSound) {
                 stopSound();
                 clearTimeout(soundTimeout);
-                const prevButton = document.querySelector(`.sound-test-btn.playing`);
+
+                const prevButton = currentlyPlayingSound.button;
                 if (prevButton) {
-                    prevButton.querySelector('.material-symbols-rounded').textContent = 'play_arrow';
-                    prevButton.classList.remove('playing');
+                    const prevIcon = prevButton.querySelector('.material-symbols-rounded');
+                    if (prevIcon) prevIcon.textContent = 'play_arrow';
+                    
+                    const prevLink = prevButton.closest('.menu-link');
+                    if (prevLink) {
+                        prevLink.classList.remove('sound-playing');
+                        const prevActions = prevLink.querySelector('.menu-link-actions-container');
+                        if (prevActions) {
+                            prevActions.classList.add('disabled');
+                            prevActions.classList.remove('active');
+                        }
+                    }
                 }
             }
 
-            // Reproducir el nuevo sonido
             playSound(soundId);
             if (icon) icon.textContent = 'stop';
-            if (soundTestButton) soundTestButton.classList.add('playing');
-            currentlyPlayingSound = { id: soundId, button: target };
+            if (menuLink) menuLink.classList.add('sound-playing');
+            currentlyPlayingSound = { id: soundId, button: soundTestButton };
 
-            // Detener automáticamente después de 3 segundos (3000 ms)
+            // --- INICIO DE LA CORRECCIÓN ---
             soundTimeout = setTimeout(() => {
                 if (currentlyPlayingSound && currentlyPlayingSound.id === soundId) {
                     stopSound();
+                    
+                    // Lógica que faltaba para limpiar el estado visual
                     if (icon) icon.textContent = 'play_arrow';
-                    if (soundTestButton) soundTestButton.classList.remove('playing');
+                    if (menuLink) {
+                        menuLink.classList.remove('sound-playing');
+                        const actionsContainer = menuLink.querySelector('.menu-link-actions-container');
+                        if (actionsContainer) {
+                            actionsContainer.classList.add('disabled');
+                            actionsContainer.classList.remove('active');
+                        }
+                    }
+                    
                     currentlyPlayingSound = null;
                 }
-            }, 3000); // Duración unificada a 3 segundos
+            }, 3000);
+            // --- FIN DE LA CORRECCIÓN ---
         }
         return;
     }
@@ -1126,7 +1144,7 @@ async function handleMenuClick(event, parentMenu) {
         }
     }
 }
-
+window.getCurrentlyPlayingSoundId = () => currentlyPlayingSound ? currentlyPlayingSound.id : null;
 export function initMenuInteractions() {
     setupGlobalEventListeners();
 }
