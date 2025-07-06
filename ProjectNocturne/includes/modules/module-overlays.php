@@ -5,7 +5,7 @@
     <?php include 'includes/menus/menu-worldClock.php'; ?>
     <?php include 'includes/menus/menu-sounds.php'; ?>
     <?php include 'includes/menus/menu-country.php'; ?>
-    <?php include 'includes/menus/menu-timezone.php'; ?>
+    <?php include 'includes/menus/menu-timeZone.php'; ?>
     <?php include 'includes/menus/menu-calendar.php'; ?>
-    <?php include 'includes/menus/menu-time-picker.php'; ?>
+    <?php include 'includes/menus/menu-timePicker.php'; ?>
 </div>

@@ -393,11 +393,11 @@ function deactivateModuleWithAnimation(moduleName, source) {
     if (moduleName === 'controlCenter') {
         const controlCenterModule = domCache.controlCenter.module;
         activeMenu = controlCenterModule?.querySelector('.menu-control-center.active');
-    } else if (moduleName === 'overlayContainer') {
+   } else if (moduleName === 'overlayContainer') {
         const overlayContainer = domCache.overlayContainer.module;
         if (overlayContainer) {
             // Encuentra CUALQUIER menú o submenú activo dentro del overlay
-            activeMenu = overlayContainer.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active, .menu-sounds.active, .menu-country.active, .menu-timezone.active, .menu-calendar.active, .menu-time-picker.active');
+          activeMenu = overlayContainer.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active, .menu-sounds.active, .menu-country.active, .menu-timeZone.active, .menu-calendar.active, .menu-timePicker.active');
         }
     }
 

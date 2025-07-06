@@ -49,7 +49,7 @@ export function resetOverlayNavigation() {
     if (!overlay) return;
 
     // Find and hide any active sub-menus.
-    const subMenus = overlay.querySelectorAll('.menu-sounds, .menu-country, .menu-timezone, .menu-calendar, .menu-time-picker');
+    const subMenus = overlay.querySelectorAll('.menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker');
     subMenus.forEach(subMenu => {
         subMenu.classList.remove('active');
         subMenu.classList.add('disabled');
@@ -58,7 +58,6 @@ export function resetOverlayNavigation() {
     // Clear the navigation history stack.
     menuStack.length = 0;
 }
-
 
 function navigateToMenu(menuName) {
     const overlay = document.querySelector('.module-overlay');
@@ -138,7 +137,8 @@ function getMenuElement(menuName) {
         'menuTimer': '.menu-timer[data-menu="timer"]',
         'menuWorldClock': '.menu-worldClock[data-menu="worldClock"]',
         'menuCalendar': '.menu-calendar[data-menu="calendar"]',
-        'menuTimePicker': '.menu-time-picker[data-menu="timePicker"]'
+        'timePicker': '.menu-timePicker[data-menu="timePicker"]', // Clave y selector corregidos
+        'timeZone': '.menu-timeZone[data-menu="timeZone"]' // Añadido para consistencia
     };
     return document.querySelector(menuSelectorMap[menuName]);
 };
@@ -746,18 +746,18 @@ function setupGlobalEventListeners() {
                 });
                 // También manejar el botón de subida si está en los resultados
                 const uploadLink = originalListContainer.querySelector('[data-action="upload-audio"]');
-                if (uploadLink && uploadLink.textContent.toLowerCase().includes(searchTerm)){
-                     newList.prepend(uploadLink.cloneNode(true));
+                if (uploadLink && uploadLink.textContent.toLowerCase().includes(searchTerm)) {
+                    newList.prepend(uploadLink.cloneNode(true));
                 }
 
             } else {
-                 filteredItems.forEach(item => newList.appendChild(item.cloneNode(true)));
+                filteredItems.forEach(item => newList.appendChild(item.cloneNode(true)));
             }
-             if (newList.hasChildNodes()){
-               resultsWrapper.appendChild(newList);
-             } else {
-                 resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
-             }
+            if (newList.hasChildNodes()) {
+                resultsWrapper.appendChild(newList);
+            } else {
+                resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
+            }
 
         } else {
             resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
@@ -845,7 +845,7 @@ async function handleMenuClick(event, parentMenu) {
             navigateToMenu('country');
             populateCountryDropdown(document.querySelector('.menu-country'));
             break;
-   case 'open-timezone-menu':
+        case 'open-timezone-menu':
             if (actionTarget.classList.contains('disabled-interactive')) return;
             navigateToMenu('timeZone');
             populateTimezoneDropdown(document.querySelector('.menu-timeZone'), state.worldClock.countryCode);
@@ -898,7 +898,7 @@ async function handleMenuClick(event, parentMenu) {
             updateDisplay('#selected-minute-display', '--', timerMenu);
             const hourList = parentMenu.querySelector('[data-list-type="hours"]');
             const minuteList = parentMenu.querySelector('[data-list-type="minutes"]');
-            if(hourList && minuteList) {
+            if (hourList && minuteList) {
                 hourList.classList.remove('active');
                 hourList.classList.add('disabled');
                 minuteList.classList.remove('disabled');
@@ -1018,7 +1018,7 @@ async function handleMenuClick(event, parentMenu) {
             }, 500);
             break;
         }
-         case 'prev-month': {
+        case 'prev-month': {
             state.timer.countTo.date.setMonth(state.timer.countTo.date.getMonth() - 1);
             renderCalendar();
             break;
