@@ -20,6 +20,11 @@ const DEFAULT_TIMERS = [
     { id: 'default-timer-5', title: 'study_session_45', type: 'countdown', initialDuration: 2700000, remaining: 2700000, endAction: 'restart', sound: 'gentle_chime', isRunning: false, isPinned: false }
 ];
 
+// Función para notificar cambios de estado
+function dispatchTimerStateChange() {
+    document.dispatchEvent(new CustomEvent('timerStateChanged'));
+}
+
 function formatTimeSince(timestamp) {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
     if (seconds < 60) return `${seconds} ${getTranslation('seconds', 'timer')}`;
@@ -474,6 +479,7 @@ function startTimer(timerId) {
         saveDefaultTimersOrder();
     }
     updateEverythingWidgets();
+    dispatchTimerStateChange();
 }
 
 // ================== INICIO DE LA MODIFICACIÓN =====================
@@ -558,6 +564,7 @@ function pauseTimer(timerId) {
     updateMainControlsState();
     refreshSearchResults();
     updateEverythingWidgets();
+    dispatchTimerStateChange();
 }
 
 // =================== FIN DE LA MODIFICACIÓN =======================
@@ -591,6 +598,7 @@ function resetTimer(timerId) {
     updateMainControlsState();
     refreshSearchResults();
     updateEverythingWidgets();
+    dispatchTimerStateChange();
 }
 
 
@@ -677,6 +685,7 @@ export function addTimerAndRender(timerData) {
 
     showDynamicIslandNotification('timer', 'created', 'timer_created', 'notifications', { title: newTimer.title });
     updateEverythingWidgets();
+    dispatchTimerStateChange();
 }
 
 export function updateTimer(timerId, newData) {

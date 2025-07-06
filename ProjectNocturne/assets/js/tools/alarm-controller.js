@@ -22,6 +22,14 @@ let defaultAlarmsState = [];
 // ================== INICIO DE LA MODIFICACIÓN =====================
 
 /**
+ * Notifica que el estado de una alarma ha cambiado.
+ * Esto permite que otros módulos, como el gestor de títulos, reaccionen.
+ */
+function dispatchAlarmStateChange() {
+    document.dispatchEvent(new CustomEvent('alarmStateChanged'));
+}
+
+/**
  * Comprueba si alguna alarma debe sonar en el minuto actual.
  * Se ejecuta una vez por segundo para máxima precisión, pero solo actúa
  * en el segundo 0 de cada minuto.
@@ -298,6 +306,7 @@ function createAlarm(title, hour, minute, sound) {
     updateAlarmCounts();
     showDynamicIslandNotification('alarm', 'created', 'alarm_created', 'notifications', { title: alarm.title });
     updateEverythingWidgets();
+    dispatchAlarmStateChange();
     return true;
 }
 
@@ -452,6 +461,7 @@ function dismissAlarm(alarmId) {
             optionsContainer.classList.remove('active');
         }
     }
+    dispatchAlarmStateChange();
 }
 
 function findAlarmById(alarmId) {
@@ -471,6 +481,7 @@ function toggleAlarm(alarmId) {
     updateAlarmCardVisuals(alarm);
     refreshSearchResults();
     updateEverythingWidgets();
+    dispatchAlarmStateChange();
 }
 
 function deleteAlarm(alarmId) {
@@ -500,6 +511,7 @@ function deleteAlarm(alarmId) {
     showDynamicIslandNotification('alarm', 'deleted', 'alarm_deleted', 'notifications', { title: originalTitle });
     refreshSearchResults();
     updateEverythingWidgets();
+    dispatchAlarmStateChange();
 }
 
 function updateAlarm(alarmId, newData) {

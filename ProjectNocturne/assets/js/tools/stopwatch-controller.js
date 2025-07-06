@@ -16,6 +16,11 @@ const stopwatchState = {
 
 let displayElement, startBtn, stopBtn, lapBtn, resetBtn, lapsTableBody, sectionBottom;
 
+// Función para notificar cambios de estado
+function dispatchStopwatchStateChange() {
+    document.dispatchEvent(new CustomEvent('stopwatchStateChanged'));
+}
+
 export function getLapLimit() {
     return PREMIUM_FEATURES ? 10000 : 1000;
 }
@@ -86,6 +91,7 @@ function startStopwatch(isReload = false) {
     updateButtonStates();
     saveState();
     if (!isReload) {
+        dispatchStopwatchStateChange();
         updateEverythingWidgets();
     }
 }
@@ -98,6 +104,7 @@ function stopStopwatch() {
     clearInterval(stopwatchState.timerInterval);
     updateButtonStates();
     saveState();
+    dispatchStopwatchStateChange();
     updateEverythingWidgets();
 }
 
@@ -115,6 +122,7 @@ function resetStopwatch() {
     sectionBottom.classList.add('disabled');
     updateButtonStates();
     saveState();
+    dispatchStopwatchStateChange();
     updateEverythingWidgets();
 }
 
