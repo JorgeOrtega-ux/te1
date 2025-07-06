@@ -66,6 +66,7 @@
     background-color: #ffffff20;
 }
 
+
 /* ====================================== */
 /* ========== GENERAL CONTENT =========== */
 /* ====================================== */
@@ -246,7 +247,7 @@
 }
 
 .dark-mode .section-center:fullscreen {
-    background-color: #252627;
+    background-color: #18191b;
 }
 
 /* ====================================== */

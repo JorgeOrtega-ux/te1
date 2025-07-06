@@ -152,7 +152,7 @@ function isValidForTheme(hex) {
 
         return currentTheme === 'dark'
             ? luminance >= 0.08
-            : luminance <= 0.92;
+            : luminance <= 0.90;
     } catch (e) {
         console.warn('Error validating color for theme:', e);
         return true;
