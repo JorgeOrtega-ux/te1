@@ -328,26 +328,69 @@ export async function generateSoundList(uploadElement, listElement, actionName, 
 function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
     const menuLink = document.createElement('div');
     menuLink.className = 'menu-link';
-    menuLink.dataset.action = actionName;
-    menuLink.dataset.sound = sound.id;
+    menuLink.dataset.soundId = sound.id;
     if (sound.id === activeSoundId) {
         menuLink.classList.add('active');
     }
+
     const soundName = isCustom ? sound.nameKey : getTranslation(sound.nameKey, 'sounds');
     const translationAttrs = isCustom ? '' : `data-translate="${sound.nameKey}" data-translate-category="sounds"`;
-    let deleteButton = '';
-    if (isCustom) {
-        deleteButton = `
-            <div class="menu-link-icon interactive-icon" data-action="delete-user-audio" data-audio-id="${sound.id}">
-                <span class="material-symbols-rounded">delete</span>
-            </div>
-        `;
-    }
-    menuLink.innerHTML = `
-        <div class="menu-link-icon"><span class="material-symbols-rounded">${sound.icon}</span></div>
-        <div class="menu-link-text"><span ${translationAttrs}>${soundName}</span></div>
-        ${deleteButton}
-    `;
+
+    // 1. Primer div: Ícono del sonido (siempre visible)
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'menu-link-icon';
+    iconDiv.innerHTML = `<span class="material-symbols-rounded">${sound.icon}</span>`;
+
+    // 2. Segundo div: Texto del sonido (siempre visible)
+    const textDiv = document.createElement('div');
+    textDiv.className = 'menu-link-text';
+    textDiv.dataset.action = actionName; // La acción de selección va aquí
+    textDiv.innerHTML = `<span ${translationAttrs}>${soundName}</span>`;
+
+    // Añadir los dos divs base al contenedor principal
+    menuLink.appendChild(iconDiv);
+    menuLink.appendChild(textDiv);
+
+    // Evento para AÑADIR el tercer div al pasar el mouse
+    menuLink.addEventListener('mouseenter', () => {
+        // Evitar duplicados si el mouse se mueve rápido
+        if (menuLink.querySelector('.menu-link-actions-container')) return;
+
+        // 3. Tercer div: Contenedor para los botones (creado dinámicamente)
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'menu-link-icon menu-link-actions-container'; // Clase para identificarlo
+
+        const actionsWrapper = document.createElement('div');
+        actionsWrapper.className = 'menu-link-actions-wrapper';
+
+        // Botón de prueba
+        const testButton = document.createElement('div');
+        testButton.className = 'interactive-icon sound-test-btn';
+        testButton.dataset.action = 'test-sound';
+        testButton.innerHTML = `<span class="material-symbols-rounded">play_arrow</span>`;
+        actionsWrapper.appendChild(testButton);
+
+        // Botón de eliminar (si es personalizado)
+        if (isCustom) {
+            const deleteButton = document.createElement('div');
+            deleteButton.className = 'interactive-icon';
+            deleteButton.dataset.action = 'delete-user-audio';
+            deleteButton.innerHTML = `<span class="material-symbols-rounded">delete</span>`;
+            actionsWrapper.appendChild(deleteButton);
+        }
+
+        actionsDiv.appendChild(actionsWrapper);
+        menuLink.appendChild(actionsDiv);
+    });
+
+    // Evento para ELIMINAR el tercer div al quitar el mouse
+    menuLink.addEventListener('mouseleave', () => {
+        const actionsDiv = menuLink.querySelector('.menu-link-actions-container');
+        if (actionsDiv) {
+            actionsDiv.remove();
+        }
+    });
+
     return menuLink;
 }
 export async function handleAudioUpload(callback) {

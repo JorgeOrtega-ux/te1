@@ -6,6 +6,9 @@ import { showDynamicIslandNotification } from '../general/dynamic-island-control
 import { playSound, stopSound, generateSoundList, handleAudioUpload, deleteUserAudio, getSoundNameById } from './general-tools.js';
 import { getCurrentLocation } from '../general/location-manager.js';
 
+let currentlyPlayingSound = null;
+let soundTimeout = null;
+
 const autoIncrementState = {
     isActive: false,
     intervalId: null,
@@ -823,8 +826,69 @@ function setupGlobalEventListeners() {
     areGlobalListenersInitialized = true;
 }
 async function handleMenuClick(event, parentMenu) {
-    const target = event.target;
+    const target = event.target.closest('[data-action]');
+    if (!target) return;
 
+    const action = target.dataset.action;
+
+    // Lógica unificada para la prueba de sonidos
+    const testSoundActions = ['test-sound', 'previewAlarmSound', 'previewCountdownSound', 'previewCountToDateSound'];
+
+    if (testSoundActions.includes(action)) {
+        event.stopPropagation();
+        
+        let soundId;
+        const soundTestButton = target.closest('.sound-test-btn');
+
+        if (action === 'test-sound') {
+            soundId = target.closest('.menu-link').dataset.soundId;
+        } else {
+            // Obtener el ID del sonido desde el estado actual
+            if (action === 'previewAlarmSound') soundId = state.alarm.sound;
+            if (action === 'previewCountdownSound') soundId = state.timer.sound;
+            if (action === 'previewCountToDateSound') soundId = state.timer.countTo.sound;
+        }
+
+        const icon = target.querySelector('.material-symbols-rounded');
+
+        // Si se está reproduciendo el mismo sonido, detenerlo
+        if (currentlyPlayingSound && currentlyPlayingSound.id === soundId) {
+            stopSound();
+            clearTimeout(soundTimeout);
+            if (icon) icon.textContent = 'play_arrow';
+            if (soundTestButton) soundTestButton.classList.remove('playing');
+            currentlyPlayingSound = null;
+        } else {
+            // Detener cualquier otro sonido que se esté reproduciendo
+            if (currentlyPlayingSound) {
+                stopSound();
+                clearTimeout(soundTimeout);
+                const prevButton = document.querySelector(`.sound-test-btn.playing`);
+                if (prevButton) {
+                    prevButton.querySelector('.material-symbols-rounded').textContent = 'play_arrow';
+                    prevButton.classList.remove('playing');
+                }
+            }
+
+            // Reproducir el nuevo sonido
+            playSound(soundId);
+            if (icon) icon.textContent = 'stop';
+            if (soundTestButton) soundTestButton.classList.add('playing');
+            currentlyPlayingSound = { id: soundId, button: target };
+
+            // Detener automáticamente después de 3 segundos (3000 ms)
+            soundTimeout = setTimeout(() => {
+                if (currentlyPlayingSound && currentlyPlayingSound.id === soundId) {
+                    stopSound();
+                    if (icon) icon.textContent = 'play_arrow';
+                    if (soundTestButton) soundTestButton.classList.remove('playing');
+                    currentlyPlayingSound = null;
+                }
+            }, 3000); // Duración unificada a 3 segundos
+        }
+        return;
+    }
+    
     const tabTarget = target.closest('.menu-timer-type .menu-link[data-tab]');
     if (tabTarget) {
         event.stopPropagation();
@@ -840,10 +904,6 @@ async function handleMenuClick(event, parentMenu) {
         selectCalendarDate(parseInt(dayTarget.dataset.day, 10));
         return;
     }
-
-    const actionTarget = target.closest('[data-action]');
-    if (!actionTarget) return;
-    const action = actionTarget.dataset.action;
 
     if (dropdownMap[action]) {
         toggleDropdown(action, parentMenu);
@@ -864,12 +924,12 @@ async function handleMenuClick(event, parentMenu) {
             populateCountryDropdown(document.querySelector('.menu-country'));
             break;
         case 'open-timezone-menu':
-            if (actionTarget.classList.contains('disabled-interactive')) return;
+            if (target.classList.contains('disabled-interactive')) return;
             navigateToMenu('timeZone');
             populateTimezoneDropdown(document.querySelector('.menu-timeZone'), state.worldClock.countryCode);
             break;
         case 'open-sounds-menu':
-            const context = actionTarget.dataset.context;
+            const context = target.dataset.context;
             soundSelectionContext = context; // Guarda el contexto (alarm, countdown, etc.)
             navigateToMenu('sounds');
             populateSoundsMenu(context);
@@ -879,7 +939,7 @@ async function handleMenuClick(event, parentMenu) {
             break;
         case 'selectSound':
             event.stopPropagation();
-            const soundId = actionTarget.dataset.sound;
+            const soundId = target.closest('.menu-link').dataset.soundId;
             const soundName = getSoundNameById(soundId);
             if (soundSelectionContext === 'alarm') {
                 state.alarm.sound = soundId;
@@ -895,8 +955,8 @@ async function handleMenuClick(event, parentMenu) {
             break;
         case 'selectCountry':
             event.stopPropagation();
-            const countryCode = actionTarget.getAttribute('data-country-code');
-            state.worldClock.country = actionTarget.querySelector('.menu-link-text span')?.textContent;
+            const countryCode = target.getAttribute('data-country-code');
+            state.worldClock.country = target.querySelector('.menu-link-text span')?.textContent;
             state.worldClock.countryCode = countryCode;
             const worldClockMenu = getMenuElement('menuWorldClock');
             updateDisplay('#worldclock-selected-country', state.worldClock.country, worldClockMenu);
@@ -908,14 +968,14 @@ async function handleMenuClick(event, parentMenu) {
             break;
         case 'selectTimezone':
             event.stopPropagation();
-            state.worldClock.timezone = actionTarget.getAttribute('data-timezone');
-            const tzDisplayName = actionTarget.querySelector('.menu-link-text span')?.textContent;
+            state.worldClock.timezone = target.getAttribute('data-timezone');
+            const tzDisplayName = target.querySelector('.menu-link-text span')?.textContent;
             updateDisplay('#worldclock-selected-timezone', tzDisplayName, getMenuElement('menuWorldClock'));
             navigateBack();
             break;
         case 'selectTimerHour':
             event.stopPropagation();
-            const hour = parseInt(actionTarget.dataset.hour, 10);
+            const hour = parseInt(target.dataset.hour, 10);
             state.timer.countTo.selectedHour = hour;
             const timerMenu = getMenuElement('menuTimer');
             updateDisplay('#selected-hour-display', String(hour).padStart(2, '0'), timerMenu);
@@ -932,7 +992,7 @@ async function handleMenuClick(event, parentMenu) {
             break;
         case 'selectTimerMinute':
             event.stopPropagation();
-            const minute = parseInt(actionTarget.dataset.minute, 10);
+            const minute = parseInt(target.dataset.minute, 10);
             state.timer.countTo.selectedMinute = minute;
             updateDisplay('#selected-minute-display', String(minute).padStart(2, '0'), getMenuElement('menuTimer'));
             navigateBack();
@@ -946,7 +1006,7 @@ async function handleMenuClick(event, parentMenu) {
             break;
         case 'delete-user-audio':
             event.stopPropagation();
-            deleteUserAudio(actionTarget.dataset.audioId, () => populateSoundsMenu(soundSelectionContext));
+            deleteUserAudio(target.closest('.menu-link').dataset.soundId, () => populateSoundsMenu(soundSelectionContext));
             break;
         case 'createAlarm': {
             if (window.alarmManager && window.alarmManager.getAlarmCount() >= window.alarmManager.getAlarmLimit()) {
@@ -955,7 +1015,7 @@ async function handleMenuClick(event, parentMenu) {
             }
             const alarmTitleInput = parentMenu.querySelector('#alarm-title');
             if (!validateField(alarmTitleInput.parentElement, alarmTitleInput.value.trim())) return;
-            addSpinnerToCreateButton(actionTarget);
+            addSpinnerToCreateButton(target);
             setTimeout(() => {
                 window.alarmManager?.createAlarm(alarmTitleInput.value.trim(), state.alarm.hour, state.alarm.minute, state.alarm.sound);
                 deactivateModule('overlayContainer');
@@ -971,7 +1031,7 @@ async function handleMenuClick(event, parentMenu) {
                 const timerTitleInput = parentMenu.querySelector('#timer-title');
                 const { hours, minutes, seconds } = state.timer.duration;
                 if (!validateField(timerTitleInput.parentElement, timerTitleInput.value.trim()) || (hours === 0 && minutes === 0 && seconds === 0)) return;
-                addSpinnerToCreateButton(actionTarget);
+                addSpinnerToCreateButton(target);
                 setTimeout(() => {
                     addTimerAndRender({ type: 'countdown', title: timerTitleInput.value.trim(), duration: (hours * 3600 + minutes * 60 + seconds) * 1000, sound: state.timer.sound });
                     deactivateModule('overlayContainer');
@@ -980,7 +1040,7 @@ async function handleMenuClick(event, parentMenu) {
                 const eventTitleInput = parentMenu.querySelector('#countto-title');
                 const { selectedDate, selectedHour, selectedMinute } = state.timer.countTo;
                 if (!validateField(eventTitleInput.parentElement, eventTitleInput.value.trim()) || !selectedDate || typeof selectedHour !== 'number' || typeof selectedMinute !== 'number') return;
-                addSpinnerToCreateButton(actionTarget);
+                addSpinnerToCreateButton(target);
                 setTimeout(() => {
                     const targetDate = new Date(selectedDate);
                     targetDate.setHours(selectedHour, selectedMinute, 0, 0);
@@ -998,7 +1058,7 @@ async function handleMenuClick(event, parentMenu) {
             const clockTitleInput = parentMenu.querySelector('#worldclock-title');
             const { country, timezone } = state.worldClock;
             if (!validateField(clockTitleInput.parentElement, clockTitleInput.value.trim()) || !country || !timezone) return;
-            addSpinnerToCreateButton(actionTarget);
+            addSpinnerToCreateButton(target);
             setTimeout(() => {
                 window.worldClockManager?.createAndStartClockCard(clockTitleInput.value.trim(), country, timezone);
                 deactivateModule('overlayContainer');
@@ -1009,7 +1069,7 @@ async function handleMenuClick(event, parentMenu) {
             const editingId = parentMenu.getAttribute('data-editing-id');
             const alarmTitleInput = parentMenu.querySelector('#alarm-title');
             if (!editingId || !validateField(alarmTitleInput.parentElement, alarmTitleInput.value.trim())) return;
-            addSpinnerToCreateButton(actionTarget);
+            addSpinnerToCreateButton(target);
             setTimeout(() => {
                 window.alarmManager?.updateAlarm(editingId, { title: alarmTitleInput.value.trim(), hour: state.alarm.hour, minute: state.alarm.minute, sound: state.alarm.sound });
                 deactivateModule('overlayContainer');
@@ -1020,7 +1080,7 @@ async function handleMenuClick(event, parentMenu) {
             const editingId = parentMenu.getAttribute('data-editing-id');
             const timerTitleInput = parentMenu.querySelector('#timer-title');
             if (!editingId || !validateField(timerTitleInput.parentElement, timerTitleInput.value.trim())) return;
-            addSpinnerToCreateButton(actionTarget);
+            addSpinnerToCreateButton(target);
             setTimeout(() => {
                 const { hours, minutes, seconds } = state.timer.duration;
                 updateTimer(editingId, { title: timerTitleInput.value.trim(), duration: (hours * 3600 + minutes * 60 + seconds) * 1000, sound: state.timer.sound });
@@ -1033,7 +1093,7 @@ async function handleMenuClick(event, parentMenu) {
             const eventTitleInput = parentMenu.querySelector('#countto-title');
             const { selectedDate, selectedHour, selectedMinute } = state.timer.countTo;
             if (!editingId || !validateField(eventTitleInput.parentElement, eventTitleInput.value.trim()) || !selectedDate || typeof selectedHour !== 'number' || typeof selectedMinute !== 'number') return;
-            addSpinnerToCreateButton(actionTarget);
+            addSpinnerToCreateButton(target);
             setTimeout(() => {
                 const targetDate = new Date(selectedDate);
                 targetDate.setHours(selectedHour, selectedMinute, 0, 0);
@@ -1047,7 +1107,7 @@ async function handleMenuClick(event, parentMenu) {
             const clockTitleInput = parentMenu.querySelector('#worldclock-title');
             const { country, timezone } = state.worldClock;
             if (!editingId || !validateField(clockTitleInput.parentElement, clockTitleInput.value.trim()) || !country || !timezone) return;
-            addSpinnerToCreateButton(actionTarget);
+            addSpinnerToCreateButton(target);
             setTimeout(() => {
                 window.worldClockManager?.updateClockCard(editingId, { title: clockTitleInput.value.trim(), country, timezone });
                 deactivateModule('overlayContainer');
