@@ -14,20 +14,21 @@
                     </div>
                     <div class="search-content-text">
                         <input type="text" id="timezone-search-input" class="body-title" autocomplete="off"
-                               data-translate="search_timezones_placeholder"
-                               data-translate-category="search"
-                               data-translate-target="placeholder">
+                            data-translate="search_timezones_placeholder"
+                            data-translate-category="search"
+                            data-translate-target="placeholder">
                     </div>
                 </div>
             </div>
         </div>
         <div class="menu-content-scrolleable overflow-y">
-            <div class="menu-section-center overflow-y">
-                <div class="timezone-list-container menu-list">
+            <div class="creation-wrapper active">
+                <div class="menu-section-center overflow-y">
+                    <div class="timezone-list-container menu-list">
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="menu-section-bottom disabled">
-        </div>
+        <div class="menu-section-bottom disabled"></div>
     </div>
 </div>

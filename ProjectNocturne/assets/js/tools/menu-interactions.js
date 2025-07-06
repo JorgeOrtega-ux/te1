@@ -780,7 +780,6 @@ function setupGlobalEventListeners() {
     
     areGlobalListenersInitialized = true;
 }
-
 async function handleMenuClick(event, parentMenu) {
     const target = event.target;
 

@@ -23,10 +23,8 @@
         </div>
         <div class="menu-content-scrolleable overflow-y">
             <div class="creation-wrapper">
-                <div class="menu-section-center" id="upload-audio-wrapper">
-                </div>
-                <div class="menu-section-center overflow-y" id="sound-list-wrapper">
-                </div>
+                <div class="menu-section-center" id="upload-audio-wrapper"></div>
+                <div class="menu-section-center overflow-y" id="sound-list-wrapper"></div>
             </div>
         </div>
         <div class="menu-section-bottom disabled">

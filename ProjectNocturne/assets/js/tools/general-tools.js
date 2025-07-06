@@ -324,6 +324,7 @@ export async function generateSoundList(uploadElement, listElement, actionName, 
     // Añadir la lista completa al elemento de destino
     listElement.appendChild(soundListContainer);
 }
+
 function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
     const menuLink = document.createElement('div');
     menuLink.className = 'menu-link';

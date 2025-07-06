@@ -442,7 +442,9 @@ body {
     flex: 1;
     overflow: auto;
 }
-
+.search-results-wrapper {
+    padding: 8px;
+}
 .menu-section-top {
     padding: 8px;
     border-bottom: 1px solid #00000020;
