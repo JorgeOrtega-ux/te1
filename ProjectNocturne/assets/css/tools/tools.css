@@ -261,7 +261,7 @@
 .calendar-nav {
     padding: 4px 8px;
     background: none;
-    border-radius: 4px;
+    border-radius: 8px;
     border: none;
     cursor: pointer;
 }

@@ -1185,32 +1185,35 @@ document.addEventListener('translationsApplied', () => {
 export { initializeTimerController };
 
 
+// Archivo: ProjectNocturne/assets/js/tools/timer-controller.js
 
 export function initializeScrollShadow() {
-    const menus = document.querySelectorAll('.menu-alarm, .menu-timer, .menu-worldClock, .menu-paletteColors, .menu-control-center');
+    // Selector genérico para encontrar todos los menús.
+    const menus = document.querySelectorAll('[data-menu]');
 
     menus.forEach(menu => {
+        // El encabezado que recibirá la sombra.
         const topContainer = menu.querySelector('.menu-section-top, .menu-header');
         
-        let scrollableContainer = menu.querySelector('.menu-section-center.overflow-y');
-        
-        if (!scrollableContainer) {
-           scrollableContainer = menu.querySelector('.menu-content-scrolleable, .menu-body.overflow-y');
-        }
+        // El contenedor con la barra de scroll.
+        const scrollableContainer = menu.querySelector('.overflow-y');
 
         if (topContainer && scrollableContainer) {
-            scrollableContainer.removeEventListener('scroll', handleScroll);
-            
-            function handleScroll() {
+            // Función para manejar el evento de scroll.
+            const handleScroll = () => {
                 if (scrollableContainer.scrollTop > 0) {
                     topContainer.classList.add('shadow');
                 } else {
                     topContainer.classList.remove('shadow');
                 }
-            }
-
+            };
+            
+            // Se asegura de que el listener se añada solo una vez.
+            scrollableContainer.removeEventListener('scroll', handleScroll);
             scrollableContainer.addEventListener('scroll', handleScroll);
         }
     });
 }
- initializeScrollShadow()
+
+// Se llama a la función para que se ejecute.
+initializeScrollShadow();

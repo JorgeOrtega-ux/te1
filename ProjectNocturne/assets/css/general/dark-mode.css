@@ -100,13 +100,23 @@
 .dark-mode .menu-paletteColors,
 .dark-mode .menu-alarm,
 .dark-mode .menu-timer,
-.dark-mode .menu-worldClock {
+.dark-mode .menu-worldClock,
+.dark-mode .menu-sounds,
+.dark-mode .menu-countrys,
+.dark-mode .time-zone,
+.dark-mode .menu-calendar {
     color: #ffffff;
     background-color: #252627;
     border-color: #ffffff20;
     filter: unset;
 }
-
+.dark-mode .menu-back-btn {
+    border-color: #ffffff20;
+    color: #ffffff;
+}
+.dark-mode .menu-back-btn:hover {
+    background-color: #ffffff20;
+}
 .dark-mode .menu-section-top,
 .dark-mode .menu-section-bottom {
     border-color: #ffffff20;
