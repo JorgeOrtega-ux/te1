@@ -327,12 +327,17 @@ function getCurrentActiveOverlay() {
         const activeOverlay = overlayContainer.querySelector('.menu-alarm.active, .menu-timer.active, .menu-worldClock.active, .menu-paletteColors.active');
         if (activeOverlay) {
             const dataMenu = activeOverlay.getAttribute('data-menu');
+            
+            // ===== CÓDIGO CORREGIDO =====
+            // Las claves ahora coinciden con los atributos data-menu (minúsculas y camelCase)
             const overlayMap = {
-                'Alarm': 'menuAlarm',
-                'Timer': 'menuTimer',
-                'WorldClock': 'menuWorldClock',
+                'alarm': 'menuAlarm',
+                'timer': 'menuTimer',
+                'worldClock': 'menuWorldClock',
                 'paletteColors': 'menuPaletteColors'
             };
+            // ===== FIN DEL CÓDIGO CORREGIDO =====
+            
             return overlayMap[dataMenu] || null;
         }
     }

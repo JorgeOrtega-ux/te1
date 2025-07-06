@@ -10,7 +10,7 @@
                 </div>
                 <span class="separator"></span>
                 <div class="sidebar-button"
-                    data-translate="alarms"
+                    data-translate="alarm"
                     data-translate-category="tooltips"
                     data-translate-target="tooltip">
                     <span class="material-symbols-rounded">alarm</span>

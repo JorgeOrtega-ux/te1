@@ -53,9 +53,7 @@ function updatePinnedTimerNameDisplay() {
 }
 
 function renderTimerSearchResults(searchTerm) {
-    // ================== INICIO DEL CÓDIGO CORREGIDO ==================
     const menuElement = document.querySelector('.menu-timer[data-menu="timer"]');
-    // =================== FIN DEL CÓDIGO CORREGIDO ====================
     if (!menuElement) return;
 
     const resultsWrapper = menuElement.querySelector('.search-results-wrapper');
@@ -336,7 +334,7 @@ function initializeTimerController() {
 
     document.addEventListener('moduleDeactivated', (e) => {
         if (e.detail && e.detail.module === 'toggleMenuTimer') {
-            const menuElement = document.querySelector('.menu-timer[data-menu="Timer"]');
+            const menuElement = document.querySelector('.menu-timer[data-menu="timer"]');
             if (!menuElement) return;
 
             const searchInput = menuElement.querySelector('#timer-search-input');

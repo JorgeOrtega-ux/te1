@@ -53,6 +53,14 @@ export function resetOverlayNavigation() {
     subMenus.forEach(subMenu => {
         subMenu.classList.remove('active');
         subMenu.classList.add('disabled');
+
+        // Reset search input if it exists
+        const searchInput = subMenu.querySelector('input[type="text"]');
+        if (searchInput) {
+            searchInput.value = '';
+            // Manually trigger an input event to clear search results
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
     });
 
     // Clear the navigation history stack.
@@ -85,6 +93,14 @@ function navigateBack() {
     if (currentMenu) {
         currentMenu.classList.remove('active');
         currentMenu.classList.add('disabled');
+        
+        // Reset search input when navigating away from a menu with a search bar
+        const searchInput = currentMenu.querySelector('input[type="text"]');
+        if (searchInput && ['sounds', 'country', 'timeZone'].includes(currentMenu.dataset.menu)) {
+            searchInput.value = '';
+             // Dispara un evento 'input' para que la lógica de búsqueda se reinicie
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
 
         // If we are leaving the time picker, reset its internal state to show the hour list again.
         if (currentMenu.dataset.menu === 'timePicker') {
