@@ -3,7 +3,6 @@ import { getTranslation } from '../general/translations-controller.js';
 import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
 import { playSound, stopSound, initializeSortable, getAvailableSounds, handleTimerCardAction, getSoundNameById, createExpandableToolContainer } from './general-tools.js';
-// Corrección:
 import { showDynamicIslandNotification, hideDynamicIsland } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 import { showConfirmation } from '../general/confirmation-modal-controller.js';
@@ -20,6 +19,24 @@ const DEFAULT_TIMERS = [
     { id: 'default-timer-4', title: 'exercise_30', type: 'countdown', initialDuration: 1800000, remaining: 1800000, endAction: 'restart', sound: 'digital_alarm', isRunning: false, isPinned: false },
     { id: 'default-timer-5', title: 'study_session_45', type: 'countdown', initialDuration: 2700000, remaining: 2700000, endAction: 'restart', sound: 'gentle_chime', isRunning: false, isPinned: false }
 ];
+
+function formatTimeSince(timestamp) {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return `${seconds} ${getTranslation('seconds', 'timer')}`;
+    
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} ${getTranslation('minutes', 'timer')}`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} ${getTranslation('hours', 'timer')}`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 365) return `${days} ${getTranslation('days', 'timer')}`;
+
+    const years = Math.floor(days / 365);
+    return `${years} ${getTranslation('years', 'timer')}`;
+}
+
 
 function updatePinnedTimerNameDisplay() {
     const nameDisplayTool = document.querySelector('.info-tool[data-timer-name-display]');
@@ -379,15 +396,16 @@ function loadAndRestoreTimers() {
         if (timer.isRunning) {
             if (timer.type === 'countdown') {
                 if (timer.targetTime) {
-                    const newRemaining = timer.targetTime - now;
-                    timer.remaining = Math.max(0, newRemaining);
-                }
-
-                if (timer.remaining > 0) {
-                    startCountdownTimer(timer);
-                } else {
-                    timer.isRunning = false;
-                    delete timer.targetTime;
+                    const timeSinceEnd = now - timer.targetTime;
+                    if (timeSinceEnd > 0) {
+                        timer.isRunning = false;
+                        timer.rangAt = timer.targetTime;
+                        timer.remaining = timer.initialDuration;
+                        delete timer.targetTime;
+                    } else {
+                        timer.remaining = Math.abs(timeSinceEnd);
+                        startCountdownTimer(timer);
+                    }
                 }
             } else if (timer.type === 'count_to_date') {
                 timer.remaining = new Date(timer.targetDate).getTime() - now;
@@ -433,6 +451,9 @@ function startTimer(timerId) {
     const timer = findTimerById(timerId);
     if (!timer || timer.isRunning) return;
 
+    delete timer.rangAt;
+    renderAllTimerCards();
+
     if (timer.type === 'count_to_date') {
         if (timer.remaining <= 0) return;
         startCountToDateTimer(timer);
@@ -445,7 +466,7 @@ function startTimer(timerId) {
     updateTimerCardControls(timerId);
     updateMainControlsState();
     refreshSearchResults();
- updateEverythingWidgets();
+    updateEverythingWidgets();
     const isUserTimer = userTimers.some(t => t.id === timerId);
     if (isUserTimer) {
         saveTimersToStorage();
@@ -512,7 +533,9 @@ function resetTimer(timerId) {
     const timer = findTimerById(timerId);
     if (!timer) return;
 
-    // --- AÑADIR ESTA LÍNEA ---
+    delete timer.rangAt;
+    renderAllTimerCards();
+
     timer.isRinging = false;
 
     pauseTimer(timerId);
@@ -695,6 +718,13 @@ function createTimerCard(timer) {
         card.classList.add('timer-finished');
     }
 
+    let rangAgoTag = '';
+    if (timer.rangAt) {
+        const timeAgo = formatTimeSince(timer.rangAt);
+        const rangAgoText = getTranslation('rang_ago', 'timer').replace('{time}', timeAgo);
+        rangAgoTag = `<span class="card-tag rang-ago-tag">${rangAgoText}</span>`;
+    }
+
     const isCountdown = timer.type === 'countdown';
     const playPauseAction = timer.isRunning ? 'pause-card-timer' : 'start-card-timer';
     const playPauseIcon = timer.isRunning ? 'pause' : 'play_arrow';
@@ -735,6 +765,7 @@ function createTimerCard(timer) {
         <div class="card-footer">
             <div class="card-tags">
                  <span class="card-tag" data-sound-id="${timer.sound}">${soundName}</span>
+                 ${rangAgoTag}
             </div>
         </div>
         <div class="card-options-container">
@@ -790,6 +821,7 @@ function updateMainDisplay() {
     updatePinnedTimerNameDisplay();
 }
 
+// ================== INICIO DE LA FUNCIÓN CORREGIDA ==================
 function updateMainControlsState() {
     const section = document.querySelector('.section-timer');
     if (!section) return;
@@ -797,27 +829,59 @@ function updateMainControlsState() {
     const startBtn = section.querySelector('[data-action="start-pinned-timer"]');
     const pauseBtn = section.querySelector('[data-action="pause-pinned-timer"]');
     const resetBtn = section.querySelector('[data-action="reset-pinned-timer"]');
-    const addTimerBtn = section.querySelector('[data-module="toggleMenuTimer"]'); // --- AÑADIR ESTA LÍNEA ---
-    const buttons = [startBtn, pauseBtn, resetBtn];
+    const addTimerBtn = section.querySelector('[data-module="toggleMenuTimer"]');
 
-    const hasTimers = (userTimers.length + defaultTimersState.length) > 0;
     const pinnedTimer = findTimerById(pinnedTimerId);
-    const isPinnedCountToDate = pinnedTimer && pinnedTimer.type === 'count_to_date';
 
-    if (!hasTimers || isPinnedCountToDate) {
-        buttons.forEach(btn => btn?.classList.add('disabled-interactive'));
-        addTimerBtn?.classList.remove('disabled-interactive'); // --- AÑADIR ESTA LÍNEA ---
-    } else {
-        buttons.forEach(btn => btn?.classList.remove('disabled-interactive'));
-        const isRinging = pinnedTimer?.isRinging; // --- AÑADIR ESTA LÍNEA ---
-        startBtn?.classList.toggle('disabled-interactive', pinnedTimer?.isRunning || isRinging); // --- MODIFICAR ESTA LÍNEA ---
-        pauseBtn?.classList.toggle('disabled-interactive', !pinnedTimer?.isRunning);
-        addTimerBtn?.classList.toggle('disabled-interactive', isRinging); // --- AÑADIR ESTA LÍNEA ---
+    // Si no hay temporizador fijado, desactivar todos los controles excepto añadir.
+    if (!pinnedTimer) {
+        startBtn?.classList.add('disabled-interactive');
+        pauseBtn?.classList.add('disabled-interactive');
+        resetBtn?.classList.add('disabled-interactive');
+        addTimerBtn?.classList.remove('disabled-interactive');
+        return;
+    }
+
+    const isRunning = pinnedTimer.isRunning;
+    const isRinging = pinnedTimer.isRinging;
+    const isAtInitialState = pinnedTimer.remaining === pinnedTimer.initialDuration;
+    const isCountToDate = pinnedTimer.type === 'count_to_date';
+
+    // Para los temporizadores de tipo 'Contar hasta fecha', todos los controles están desactivados.
+    if (isCountToDate) {
+        startBtn?.classList.add('disabled-interactive');
+        pauseBtn?.classList.add('disabled-interactive');
+        resetBtn?.classList.add('disabled-interactive');
+        addTimerBtn?.classList.remove('disabled-interactive');
+        return;
+    }
+    
+    // El botón de añadir SIEMPRE está activo, a menos que un temporizador esté sonando.
+    addTimerBtn?.classList.toggle('disabled-interactive', isRinging);
+
+    // Si el temporizador está corriendo:
+    if (isRunning) {
+        startBtn?.classList.add('disabled-interactive'); // No se puede iniciar de nuevo.
+        pauseBtn?.classList.remove('disabled-interactive'); // Se puede pausar.
+        resetBtn?.classList.add('disabled-interactive'); // No se puede reiniciar mientras corre.
+    } 
+    // Si el temporizador está pausado o detenido:
+    else {
+        startBtn?.classList.remove('disabled-interactive'); // Se puede iniciar.
+        pauseBtn?.classList.add('disabled-interactive'); // No se puede pausar.
+
+        // El botón de reiniciar solo se activa si el temporizador NO está en su estado inicial.
+        resetBtn?.classList.toggle('disabled-interactive', isAtInitialState || isRinging);
+    }
+
+    // Si está sonando, todos los controles de tiempo se desactivan.
+    if (isRinging) {
+        startBtn?.classList.add('disabled-interactive');
+        pauseBtn?.classList.add('disabled-interactive');
+        resetBtn?.classList.add('disabled-interactive');
     }
 }
-
-
-
+// =================== FIN DE LA FUNCIÓN CORREGIDA ====================
 
 function updateCardDisplay(timerId) {
     const timer = findTimerById(timerId);
@@ -858,7 +922,6 @@ function updateTimerCardControls(timerId) {
             const icon = playPauseLink.querySelector('.menu-link-icon span');
             const text = playPauseLink.querySelector('.menu-link-text span');
 
-            // --- AÑADIR ESTA LÍNEA DE CÓDIGO ---
             playPauseLink.classList.toggle('disabled-interactive', timer.isRinging);
 
             if (timer.isRunning) {
@@ -1185,7 +1248,6 @@ function dismissTimer(timerId) {
 
     if (timer) {
         timer.isRinging = false;
-        // Se ha eliminado la condición '&& timer.endAction === 'stop''
         if (timer.type === 'countdown') {
             resetTimer(timerId);
         }
