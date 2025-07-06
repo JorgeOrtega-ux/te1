@@ -363,10 +363,6 @@
     border-bottom: 1px solid #00000020;
 }
 
-.dark-mode .menu-section-selector {
-    border-color: #ffffff20;
-}
-
 .tool-grid.world-clocks-grid {
     margin-top: 0;
 }
@@ -704,9 +700,7 @@
     transition: background-color 0.2s ease;
 }
 
-.dark-mode .search-result-item {
-    border-color: #ffffff20;
-}
+
 
 .search-result-item .card-pin-btn,
 .search-result-item .card-menu-btn {
@@ -1159,10 +1153,6 @@
     animation: island-pulse 2s ease-in-out infinite;
 }
 
-html.light-mode .dynamic-island {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
 @media (max-width: 768px) {
     .dynamic-island {
         top: 15px;
@@ -1226,13 +1216,7 @@ html.light-mode .dynamic-island {
     border: 1px solid #00000020;
 }
 
-.dark-mode .widget-clock {
-    border-color: #ffffff20;
-}
 
-.dark-mode .action-item:hover {
-    background-color: #ffffff20;
-}
 .menu-content-header-sm {
     display: flex;
     flex-direction: row;
@@ -1276,9 +1260,6 @@ html.light-mode .dynamic-island {
     margin-bottom: 20px;
 }
 
-/* ... (todo el contenido existente de styles.css) ... */
-
-/* ---- ESTILOS PARA EL NUEVO BOTÓN Y MENÚ ---- */
 .widget-clock {
     position: relative;
 }
@@ -1319,29 +1300,12 @@ html.light-mode .dynamic-island {
 }
 
 
-.dark-mode .add-menu-container {
-    filter: unset;
-    border-color: #ffffff20;
-}
+
 
 .add-menu-container .menu-list {
     padding: 8px;
 }
 
-.dark-mode .add-btn {
-    border-color: #ffffff20;
-    color: #fff;
-}
-
-.dark-mode .add-btn:hover {
-    background-color: #ffffff20;
-}
-
-.dark-mode .add-menu-container {
-    background-color: #252627;
-    border-color: #ffffff20;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
 
 .menu-link.disabled-interactions {
     opacity: 0.5;
@@ -1397,6 +1361,7 @@ html.light-mode .dynamic-island {
     transition: background-color 0.2s ease;
     cursor: pointer;
 }
+
 
 .widget-list-item:hover {
     background-color: #f5f5fa;
@@ -1489,9 +1454,6 @@ html.light-mode .dynamic-island {
 
 }
 
-.dark-mode .menu-link[data-action="upload-audio"] {
-    border-color: #ffffff20;
-}
 .enter-text-tool.input-error {
     border-color: #d32f2f;
 }

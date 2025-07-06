@@ -92,7 +92,61 @@
 .dark-mode .header-button.active {
     background-color: #ffffff20;
 }
+.dark-mode .action-item {
+    border-color: #ffffff20;
+}
+.dark-mode .action-item-icon-wrapper-square {
+    background-color: transparent;
+    border-color: #ffffff30;
+}
 
+.dark-mode .action-item-icon,
+.dark-mode .action-item-title {
+    color: #f5f5fa;
+}
+
+.dark-mode .action-item-description {
+    color: #9a9a9f;
+}
+
+.dark-mode .action-item-count {
+    background-color: transparent;
+    color: #fff;
+    border-color: #ffffff20;
+}
+.dark-mode .menu-header {
+    border-color: #ffffff20;
+}.dark-mode .add-btn {
+    border-color: #ffffff20;
+    color: #fff;
+}
+
+.dark-mode .add-btn:hover {
+    background-color: #ffffff20;
+}
+
+.dark-mode .add-menu-container {
+    background-color: #252627;
+    border-color: #ffffff20;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.dark-mode .add-menu-container {
+    filter: unset;
+    border-color: #ffffff20;
+}.dark-mode .widget-clock {
+    border-color: #ffffff20;
+}
+
+.dark-mode .action-item:hover {
+    background-color: #ffffff20;
+}
+.dark-mode .menu-link[data-action="upload-audio"] {
+    border-color: #ffffff20;
+}.dark-mode .search-result-item {
+    border-color: #ffffff20;
+}.dark-mode .menu-section-selector {
+    border-color: #ffffff20;
+}
 /* ====================================== */
 /* ========= MODULES & OVERLAYS ========= */
 /* ====================================== */

@@ -3,6 +3,7 @@
 /* ====================================== */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap');
+
 /* ====================================== */
 /* ===== GLOBAL RESET & BASE STYLES ===== */
 /* ====================================== */
@@ -431,8 +432,6 @@ body {
 }
 #upload-audio-wrapper {
     border-bottom: 1px solid #00000020;
-}.dark-mode #upload-audio-wrapper {
-    border-color: #ffffff20;
 }
 .menu-section {
     display: flex;
@@ -1471,7 +1470,6 @@ body {
 .menu-delete-btns .confirm-btn:hover {
     background-color: #b71c1c;
 }
-/* ---- ESTILOS MEJORADOS PARA LAS TARJETAS DE ACCIÓN ---- */
 .action-item {
     display: flex;
     flex-direction: column;
@@ -1551,44 +1549,18 @@ body {
     border-radius: 50px;
 }
 
-/* ---- MODOS OSCUROS ---- */
-.dark-mode .action-item {
-    border-color: #ffffff20;
-}
-.dark-mode .action-item-icon-wrapper-square {
-    background-color: transparent;
-    border-color: #ffffff30;
-}
-
-.dark-mode .action-item-icon,
-.dark-mode .action-item-title {
-    color: #f5f5fa;
-}
-
-.dark-mode .action-item-description {
-    color: #9a9a9f;
-}
-
-.dark-mode .action-item-count {
-    background-color: transparent;
-    color: #fff;
-    border-color: #ffffff20;
-}
-.dark-mode .menu-header {
-    border-color: #ffffff20;
-}
-
 .dropdown-menu-container.add-menu-custom {
     right: 0;
     width: 225px;
     height: auto;
     max-height: none;
     overflow-y: hidden;
-}.expandable-card-header-title {
+}
+.expandable-card-header-title {
     display: flex;
     align-items: center;
-    min-width: 0; /* Permite que el texto se reduzca */
-    flex: 1; /* Toma el espacio disponible */
+    min-width: 0;
+    flex: 1;
 }
 
 .expandable-card-header-title h3 {
@@ -1596,10 +1568,8 @@ body {
     font-size: 16px;
     font-weight: 600;
     line-height: 1.2;
-    
-    /* Elipsis para texto largo */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-width: 0; /* Importante para que funcione el ellipsis en flexbox */
+    min-width: 0;
 }
