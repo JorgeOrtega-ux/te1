@@ -822,6 +822,7 @@ function updateMainDisplay() {
 }
 
 // ================== INICIO DE LA FUNCIÓN CORREGIDA ==================
+// ================== INICIO DE LA FUNCIÓN CORREGIDA ==================
 function updateMainControlsState() {
     const section = document.querySelector('.section-timer');
     if (!section) return;
@@ -861,14 +862,14 @@ function updateMainControlsState() {
 
     // Si el temporizador está corriendo:
     if (isRunning) {
-        startBtn?.classList.add('disabled-interactive'); // No se puede iniciar de nuevo.
-        pauseBtn?.classList.remove('disabled-interactive'); // Se puede pausar.
-        resetBtn?.classList.add('disabled-interactive'); // No se puede reiniciar mientras corre.
+        startBtn?.classList.add('disabled-interactive');      // No se puede iniciar de nuevo.
+        pauseBtn?.classList.remove('disabled-interactive');    // Se puede pausar.
+        resetBtn?.classList.remove('disabled-interactive');  // <-- ¡LÍNEA MODIFICADA! Ahora se puede reiniciar mientras corre.
     } 
     // Si el temporizador está pausado o detenido:
     else {
-        startBtn?.classList.remove('disabled-interactive'); // Se puede iniciar.
-        pauseBtn?.classList.add('disabled-interactive'); // No se puede pausar.
+        startBtn?.classList.remove('disabled-interactive');    // Se puede iniciar.
+        pauseBtn?.classList.add('disabled-interactive');       // No se puede pausar.
 
         // El botón de reiniciar solo se activa si el temporizador NO está en su estado inicial.
         resetBtn?.classList.toggle('disabled-interactive', isAtInitialState || isRinging);
