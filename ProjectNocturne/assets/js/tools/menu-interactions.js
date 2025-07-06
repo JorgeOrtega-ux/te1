@@ -833,7 +833,7 @@ async function handleMenuClick(event, parentMenu) {
             renderCalendar();
             break;
         case 'open-time-picker-menu':
-            navigateToMenu('timepicker');
+            navigateToMenu('timePicker');
             populateHourSelectionMenu();
             break;
         case 'open-sounds-menu':
@@ -847,8 +847,8 @@ async function handleMenuClick(event, parentMenu) {
             break;
         case 'open-timezone-menu':
             if (actionTarget.classList.contains('disabled-interactive')) return;
-            navigateToMenu('timezone');
-            populateTimezoneDropdown(document.querySelector('.menu-timezone'), state.worldClock.countryCode);
+            navigateToMenu('timeZone');
+            populateTimezoneDropdown(document.querySelector('.menu-timeZone'), state.worldClock.countryCode);
             break;
         case 'back-to-previous-menu':
             navigateBack();
