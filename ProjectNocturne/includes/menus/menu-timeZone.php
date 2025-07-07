@@ -13,10 +13,7 @@
                         <span class="material-symbols-rounded">search</span>
                     </div>
                     <div class="search-content-text">
-                        <input type="text" id="timezone-search-input" class="body-title" autocomplete="off"
-                            data-translate="search_timezones_placeholder"
-                            data-translate-category="search"
-                            data-translate-target="placeholder">
+                        <input type="text" id="timezone-search-input" class="body-title" autocomplete="off" data-translate="search_timezones_placeholder" data-translate-category="search" data-translate-target="placeholder">
                     </div>
                 </div>
             </div>

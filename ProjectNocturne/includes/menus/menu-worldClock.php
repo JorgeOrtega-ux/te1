@@ -9,10 +9,7 @@
                     <span class="material-symbols-rounded">search</span>
                 </div>
                 <div class="search-content-text">
-                    <input type="text" id="worldclock-search-input" class="body-title" autocomplete="off"
-                        data-translate="search_clocks_placeholder"
-                        data-translate-category="search"
-                        data-translate-target="placeholder">
+                    <input type="text" id="worldclock-search-input" class="body-title" autocomplete="off" data-translate="search_clocks_placeholder" data-translate-category="search" data-translate-target="placeholder">
                 </div>
             </div>
         </div>
@@ -30,10 +27,7 @@
                             </div>
                             <div class="menu-content-general">
                                 <div class="enter-text-tool">
-                                    <input type="text" id="worldclock-title"
-                                        data-translate="my_new_clock_placeholder"
-                                        data-translate-category="world_clock"
-                                        data-translate-target="placeholder">
+                                    <input type="text" id="worldclock-title" data-translate="my_new_clock_placeholder" data-translate-category="world_clock" data-translate-target="placeholder">
                                 </div>
                             </div>
                         </div>
@@ -48,9 +42,7 @@
                                 <div class="custom-select-wrapper">
                                     <div class="custom-select-content" data-action="open-country-menu">
                                         <div class="custom-select-content-left">
-                                            <span id="worldclock-selected-country"
-                                                data-translate="select_a_country"
-                                                data-translate-category="world_clock"></span>
+                                            <span id="worldclock-selected-country" data-translate="select_a_country" data-translate-category="world_clock"></span>
                                         </div>
                                         <div class="custom-select-content-right">
                                             <span class="material-symbols-rounded">arrow_right</span>
@@ -58,9 +50,7 @@
                                     </div>
                                     <div class="custom-select-content disabled-interactive" data-action="open-timezone-menu">
                                         <div class="custom-select-content-left">
-                                            <span id="worldclock-selected-timezone"
-                                                data-translate="select_a_timezone"
-                                                data-translate-category="world_clock"></span>
+                                            <span id="worldclock-selected-timezone" data-translate="select_a_timezone" data-translate-category="world_clock"></span>
                                         </div>
                                         <div class="custom-select-content-right">
                                             <span class="material-symbols-rounded">arrow_right</span>

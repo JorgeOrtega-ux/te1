@@ -135,26 +135,22 @@
         </div>
     </div>
 
-<div class="menu-control-center disabled overflow-y" data-menu="location">
-    <div class="pill-container">
-        <div class="drag-handle"></div>
-    </div>
-    <div class="menu-header">
-        <div class="search-content">
-            <div class="search-content-icon">
-                <span class="material-symbols-rounded">search</span>
-            </div>
-            <div class="search-content-text">
-                <input type="text" id="location-search-input" class="body-title" autocomplete="off"
-                    data-translate="search_countries_placeholder"
-                    data-translate-category="search"
-                    data-translate-target="placeholder"
-                    placeholder="">
+    <div class="menu-control-center disabled overflow-y" data-menu="location">
+        <div class="pill-container">
+            <div class="drag-handle"></div>
+        </div>
+        <div class="menu-header">
+            <div class="search-content">
+                <div class="search-content-icon">
+                    <span class="material-symbols-rounded">search</span>
+                </div>
+                <div class="search-content-text">
+                    <input type="text" id="location-search-input" class="body-title" autocomplete="off" data-translate="search_countries_placeholder" data-translate-category="search" data-translate-target="placeholder" placeholder="">
+                </div>
             </div>
         </div>
+        <div class="menu-body overflow-y">
+            <div class="menu-list"></div>
+        </div>
     </div>
-    <div class="menu-body overflow-y">
-        <div class="menu-list"></div>
-    </div>
-</div>
 </div>

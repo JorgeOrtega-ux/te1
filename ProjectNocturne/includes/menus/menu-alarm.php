@@ -9,10 +9,7 @@
                     <span class="material-symbols-rounded">search</span>
                 </div>
                 <div class="search-content-text">
-                    <input type="text" id="alarm-search-input" class="body-title" autocomplete="off"
-                           data-translate="search_alarms_placeholder"
-                           data-translate-category="search"
-                           data-translate-target="placeholder">
+                    <input type="text" id="alarm-search-input" class="body-title" autocomplete="off" data-translate="search_alarms_placeholder" data-translate-category="search" data-translate-target="placeholder">
                 </div>
             </div>
         </div>
@@ -30,10 +27,7 @@
                             </div>
                             <div class="menu-content-general">
                                 <div class="enter-text-tool">
-                                    <input type="text" id="alarm-title"
-                                           data-translate="my_new_alarm_placeholder"
-                                           data-translate-category="alarms"
-                                           data-translate-target="placeholder">
+                                    <input type="text" id="alarm-title" data-translate="my_new_alarm_placeholder" data-translate-category="alarms" data-translate-target="placeholder">
                                 </div>
                             </div>
                         </div>
@@ -78,9 +72,7 @@
                                 <div class="custom-select-wrapper custom-select-wrapper--row">
                                     <div class="custom-select-content" data-action="open-sounds-menu" data-context="alarm">
                                         <div class="custom-select-content-left">
-                                            <span id="alarm-selected-sound"
-                                                  data-translate="classic_beep"
-                                                  data-translate-category="sounds"></span>
+                                            <span id="alarm-selected-sound" data-translate="classic_beep" data-translate-category="sounds"></span>
                                         </div>
                                         <div class="custom-select-content-right">
                                             <span class="material-symbols-rounded">arrow_right</span>

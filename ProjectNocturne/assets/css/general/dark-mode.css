@@ -165,6 +165,7 @@
 .dark-mode .menu-sounds,
 .dark-mode .menu-country,
 .dark-mode .menu-timeZone,
+.dark-mode .menu-timePicker,
 .dark-mode .menu-calendar {
     color: #ffffff;
     background-color: #252627;

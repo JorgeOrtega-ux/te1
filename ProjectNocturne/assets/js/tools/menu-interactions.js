@@ -826,8 +826,19 @@ function setupGlobalEventListeners() {
     areGlobalListenersInitialized = true;
 }
 async function handleMenuClick(event, parentMenu) {
+    // --- INICIO DE LA CORRECCIÓN ---
+    // Primero, verificamos si se hizo clic en un día del calendario.
+    const dayTarget = event.target.closest('.calendar-days .day:not(.other-month)');
+    if (dayTarget && dayTarget.dataset.day) {
+        event.stopPropagation();
+        selectCalendarDate(parseInt(dayTarget.dataset.day, 10));
+        return; // Terminamos la ejecución aquí si fue un clic en un día.
+    }
+
+    // Si no fue un día, ahora buscamos un elemento con data-action.
     const target = event.target.closest('[data-action]');
-    if (!target) return;
+    if (!target) return; // Si no hay acción, ahora sí salimos.
+    // --- FIN DE LA CORRECCIÓN ---
 
     const action = target.dataset.action;
     const testSoundActions = ['test-sound', 'previewAlarmSound', 'previewCountdownSound', 'previewCountToDateSound'];
@@ -842,7 +853,6 @@ async function handleMenuClick(event, parentMenu) {
         if (action === 'test-sound') {
             soundId = menuLink.dataset.soundId;
         } else {
-            // Lógica para sonidos de alarma/temporizador (no necesita cambios)
             if (action === 'previewAlarmSound') soundId = state.alarm.sound;
             if (action === 'previewCountdownSound') soundId = state.timer.sound;
             if (action === 'previewCountToDateSound') soundId = state.timer.countTo.sound;
@@ -883,12 +893,10 @@ async function handleMenuClick(event, parentMenu) {
             if (menuLink) menuLink.classList.add('sound-playing');
             currentlyPlayingSound = { id: soundId, button: soundTestButton };
 
-            // --- INICIO DE LA CORRECCIÓN ---
             soundTimeout = setTimeout(() => {
                 if (currentlyPlayingSound && currentlyPlayingSound.id === soundId) {
                     stopSound();
                     
-                    // Lógica que faltaba para limpiar el estado visual
                     if (icon) icon.textContent = 'play_arrow';
                     if (menuLink) {
                         menuLink.classList.remove('sound-playing');
@@ -902,24 +910,7 @@ async function handleMenuClick(event, parentMenu) {
                     currentlyPlayingSound = null;
                 }
             }, 3000);
-            // --- FIN DE LA CORRECCIÓN ---
         }
-        return;
-    }
-    
-    const tabTarget = target.closest('.menu-timer-type .menu-link[data-tab]');
-    if (tabTarget) {
-        event.stopPropagation();
-        state.timer.currentTab = tabTarget.dataset.tab;
-        updateTimerTabView(parentMenu);
-        tabTarget.closest('.dropdown-menu-container')?.classList.add('disabled');
-        return;
-    }
-
-    const dayTarget = target.closest('.calendar-days .day:not(.other-month)');
-    if (dayTarget && dayTarget.dataset.day) {
-        event.stopPropagation();
-        selectCalendarDate(parseInt(dayTarget.dataset.day, 10));
         return;
     }
 
@@ -929,6 +920,16 @@ async function handleMenuClick(event, parentMenu) {
     }
 
     switch (action) {
+        case 'selectTimerTab': {
+            event.stopPropagation();
+            const tab = target.dataset.tab;
+            if (tab) {
+                state.timer.currentTab = tab;
+                updateTimerTabView(parentMenu);
+                target.closest('.dropdown-menu-container')?.classList.add('disabled');
+            }
+            break;
+        }
         case 'open-calendar-menu':
             navigateToMenu('calendar');
             renderCalendar();
@@ -948,7 +949,7 @@ async function handleMenuClick(event, parentMenu) {
             break;
         case 'open-sounds-menu':
             const context = target.dataset.context;
-            soundSelectionContext = context; // Guarda el contexto (alarm, countdown, etc.)
+            soundSelectionContext = context;
             navigateToMenu('sounds');
             populateSoundsMenu(context);
             break;

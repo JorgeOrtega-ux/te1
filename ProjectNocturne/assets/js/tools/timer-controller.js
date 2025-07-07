@@ -14,11 +14,13 @@ let defaultTimersState = [];
 let activeTimers = new Map();
 let pinnedTimerId = null;
 
+// --- INICIO DE LA CORRECCIÓN 1: Se elimina la propiedad 'endAction' ---
 const DEFAULT_TIMERS = [
-    { id: 'default-timer-2', title: 'short_break_5', type: 'countdown', initialDuration: 300000, remaining: 300000, endAction: 'stop', sound: 'peaceful_tone', isRunning: false, isPinned: false },
-    { id: 'default-timer-4', title: 'exercise_30', type: 'countdown', initialDuration: 1800000, remaining: 1800000, endAction: 'restart', sound: 'digital_alarm', isRunning: false, isPinned: false },
-    { id: 'default-timer-5', title: 'study_session_45', type: 'countdown', initialDuration: 2700000, remaining: 2700000, endAction: 'restart', sound: 'gentle_chime', isRunning: false, isPinned: false }
+    { id: 'default-timer-2', title: 'short_break_5', type: 'countdown', initialDuration: 300000, remaining: 300000, sound: 'peaceful_tone', isRunning: false, isPinned: false },
+    { id: 'default-timer-4', title: 'exercise_30', type: 'countdown', initialDuration: 1800000, remaining: 1800000, sound: 'digital_alarm', isRunning: false, isPinned: false },
+    { id: 'default-timer-5', title: 'study_session_45', type: 'countdown', initialDuration: 2700000, remaining: 2700000, sound: 'gentle_chime', isRunning: false, isPinned: false }
 ];
+// --- FIN DE LA CORRECCIÓN 1 ---
 
 // Función para notificar cambios de estado
 function dispatchTimerStateChange() {
@@ -398,35 +400,26 @@ function loadAndRestoreTimers() {
     const now = Date.now();
 
   allTimers.forEach(timer => {
-    // --- INICIO DE LA LÓGICA CORREGIDA ---
-    // Primero, verifica si un temporizador quedó en estado "sonando".
-    // Este estado no debe persistir después de recargar la página.
     if (timer.isRinging) {
         timer.isRunning = false;
         timer.isRinging = false;
-        // Para temporizadores de cuenta regresiva, se restaura su duración inicial.
         if (timer.type === 'countdown') {
             timer.remaining = timer.initialDuration;
         } else {
-            // Para otros tipos, simplemente se deja en 0.
             timer.remaining = 0;
         }
-        // Se eliminan los estados conflictivos.
         delete timer.rangAt;
         delete timer.targetTime;
     }
-    // Si no estaba sonando, entonces se verifica si estaba corriendo.
     else if (timer.isRunning) {
         if (timer.type === 'countdown') {
             if (timer.targetTime) {
                 const timeSinceEnd = now - timer.targetTime;
                 if (timeSinceEnd > 0) {
-                    // El temporizador terminó mientras la página estaba cerrada. Se reinicia.
                     timer.isRunning = false;
                     timer.remaining = timer.initialDuration;
                     delete timer.targetTime;
                 } else {
-                    // El temporizador sigue activo. Se reanuda.
                     timer.remaining = Math.abs(timeSinceEnd);
                     startCountdownTimer(timer);
                 }
@@ -441,7 +434,6 @@ function loadAndRestoreTimers() {
             }
         }
     }
-    // --- FIN DE LA LÓGICA CORREGIDA ---
 });
 
     let pinnedTimer = allTimers.find(t => t.isPinned);
@@ -679,7 +671,6 @@ export function addTimerAndRender(timerData) {
     } else {
         newTimer.initialDuration = timerData.duration;
         newTimer.remaining = timerData.duration;
-        newTimer.endAction = timerData.endAction;
     }
 
     userTimers.push(newTimer);
@@ -1038,6 +1029,7 @@ function formatTime(ms, type = 'countdown') {
     }
 }
 
+// --- INICIO DE LA CORRECCIÓN 2: Se simplifica la función handleTimerEnd ---
 function handleTimerEnd(timerId) {
     const timer = findTimerById(timerId);
     if (!timer) return;
@@ -1074,28 +1066,21 @@ function handleTimerEnd(timerId) {
         playSound(soundToPlay);
     }
     const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
+    
+    // La lógica de 'restart' se elimina. Todos los temporizadores ahora muestran el botón de descartar.
+    const card = document.getElementById(timerId);
+    card?.querySelector('.card-options-container')?.classList.add('active');
 
-    if (timer.type === 'countdown' && timer.endAction === 'restart') {
-        setTimeout(() => {
-            stopSound();
-            resetTimer(timerId);
-            startTimer(timerId);
-        }, 3000);
-
-    } else {
-        const card = document.getElementById(timerId);
-        card?.querySelector('.card-options-container')?.classList.add('active');
-
-        showDynamicIslandNotification('timer', 'ringing', 'timer_ringing', 'notifications', {
-            title: translatedTitle,
-            toolId: timer.id
-        }, (dismissedId) => {
-            if (dismissedId === timer.id) {
-                dismissTimer(timer.id);
-            }
-        });
-    }
+    showDynamicIslandNotification('timer', 'ringing', 'timer_ringing', 'notifications', {
+        title: translatedTitle,
+        toolId: timer.id
+    }, (dismissedId) => {
+        if (dismissedId === timer.id) {
+            dismissTimer(timer.id);
+        }
+    });
 }
+// --- FIN DE LA CORRECCIÓN 2 ---
 
 function toggleTimersSection(type) {
     const grid = document.querySelector(`.tool-grid[data-timer-grid="${type}"]`);
