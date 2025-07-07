@@ -101,35 +101,60 @@ function renderAllWidgets() {
     updateActionCounts();
 }
 
+// everything-controller.js - FUNCIÓN updateActionCounts MEJORADA
+
 function updateActionCounts() {
     const alarmMenuItem = document.querySelector('.add-menu-custom .menu-link[data-module="toggleMenuAlarm"]');
+    const timerMenuItem = document.querySelector('.add-menu-custom .menu-link[data-module="toggleMenuTimer"]');
+    const clockMenuItem = document.querySelector('.add-menu-custom .menu-link[data-module="toggleMenuWorldClock"]');
+
+    // ========== VERIFICAR QUÉ ESTÁ SONANDO ESPECÍFICAMENTE ==========
+    let isAnyAlarmRinging = false;
+    let isAnyTimerRinging = false;
+
+    // Verificar alarmas sonando
+    if (window.alarmManager && typeof window.alarmManager.getAllAlarms === 'function') {
+        const { userAlarms, defaultAlarms } = window.alarmManager.getAllAlarms();
+        isAnyAlarmRinging = [...userAlarms, ...defaultAlarms].some(a => a.isRinging);
+    }
+
+    // Verificar timers sonando
+    if (window.timerManager && typeof window.timerManager.getAllTimers === 'function') {
+        const { userTimers, defaultTimers } = window.timerManager.getAllTimers();
+        isAnyTimerRinging = [...userTimers, ...defaultTimers].some(t => t.isRinging);
+    }
+
+    // ========== BLOQUEAR SOLO LA TOOL QUE ESTÁ SONANDO ==========
+    
+    // ALARMAS: Bloquear si limite alcanzado O si una alarma está sonando
     if (alarmMenuItem && window.alarmManager) {
         const count = window.alarmManager.getAlarmCount();
         const limit = window.alarmManager.getAlarmLimit();
-        const isDisabled = count >= limit;
-        alarmMenuItem.classList.toggle('disabled-interactions', isDisabled);
+        const isAlarmDisabled = count >= limit || isAnyAlarmRinging;
+        alarmMenuItem.classList.toggle('disabled-interactions', isAlarmDisabled);
+        
+        console.log(`🚨 Alarm menu: count=${count}/${limit}, ringing=${isAnyAlarmRinging}, disabled=${isAlarmDisabled}`);
     }
 
- const timerMenuItem = document.querySelector('.add-menu-custom .menu-link[data-module="toggleMenuTimer"]');
+    // TIMERS: Bloquear si limite alcanzado O si un timer está sonando O si otro timer está corriendo
     if (timerMenuItem && window.timerManager) {
         const count = window.timerManager.getTimersCount();
         const limit = window.timerManager.getTimerLimit();
+        const runningCount = window.timerManager.getRunningTimersCount();
+        const isTimerDisabled = count >= limit || isAnyTimerRinging || runningCount > 0;
+        timerMenuItem.classList.toggle('disabled-interactions', isTimerDisabled);
         
-        // --- AÑADIR ESTA LÍNEA ---
-        const isAnyTimerRunning = window.timerManager.getRunningTimersCount() > 0;
-
-        // --- MODIFICAR ESTA LÍNEA ---
-        const isDisabled = count >= limit || isAnyTimerRunning;
-
-        timerMenuItem.classList.toggle('disabled-interactions', isDisabled);
+        console.log(`⏲️ Timer menu: count=${count}/${limit}, ringing=${isAnyTimerRinging}, running=${runningCount}, disabled=${isTimerDisabled}`);
     }
 
-    const clockMenuItem = document.querySelector('.add-menu-custom .menu-link[data-module="toggleMenuWorldClock"]');
+    // WORLD CLOCK: Solo bloquear por límite (nunca por sonidos)
     if (clockMenuItem && window.worldClockManager) {
         const count = window.worldClockManager.getClockCount();
         const limit = window.worldClockManager.getClockLimit();
-        const isDisabled = count >= limit;
-        clockMenuItem.classList.toggle('disabled-interactions', isDisabled);
+        const isClockDisabled = count >= limit;
+        clockMenuItem.classList.toggle('disabled-interactions', isClockDisabled);
+        
+        console.log(`🌍 Clock menu: count=${count}/${limit}, disabled=${isClockDisabled}`);
     }
 }
 
