@@ -28,6 +28,8 @@ const ICONS = {
     'default': 'info'
 };
 
+// jorgeortega-ux/te1/te1-d1ea84dba04a305daab75dc0354d734b7b6e55ee/ProjectNocturne/assets/js/general/dynamic-island-controller.js
+
 function createDynamicIslandDOM() {
     if (document.querySelector('.dynamic-island')) return;
 
@@ -36,17 +38,23 @@ function createDynamicIslandDOM() {
 
     dynamicIslandElement.innerHTML = `
         <div class="island-notification-content">
-            <div class="island-left-group">
-                <div class="island-circle">
-                    <span class="material-symbols-rounded notification-icon-symbol"></span>
+            <div class="island-main-content">
+                <div class="island-left">
+                    <div class="island-circle">
+                        <span class="material-symbols-rounded notification-icon-symbol"></span>
+                    </div>
                 </div>
-                <div class="notification-text-info">
-                    <p class="notification-title" data-translate="" data-translate-category="notifications"></p>
-                    <p class="notification-message" data-translate="" data-translate-category="notifications"></p>
+                <div class="island-center">
+                    <div class="notification-text-info">
+                        <p class="notification-title" data-translate="" data-translate-category="notifications"></p>
+                        <p class="notification-message" data-translate="" data-translate-category="notifications"></p>
+                    </div>
                 </div>
             </div>
-            <button class="island-dismiss-button" data-action="dismiss-active-tool" data-translate="dismiss" data-translate-category="notifications">
-            </button>
+            <div class="island-right">
+                <button class="island-dismiss-button" data-action="dismiss-active-tool" data-translate="dismiss" data-translate-category="notifications">
+                </button>
+            </div>
         </div>
     `;
 
