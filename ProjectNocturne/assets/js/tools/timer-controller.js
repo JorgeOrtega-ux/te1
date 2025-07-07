@@ -425,6 +425,8 @@ function loadAndRestoreTimers() {
                     startCountdownTimer(timer);
                     updateTimerCardControls(timer.id);
                 }
+            } else if (!timer.isRunning && timer.rangAt) {
+                timer.remaining = timer.initialDuration;
             }
         } else if (timer.type === 'count_to_date' && timer.isRunning) {
             timer.remaining = new Date(timer.targetDate).getTime() - now;
@@ -770,7 +772,7 @@ function createTimerCard(timer) {
 
     let countdownMenu = '';
     if (isCountdown) {
-        const isStartDisabled = isRinging || isRunning || (timer.remaining <= 0 && !hasRang);
+        const isStartDisabled = isRinging || isRunning || (hasRang && timer.remaining === 0);
         const isPauseDisabled = isRinging || !isRunning;
         const isResetDisabled = isRinging || isRunning || (timer.remaining >= timer.initialDuration && !hasRang);
         const startPauseDisabledClass = isRunning ? (isPauseDisabled ? 'disabled-interactive' : '') : (isStartDisabled ? 'disabled-interactive' : '');
@@ -887,7 +889,7 @@ function updateMainControlsState() {
 
     if (pinnedTimer && pinnedTimer.type === 'countdown') {
         const { isRunning, isRinging, remaining, initialDuration, rangAt } = pinnedTimer;
-        isStartDisabled = isRunning || isRinging || rangAt || remaining <= 0;
+        isStartDisabled = isRunning || isRinging || (rangAt && remaining === 0) || remaining <= 0;
         isPauseDisabled = !isRunning || isRinging;
         isResetDisabled = isRunning || isRinging || (remaining >= initialDuration && !rangAt);
     }
@@ -952,7 +954,7 @@ function updateTimerCardControls(timerId) {
                     text.dataset.translate = 'play';
                     text.textContent = getTranslation('play', 'tooltips');
                 }
-                playPauseLink.classList.toggle('disabled-interactive', isRinging || hasRang || timer.remaining <= 0);
+                playPauseLink.classList.toggle('disabled-interactive', isRinging || (hasRang && timer.remaining === 0) || timer.remaining <= 0);
             }
         }
 
