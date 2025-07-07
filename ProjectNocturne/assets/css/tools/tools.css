@@ -141,7 +141,8 @@
 
 .menu-list-grid .menu-link {
     padding: 8px 4px;
-}/* Este selector es más específico y anulará la regla de 'display: grid' */
+}
+
 .menu-list-grid.disabled {
     display: none;
 }
@@ -401,7 +402,6 @@
     opacity: 1 !important;
 }
 
-
 .tool-card .card-header {
     display: flex;
     justify-content: space-between;
@@ -443,6 +443,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .tool-card .card-tag {
@@ -506,8 +507,6 @@
 .search-result-item .card-dropdown-menu .menu-link[data-action*="delete"]:hover {
     background-color: rgba(229, 57, 53, 0.08);
 }
-
-
 
 .world-clocks-grid {
     display: grid;
@@ -573,8 +572,6 @@
 .card-dropdown-menu.disabled {
     display: none;
 }
-
-
 
 .loading-overlay {
     position: absolute;
@@ -700,8 +697,6 @@
     transition: background-color 0.2s ease;
 }
 
-
-
 .search-result-item .card-pin-btn,
 .search-result-item .card-menu-btn {
     display: flex;
@@ -792,9 +787,7 @@
     align-items: center;
     gap: 8px;
     min-width: 0;
-    /* Permite que el contenido se reduzca */
     flex: 1;
-    /* Toma el espacio disponible antes del lado derecho */
 }
 
 .expandable-card-header-icon {
@@ -1193,8 +1186,6 @@
     }
 }
 
-
-
 .everything-grid-container {
     display: flex;
     flex-direction: column;
@@ -1207,7 +1198,6 @@
     border-radius: 12px;
     border: 1px solid #00000020;
 }
-
 
 .menu-content-header-sm {
     display: flex;
@@ -1256,7 +1246,6 @@
     position: relative;
 }
 
-
 .add-button-container {
     position: absolute;
     top: 12px;
@@ -1291,13 +1280,9 @@
     z-index: 10;
 }
 
-
-
-
 .add-menu-container .menu-list {
     padding: 8px;
 }
-
 
 .menu-link.disabled-interactions {
     opacity: 0.5;
@@ -1353,7 +1338,6 @@
     transition: background-color 0.2s ease;
     cursor: pointer;
 }
-
 
 .widget-list-item:hover {
     background-color: #f5f5fa;
@@ -1454,17 +1438,15 @@
     border-color: #d32f2f;
 }
 
-/* ================== INICIO DEL CÓDIGO CORREGIDO ================== */
 .custom-select-wrapper--row {
     flex-direction: row;
     align-items: center;
 }
 
 .custom-select-wrapper--row > .custom-select-content {
-    flex: 1; /* Hace que el selector de sonido ocupe el espacio disponible */
+    flex: 1; 
 }
 
 .custom-select-wrapper--row > .menu-action-button {
-    flex-shrink: 0; /* Evita que el botón de play se encoja */
+    flex-shrink: 0;
 }
-/* =================== FIN DEL CÓDIGO CORREGIDO ==================== */

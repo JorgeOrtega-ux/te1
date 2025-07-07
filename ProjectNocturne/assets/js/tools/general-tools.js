@@ -263,7 +263,6 @@ export function stopSound() {
     isPlayingSound = false;
 }
 
-// ===== FUNCIÓN generateSoundList ACTUALIZADA =====
 export async function generateSoundList(uploadElement, listElement, actionName, activeSoundId = null) {
     await populateAudioCache();
     if (!uploadElement || !listElement) {
@@ -271,13 +270,11 @@ export async function generateSoundList(uploadElement, listElement, actionName, 
         return;
     }
 
-    // Limpiar contenido previo de ambos contenedores
     uploadElement.innerHTML = '';
     listElement.innerHTML = '';
 
     const getTranslation = window.getTranslation || ((key) => key);
 
-    // 1. Crear y colocar el enlace "Subir Audio" en su contenedor dedicado
     const uploadListContainer = document.createElement('div');
     uploadListContainer.className = 'menu-list';
     const uploadLink = document.createElement('div');
@@ -290,7 +287,6 @@ export async function generateSoundList(uploadElement, listElement, actionName, 
     uploadListContainer.appendChild(uploadLink);
     uploadElement.appendChild(uploadListContainer);
 
-    // 2. Crear y colocar las listas de sonidos en su contenedor dedicado
     const soundListContainer = document.createElement('div');
     soundListContainer.className = 'menu-list';
 
@@ -298,7 +294,6 @@ export async function generateSoundList(uploadElement, listElement, actionName, 
     const defaultSounds = availableSounds.filter(s => !s.isCustom);
     const userAudios = availableSounds.filter(s => s.isCustom);
 
-    // Sección de sonidos predeterminados
     const defaultSoundsHeader = document.createElement('div');
     defaultSoundsHeader.className = 'menu-content-header-sm';
     defaultSoundsHeader.innerHTML = `<span>${getTranslation('default_audios', 'sounds')}</span>`;
@@ -308,7 +303,6 @@ export async function generateSoundList(uploadElement, listElement, actionName, 
         soundListContainer.appendChild(menuLink);
     });
 
-    // Sección de sonidos del usuario
     if (userAudios.length > 0) {
         const userAudiosHeader = document.createElement('div');
         userAudiosHeader.className = 'menu-content-header-sm';
@@ -320,7 +314,6 @@ export async function generateSoundList(uploadElement, listElement, actionName, 
         });
     }
 
-    // Añadir la lista completa al elemento de destino
     listElement.appendChild(soundListContainer);
 }
 
@@ -347,14 +340,9 @@ function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
     menuLink.appendChild(iconDiv);
     menuLink.appendChild(textDiv);
 
-    // --- INICIO DE LA LÓGICA MODIFICADA ---
-
     if (isCustom) {
-        // LÓGICA PARA SONIDOS SUBIDOS: Botones siempre visibles en su propio contenedor
-        
-        // Contenedor para el botón de prueba
         const testButtonContainer = document.createElement('div');
-        testButtonContainer.className = 'menu-link-icon'; // Usa la clase para que se alinee como un ícono
+        testButtonContainer.className = 'menu-link-icon';
         
         const testButton = document.createElement('div');
         testButton.className = 'interactive-icon sound-test-btn';
@@ -362,7 +350,6 @@ function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
         testButton.innerHTML = `<span class="material-symbols-rounded">play_arrow</span>`;
         testButtonContainer.appendChild(testButton);
 
-        // Contenedor para el botón de eliminar
         const deleteButtonContainer = document.createElement('div');
         deleteButtonContainer.className = 'menu-link-icon';
 
@@ -372,13 +359,10 @@ function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
         deleteButton.innerHTML = `<span class="material-symbols-rounded">delete</span>`;
         deleteButtonContainer.appendChild(deleteButton);
 
-        // Añadir los nuevos contenedores de botones al final de la fila
         menuLink.appendChild(deleteButtonContainer);
         menuLink.appendChild(testButtonContainer);
 
     } else {
-        // LÓGICA PARA SONIDOS PREDETERMINADOS: El botón de prueba aparece al pasar el mouse
-        
         menuLink.addEventListener('mouseenter', () => {
             if (menuLink.querySelector('.menu-link-actions-container')) return;
 
@@ -401,7 +385,6 @@ function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
             }
         });
     }
-    // --- FIN DE LA LÓGICA MODIFICADA ---
 
     return menuLink;
 }
@@ -452,19 +435,6 @@ export async function handleAudioUpload(callback) {
     fileInput.click();
 }
 
-/**
- * Creates a generic expandable container for tool sections like Alarms or Timers.
- * @param {object} config - The configuration object for the container.
- * @param {string} config.type - The type of content (e.g., 'user', 'default').
- * @param {string} config.titleKey - The translation key for the header title.
- * @param {string} config.translationCategory - The category for the translation.
- * @param {string} config.icon - The Material Symbols icon name for the header.
- * @param {string} config.containerClass - The specific class for the main container div.
- * @param {string} config.badgeClass - The class for the count badge span.
- * @param {string} config.gridAttribute - The data attribute for the tool grid (e.g., 'data-alarm-grid').
- * @param {function} config.toggleFunction - The function to call when the header is clicked.
- * @returns {HTMLElement} The created container element.
- */
 export function createExpandableToolContainer({ type, titleKey, translationCategory, icon, containerClass, badgeClass, gridAttribute, toggleFunction }) {
     const container = document.createElement('div');
     container.className = containerClass;
@@ -1310,9 +1280,15 @@ export function initializeCardEventListeners() {
     });
 }
 
-function handleAlarmCardAction(action, alarmId, target) {
+export function handleAlarmCardAction(action, alarmId, target) {
     if (!window.alarmManager) {
         console.error("Alarm manager no está disponible.");
+        return;
+    }
+
+    const alarm = window.alarmManager.findAlarmById(alarmId);
+    if (alarm && alarm.isRinging && action !== 'dismiss-alarm') {
+        console.warn(`Action "${action}" blocked for ringing alarm: ${alarmId}`);
         return;
     }
 
@@ -1335,9 +1311,15 @@ function handleAlarmCardAction(action, alarmId, target) {
     }
 }
 
-function handleTimerCardAction(action, timerId, target) {
+export function handleTimerCardAction(action, timerId, target) {
     if (!window.timerManager) {
         console.error("Timer manager no está disponible.");
+        return;
+    }
+
+    const timer = window.timerManager.findTimerById(timerId);
+    if (timer && timer.isRinging && action !== 'dismiss-timer') {
+        console.warn(`Action "${action}" blocked for ringing timer: ${timerId}`);
         return;
     }
 
@@ -1366,7 +1348,7 @@ function handleTimerCardAction(action, timerId, target) {
     }
 }
 
-function handleWorldClockCardAction(action, clockId, target) {
+export function handleWorldClockCardAction(action, clockId, target) {
     if (!window.worldClockManager) {
         console.error("WorldClock manager no está disponible.");
         return;
@@ -1386,4 +1368,4 @@ function handleWorldClockCardAction(action, clockId, target) {
     }
 }
 
-export { deleteUserAudio, handleAlarmCardAction, handleTimerCardAction, handleWorldClockCardAction, getSoundNameById };
+export { deleteUserAudio, getSoundNameById };
