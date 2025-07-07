@@ -31,7 +31,7 @@ function formatTimeSince(timestamp) {
     if (seconds < minute) return `${seconds} ${getTranslation('seconds', 'timer')}`;
     if (seconds < hour) return `${Math.floor(seconds / minute)} ${getTranslation('minutes', 'timer')}`;
     if (seconds < day) return `${Math.floor(seconds / hour)} ${getTranslation('hours', 'timer')}`;
-    if (seconds < year) return `${Math.floor(seconds / day)} ${getTranslation('days', 'timer')}`;
+    if (seconds < year) return `${Math.floor(seconds / year)} ${getTranslation('days', 'timer')}`;
     
     return `${Math.floor(seconds / year)} ${getTranslation('years', 'timer')}`;
 }
