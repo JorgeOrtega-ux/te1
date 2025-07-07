@@ -16,7 +16,7 @@ const stopwatchState = {
 let displayElement, startBtn, stopBtn, lapBtn, resetBtn, lapsTableBody, sectionBottom;
 
 export function getLapLimit() {
-    return 10000;
+    return 1000;
 }
 
 function saveState() {
