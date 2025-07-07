@@ -1,4 +1,4 @@
-// timer-controller.js - CÓDIGO COMPLETO CON RESTAURACIÓN INTELIGENTE
+// timer-controller.js - CÓDIGO COMPLETO CON LÓGICA UNIFICADA
 import { getTranslation } from '../general/translations-controller.js';
 import { activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
@@ -21,6 +21,8 @@ const DEFAULT_TIMERS = [
     { id: 'default-timer-5', title: 'study_session_45', type: 'countdown', initialDuration: 2700000, remaining: 2700000, sound: 'gentle_chime', isRunning: false, isPinned: false }
 ];
 
+// ========== FUNCIONES AUXILIARES CENTRALIZADAS ==========
+
 function dispatchTimerStateChange() {
     document.dispatchEvent(new CustomEvent('timerStateChanged'));
 }
@@ -37,38 +39,96 @@ function formatTimeSince(timestamp) {
     return `${Math.floor(seconds / year)} ${getTranslation('years', 'timer')}`;
 }
 
-// ========== FUNCIÓN PARA LIMPIAR EL TAG "SONÓ HACE..." ==========
 function clearRangAtTag(timerId) {
     const timer = findTimerById(timerId);
-    if (!timer) return;
+    if (!timer || !timer.rangAt) return;
 
-    if (timer.rangAt) {
-        console.log(`🧹 Limpiando tag "sonó hace..." del timer ${timerId}`);
-        delete timer.rangAt;
-        
-        // Guardar cambios
-        const isUserTimer = userTimers.some(t => t.id === timerId);
-        if (isUserTimer) {
-            saveTimersToStorage();
-        } else {
-            saveDefaultTimersOrder();
-        }
-
-        // Actualizar visualización de la tarjeta
-        updateTimerCardVisuals(timer);
-        
-        // Actualizar resultados de búsqueda si existen
-        refreshSearchResults();
+    console.log(`🧹 Limpiando tag "sonó hace..." del timer ${timerId}`);
+    delete timer.rangAt;
+    
+    const isUserTimer = userTimers.some(t => t.id === timerId);
+    if (isUserTimer) {
+        saveTimersToStorage();
+    } else {
+        saveDefaultTimersOrder();
     }
+
+    updateTimerCardVisuals(timer);
+    refreshSearchResults();
+}
+
+function shouldShowRangAtTag(timer) {
+    // Solo mostrar si tiene rangAt, no está corriendo y no está sonando
+    return timer.rangAt && !timer.isRunning && !timer.isRinging;
+}
+
+function getTimerControlsState(timer) {
+    const isRinging = !!timer.isRinging;
+    const isRunning = !!timer.isRunning;
+    const hasRangAt = !!timer.rangAt;
+    const isCountdown = timer.type === 'countdown';
+    
+    if (!isCountdown) {
+        // Count-to-date: solo edit/delete
+        return {
+            startDisabled: true,
+            pauseDisabled: true,
+            resetDisabled: true,
+            editDisabled: isRinging || isRunning,
+            deleteDisabled: isRinging || isRunning,
+            showPlayPause: false,
+            showReset: false,
+            isRinging,
+            isRunning,
+            hasRangAt
+        };
+    }
+
+    // Countdown logic
+    const canStart = timer.remaining > 0 || hasRangAt;
+    
+    // ========== LÓGICA CORREGIDA PARA RESET ==========
+    // Reset DESHABILITADO si:
+    // 1. Está corriendo o sonando
+    // 2. Ya está en tiempo original SIN rangAt (estado "limpio")
+    // 3. Timer restaurado (remaining == initialDuration Y tiene rangAt) ✅ ESTO ES LO CLAVE
+    const isAtOriginalStateClean = timer.remaining >= timer.initialDuration && !hasRangAt;
+    const isRestoredWithTag = timer.remaining >= timer.initialDuration && hasRangAt;
+    const resetDisabled = isRinging || isRunning || isAtOriginalStateClean || isRestoredWithTag;
+    
+    return {
+        // Start: Habilitado si hay tiempo restante O si sonó antes (rangAt)
+        startDisabled: isRinging || isRunning || !canStart,
+        
+        // Pause: Habilitado solo si está corriendo y no sonando
+        pauseDisabled: isRinging || !isRunning,
+        
+        // Reset: Deshabilitado en casos específicos (incluyendo timers restaurados)
+        resetDisabled,
+        
+        // Edit/Delete: Deshabilitado si está corriendo o sonando
+        editDisabled: isRinging || isRunning,
+        deleteDisabled: isRinging || isRunning,
+        
+        // UI helpers
+        showPlayPause: true,
+        showReset: true,
+        playPauseAction: isRunning ? 'pause-card-timer' : 'start-card-timer',
+        playPauseIcon: isRunning ? 'pause' : 'play_arrow',
+        playPauseTextKey: isRunning ? 'pause' : 'play',
+        
+        // Estados adicionales
+        isRinging,
+        isRunning,
+        hasRangAt
+    };
 }
 
 // ========== RESTAURACIÓN INTELIGENTE AL CARGAR ==========
-// timer-controller.js - FUNCIÓN loadAndRestoreTimers MEJORADA
 
 function loadAndRestoreTimers() {
     console.log('🔄 Iniciando carga y restauración de timers...');
     
-    // Cargar timers del usuario
     const storedUserTimers = localStorage.getItem(TIMERS_STORAGE_KEY);
     if (storedUserTimers) {
         try {
@@ -76,7 +136,6 @@ function loadAndRestoreTimers() {
         } catch (e) { userTimers = []; }
     }
 
-    // Cargar timers por defecto
     const storedDefaultTimers = localStorage.getItem(DEFAULT_TIMERS_STORAGE_KEY);
     if (storedDefaultTimers) {
         try {
@@ -104,20 +163,49 @@ function loadAndRestoreTimers() {
             if (timer.isRinging) {
                 // ========== TIMER ESTABA SONANDO AL CERRAR WEB ==========
                 console.log(`🔧 RESTAURACIÓN: Timer ${timer.id} estaba sonando cuando se cerró la web`);
-                console.log(`   - Aplicando restauración automática...`);
                 
-                // Marcar cuando sonó (momento actual como aproximación)
-                timer.rangAt = now;
+                // ===== ESTRATEGIA MEJORADA PARA CALCULAR CUÁNDO SONÓ =====
+                let whenItRang = now; // fallback final
                 
-                // Restaurar al tiempo original
+                if (timer.targetTime) {
+                    // Caso 1: Tenemos targetTime (momento exacto cuando debía terminar)
+                    whenItRang = timer.targetTime;
+                    console.log(`   - Usando targetTime: ${new Date(timer.targetTime).toLocaleString()}`);
+                } else if (timer.lastTriggered) {
+                    // Caso 2: Tenemos lastTriggered (cuando se activó la alarma)
+                    whenItRang = timer.lastTriggered;
+                    console.log(`   - Usando lastTriggered: ${new Date(timer.lastTriggered).toLocaleString()}`);
+                } else if (timer.remaining <= 0) {
+                    // Caso 3: Timer en 00:00:00, probablemente sonó recientemente
+                    // Estimamos que sonó hace poco tiempo basado en cuándo se cerró la web
+                    const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
+                    if (lastVisit) {
+                        const lastVisitTime = parseInt(lastVisit, 10);
+                        const timeSinceLastVisit = now - lastVisitTime;
+                        
+                        if (timeSinceLastVisit < 60000) { // Menos de 1 minuto
+                            whenItRang = lastVisitTime + 5000; // Estimamos que sonó 5 segundos después de cerrar
+                        } else {
+                            whenItRang = now - Math.min(timeSinceLastVisit / 2, 300000); // Máximo 5 minutos atrás
+                        }
+                        console.log(`   - Estimando basado en última visita: ${new Date(whenItRang).toLocaleString()}`);
+                    } else {
+                        whenItRang = now - (30 * 1000); // Fallback: hace 30 segundos
+                        console.log(`   - Fallback final: hace 30 segundos`);
+                    }
+                } else {
+                    // Caso 4: Timer tiene tiempo restante pero estaba sonando (caso raro)
+                    whenItRang = now - (10 * 1000); // Hace 10 segundos
+                    console.log(`   - Caso raro - timer sonando con tiempo restante: hace 10 segundos`);
+                }
+                
+                timer.rangAt = whenItRang;
                 timer.remaining = timer.initialDuration;
-                
-                // Resetear estados
                 timer.isRunning = false;
                 timer.isRinging = false;
                 delete timer.targetTime;
                 
-                console.log(`   ✅ Timer restaurado automáticamente: remaining=${timer.remaining}ms, rangAt=${new Date(timer.rangAt).toLocaleString()}`);
+                console.log(`   ✅ Timer restaurado con tag offline: rangAt=${new Date(timer.rangAt).toLocaleString()}`);
                 
             } else if (timer.isRunning && timer.targetTime) {
                 const timeWhenFinished = timer.targetTime;
@@ -125,21 +213,14 @@ function loadAndRestoreTimers() {
                 if (now >= timeWhenFinished) {
                     // ========== TIMER TERMINÓ MIENTRAS WEB ESTABA CERRADA ==========
                     console.log(`🔧 RESTAURACIÓN: Timer ${timer.id} terminó mientras la web estaba cerrada`);
-                    console.log(`   - Tiempo original: ${timer.initialDuration}ms`);
-                    console.log(`   - Debía terminar en: ${new Date(timeWhenFinished).toLocaleTimeString()}`);
                     
-                    // Marcar cuando sonó
-                    timer.rangAt = timeWhenFinished;
-                    
-                    // Restaurar al tiempo original
+                    timer.rangAt = timeWhenFinished; // Momento exacto cuando terminó
                     timer.remaining = timer.initialDuration;
-                    
-                    // Resetear estados
                     timer.isRunning = false;
                     timer.isRinging = false;
                     delete timer.targetTime;
                     
-                    console.log(`   ✅ Restaurado: remaining=${timer.remaining}ms, rangAt=${new Date(timer.rangAt).toLocaleTimeString()}`);
+                    console.log(`   ✅ Timer restaurado con tag offline: rangAt=${new Date(timer.rangAt).toLocaleString()}`);
                 } else {
                     // Timer aún corriendo normalmente
                     timer.remaining = timeWhenFinished - now;
@@ -150,19 +231,15 @@ function loadAndRestoreTimers() {
                 // ========== TIMER EN 00:00:00 SIN CONTEXTO ==========
                 console.log(`🔧 RESTAURACIÓN: Timer ${timer.id} estaba en 00:00:00 - restaurando a tiempo original`);
                 
-                // Si no tiene rangAt pero está en 0, probablemente terminó sin marcar
                 timer.remaining = timer.initialDuration;
                 timer.isRunning = false;
                 timer.isRinging = false;
                 delete timer.targetTime;
+                timer.rangAt = now - (30 * 1000); // Hace 30 segundos
                 
-                // Opcional: marcar que sonó hace poco tiempo estimado
-                timer.rangAt = now - (5 * 60 * 1000); // Estimar que sonó hace 5 minutos
-                
-                console.log(`   ✅ Timer restaurado desde 00:00:00: remaining=${timer.remaining}ms`);
+                console.log(`   ✅ Timer restaurado con tag offline estimado`);
             }
         } else if (timer.type === 'count_to_date' && timer.isRunning) {
-            // Count-to-date timers continúan su lógica normal
             timer.remaining = new Date(timer.targetDate).getTime() - now;
             if (timer.remaining <= 0) {
                 timer.remaining = 0;
@@ -189,7 +266,8 @@ function loadAndRestoreTimers() {
     console.log('✅ Carga y restauración de timers completada');
 }
 
-// ========== FUNCIÓN STARTIMER MODIFICADA ==========
+// ========== FUNCIONES PRINCIPALES ==========
+
 function startTimer(timerId) {
     const timer = findTimerById(timerId);
     if (!timer || timer.isRunning || (timer.remaining <= 0 && !timer.rangAt)) return;
@@ -197,8 +275,6 @@ function startTimer(timerId) {
     console.log(`▶️ Iniciando timer ${timerId}`);
 
     handlePinTimer(timerId);
-
-    // ========== LIMPIAR TAG AL INICIAR ==========
     clearRangAtTag(timerId);
 
     timer.isRunning = true;
@@ -218,7 +294,29 @@ function startTimer(timerId) {
     dispatchTimerStateChange();
 }
 
-// ========== FUNCIÓN RESETTIMER MODIFICADA ==========
+function pauseTimer(timerId) {
+    const timer = findTimerById(timerId);
+    if (!timer || !timer.isRunning) return;
+
+    timer.isRunning = false;
+    if (activeTimers.has(timer.id)) {
+        clearTimeout(activeTimers.get(timer.id));
+        activeTimers.delete(timer.id);
+    }
+
+    if(timer.type === 'countdown') {
+        timer.remaining = timer.targetTime - Date.now();
+    }
+    delete timer.targetTime;
+
+    updateTimerCardControls(timerId);
+    updateMainControlsState();
+    refreshSearchResults();
+    updateEverythingWidgets();
+    saveAllTimersState();
+    dispatchTimerStateChange();
+}
+
 function resetTimer(timerId) {
     const timer = findTimerById(timerId);
     if (!timer) return;
@@ -231,7 +329,6 @@ function resetTimer(timerId) {
         activeTimers.delete(timer.id);
     }
 
-    // ========== LIMPIAR TAG AL RESETEAR ==========
     clearRangAtTag(timerId);
     
     delete timer.targetTime;
@@ -250,7 +347,6 @@ function resetTimer(timerId) {
     dispatchTimerStateChange();
 }
 
-// ========== FUNCIÓN UPDATETIMER MODIFICADA ==========
 export function updateTimer(timerId, newData) {
     console.log(`✏️ Editando timer ${timerId}`);
     
@@ -271,7 +367,7 @@ export function updateTimer(timerId, newData) {
 
     const updatedTimer = { ...oldTimer, ...newData, isRunning: false };
 
-    // ========== LIMPIAR TAG AL EDITAR ==========
+    // Limpiar tag al editar
     delete updatedTimer.rangAt;
 
     if (updatedTimer.type === 'count_to_date') {
@@ -296,7 +392,6 @@ export function updateTimer(timerId, newData) {
     updateEverythingWidgets();
 }
 
-// ========== FUNCIÓN PARA ACTUALIZAR VISUALES DE LA TARJETA ==========
 function updateTimerCardVisuals(timer) {
     const card = document.getElementById(timer.id);
     if (!card) return;
@@ -325,7 +420,7 @@ function updateTimerCardVisuals(timer) {
     // ========== MANEJO DEL TAG "SONÓ HACE..." ==========
     let rangAgoTag = card.querySelector('.rang-ago-tag');
     
-    if (timer.rangAt) {
+    if (shouldShowRangAtTag(timer)) {
         if (!rangAgoTag) {
             rangAgoTag = document.createElement('span');
             rangAgoTag.className = 'card-tag rang-ago-tag';
@@ -344,66 +439,46 @@ function updateTimerCardVisuals(timer) {
     card.classList.toggle('timer-finished', isFinished);
 }
 
-// ========== CONTROLES DE BOTONES MEJORADOS ==========
 function updateTimerCardControls(timerId) {
     const timer = findTimerById(timerId);
     if (!timer) return;
 
     const cardElements = document.querySelectorAll(`#${timerId}, #search-timer-${timerId}`);
+    const controlsState = getTimerControlsState(timer);
 
     cardElements.forEach(card => {
+        // Play/Pause button
         const playPauseLink = card.querySelector('[data-action="start-card-timer"], [data-action="pause-card-timer"]');
-        if (playPauseLink) {
+        if (playPauseLink && controlsState.showPlayPause) {
             const icon = playPauseLink.querySelector('.material-symbols-rounded');
             const text = playPauseLink.querySelector('.menu-link-text span');
-            const isRunning = timer.isRunning;
-            const isRinging = !!timer.isRinging;
 
-            if (isRunning) {
-                playPauseLink.dataset.action = 'pause-card-timer';
-                if(icon) icon.textContent = 'pause';
-                if(text) {
-                    text.dataset.translate = 'pause';
-                    text.textContent = getTranslation('pause', 'tooltips');
-                }
-                playPauseLink.classList.toggle('disabled-interactive', isRinging);
-            } else {
-                playPauseLink.dataset.action = 'start-card-timer';
-                if(icon) icon.textContent = 'play_arrow';
-                if(text) {
-                    text.dataset.translate = 'play';
-                    text.textContent = getTranslation('play', 'tooltips');
-                }
-                // Play habilitado si hay tiempo o si sonó antes (restaurado)
-                const canStart = timer.remaining > 0 || timer.rangAt;
-                playPauseLink.classList.toggle('disabled-interactive', isRinging || !canStart);
+            playPauseLink.dataset.action = controlsState.playPauseAction;
+            if (icon) icon.textContent = controlsState.playPauseIcon;
+            if (text) {
+                text.dataset.translate = controlsState.playPauseTextKey;
+                text.textContent = getTranslation(controlsState.playPauseTextKey, 'tooltips');
             }
+
+            const playPauseDisabled = controlsState.isRunning ? controlsState.pauseDisabled : controlsState.startDisabled;
+            playPauseLink.classList.toggle('disabled-interactive', playPauseDisabled);
         }
 
+        // Reset button
         const resetLink = card.querySelector('[data-action="reset-card-timer"]');
-        if (resetLink) {
-            // ========== LÓGICA CORREGIDA PARA RESET ==========
-            // Reset DESHABILITADO si:
-            // - Está corriendo o sonando
-            // - Timer restaurado (remaining == initialDuration Y tiene rangAt)
-            // - Timer ya en tiempo original sin haber sonado (remaining >= initialDuration Y NO tiene rangAt)
-            
-            const isRestored = timer.remaining >= timer.initialDuration && timer.rangAt;
-            const isAtOriginalState = timer.remaining >= timer.initialDuration && !timer.rangAt;
-            const shouldDisableReset = timer.isRunning || timer.isRinging || isRestored || isAtOriginalState;
-            
-            resetLink.classList.toggle('disabled-interactive', shouldDisableReset);
-            
-            console.log(`🔄 Reset button for ${timerId}: remaining=${timer.remaining}, initial=${timer.initialDuration}, rangAt=${!!timer.rangAt}, disabled=${shouldDisableReset}`);
+        if (resetLink && controlsState.showReset) {
+            resetLink.classList.toggle('disabled-interactive', controlsState.resetDisabled);
         }
 
+        // Edit/Delete buttons
         const editLink = card.querySelector('[data-action="edit-timer"]');
         const deleteLink = card.querySelector('[data-action="delete-timer"]');
-        const editDeleteDisabled = !!timer.isRinging || !!timer.isRunning;
 
-        if(editLink) editLink.classList.toggle('disabled-interactive', editDeleteDisabled);
-        if(deleteLink) deleteLink.classList.toggle('disabled-interactive', editDeleteDisabled);
+        if (editLink) editLink.classList.toggle('disabled-interactive', controlsState.editDisabled);
+        if (deleteLink) deleteLink.classList.toggle('disabled-interactive', controlsState.deleteDisabled);
     });
+
+    console.log(`🎛️ Controles actualizados para timer ${timerId}: running=${controlsState.isRunning}, ringing=${controlsState.isRinging}, rangAt=${controlsState.hasRangAt}`);
 }
 
 function updateMainControlsState() {
@@ -420,34 +495,25 @@ function updateMainControlsState() {
     const pinnedTimer = findTimerById(pinnedTimerId);
     let isAnyRinging = [...userTimers, ...defaultTimersState].some(t => t.isRinging);
 
-    let isStartDisabled = true, isPauseDisabled = true, isResetDisabled = true;
+    // Add timer button disabled if any timer is ringing
+    addTimerBtn.classList.toggle('disabled-interactive', isAnyRinging);
 
     if (pinnedTimer && pinnedTimer.type === 'countdown') {
-        const { isRunning, isRinging, remaining, initialDuration, rangAt } = pinnedTimer;
+        const controlsState = getTimerControlsState(pinnedTimer);
         
-        // ========== LÓGICA CORREGIDA PARA CONTROLES PRINCIPALES ==========
-        const canStart = remaining > 0 || rangAt;
-        isStartDisabled = isRunning || isRinging || !canStart;
-        isPauseDisabled = !isRunning || isRinging;
+        startBtn.classList.toggle('disabled-interactive', controlsState.startDisabled);
+        pauseBtn.classList.toggle('disabled-interactive', controlsState.pauseDisabled);
+        resetBtn.classList.toggle('disabled-interactive', controlsState.resetDisabled);
         
-        // Reset DESHABILITADO si:
-        // - Está corriendo o sonando
-        // - Timer restaurado (remaining == initialDuration Y tiene rangAt)  
-        // - Timer ya en tiempo original sin haber sonado (remaining >= initialDuration Y NO tiene rangAt)
-        const isRestored = remaining >= initialDuration && rangAt;
-        const isAtOriginalState = remaining >= initialDuration && !rangAt;
-        isResetDisabled = isRunning || isRinging || isRestored || isAtOriginalState;
-        
-        console.log(`🎛️ Main controls for ${pinnedTimer.id}: remaining=${remaining}, initial=${initialDuration}, rangAt=${!!rangAt}, resetDisabled=${isResetDisabled}`);
+        console.log(`🎛️ Main controls for ${pinnedTimer.id}: start=${controlsState.startDisabled}, pause=${controlsState.pauseDisabled}, reset=${controlsState.resetDisabled}`);
+    } else {
+        // No pinned timer or count-to-date timer
+        startBtn.classList.add('disabled-interactive');
+        pauseBtn.classList.add('disabled-interactive');
+        resetBtn.classList.add('disabled-interactive');
     }
-
-    startBtn.classList.toggle('disabled-interactive', isStartDisabled);
-    pauseBtn.classList.toggle('disabled-interactive', isPauseDisabled);
-    resetBtn.classList.toggle('disabled-interactive', isResetDisabled);
-    addTimerBtn.classList.toggle('disabled-interactive', isAnyRinging);
 }
 
-// ========== CREAR TARJETA DE TIMER MEJORADA ==========
 function createTimerCard(timer) {
     const card = document.createElement('div');
     card.className = 'tool-card timer-card';
@@ -459,54 +525,41 @@ function createTimerCard(timer) {
         card.classList.add('timer-finished');
     }
 
+    const controlsState = getTimerControlsState(timer);
+
     // ========== GENERAR TAG "SONÓ HACE..." ==========
     let rangAgoTag = '';
-    if (timer.rangAt) {
+    if (shouldShowRangAtTag(timer)) {
         const timeAgo = formatTimeSince(timer.rangAt);
         const rangAgoText = getTranslation('rang_ago', 'timer').replace('{time}', timeAgo);
         rangAgoTag = `<span class="card-tag rang-ago-tag">${rangAgoText}</span>`;
     }
 
-    const isCountdown = timer.type === 'countdown';
-    const playPauseAction = timer.isRunning ? 'pause-card-timer' : 'start-card-timer';
-    const playPauseIcon = timer.isRunning ? 'pause' : 'play_arrow';
-    const playPauseTextKey = timer.isRunning ? 'pause' : 'play';
-    const isRinging = !!timer.isRinging;
-    const isRunning = !!timer.isRunning;
-
+    // Controles específicos para countdown
     let countdownMenu = '';
-    if (isCountdown) {
-        // ========== LÓGICA CORREGIDA PARA BOTONES EN TARJETA ==========
-        const canStart = timer.remaining > 0 || timer.rangAt;
-        const isStartDisabled = isRinging || isRunning || !canStart;
-        const isPauseDisabled = isRinging || !isRunning;
-        
-        // Reset DESHABILITADO si:
-        // - Está corriendo o sonando
-        // - Timer restaurado (remaining == initialDuration Y tiene rangAt)
-        // - Timer ya en tiempo original sin haber sonado (remaining >= initialDuration Y NO tiene rangAt)
-        const isRestored = timer.remaining >= timer.initialDuration && timer.rangAt;
-        const isAtOriginalState = timer.remaining >= timer.initialDuration && !timer.rangAt;
-        const isResetDisabled = isRinging || isRunning || isRestored || isAtOriginalState;
-        
-        const startPauseDisabledClass = isRunning ? (isPauseDisabled ? 'disabled-interactive' : '') : (isStartDisabled ? 'disabled-interactive' : '');
+    if (controlsState.showPlayPause || controlsState.showReset) {
+        const startPauseDisabled = controlsState.isRunning ? 
+            (controlsState.pauseDisabled ? 'disabled-interactive' : '') : 
+            (controlsState.startDisabled ? 'disabled-interactive' : '');
 
-        countdownMenu = `
-        <div class="menu-link ${startPauseDisabledClass}" data-action="${playPauseAction}">
-            <div class="menu-link-icon"><span class="material-symbols-rounded">${playPauseIcon}</span></div>
-            <div class="menu-link-text"><span data-translate="${playPauseTextKey}" data-translate-category="tooltips">${getTranslation(playPauseTextKey, 'tooltips')}</span></div>
-        </div>
-        <div class="menu-link ${isResetDisabled ? 'disabled-interactive' : ''}" data-action="reset-card-timer">
+        const playPauseMenu = controlsState.showPlayPause ? `
+        <div class="menu-link ${startPauseDisabled}" data-action="${controlsState.playPauseAction}">
+            <div class="menu-link-icon"><span class="material-symbols-rounded">${controlsState.playPauseIcon}</span></div>
+            <div class="menu-link-text"><span data-translate="${controlsState.playPauseTextKey}" data-translate-category="tooltips">${getTranslation(controlsState.playPauseTextKey, 'tooltips')}</span></div>
+        </div>` : '';
+
+        const resetMenu = controlsState.showReset ? `
+        <div class="menu-link ${controlsState.resetDisabled ? 'disabled-interactive' : ''}" data-action="reset-card-timer">
             <div class="menu-link-icon"><span class="material-symbols-rounded">refresh</span></div>
             <div class="menu-link-text"><span data-translate="reset" data-translate-category="tooltips">${getTranslation('reset', 'tooltips')}</span></div>
-        </div>
-        `;
+        </div>` : '';
+
+        countdownMenu = playPauseMenu + resetMenu;
     }
 
-    const editDeleteDisabled = isRinging || isRunning;
     const isDefault = timer.id.startsWith('default-timer-');
     const deleteLinkHtml = isDefault ? '' : `
-        <div class="menu-link ${editDeleteDisabled ? 'disabled-interactive' : ''}" data-action="delete-timer">
+        <div class="menu-link ${controlsState.deleteDisabled ? 'disabled-interactive' : ''}" data-action="delete-timer">
             <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
             <div class="menu-link-text"><span data-translate="delete_timer" data-translate-category="timer">${getTranslation('delete_timer', 'timer')}</span></div>
         </div>
@@ -546,7 +599,7 @@ function createTimerCard(timer) {
                  </button>
                  <div class="card-dropdown-menu body-title disabled">
                      ${countdownMenu}
-                     <div class="menu-link ${editDeleteDisabled ? 'disabled-interactive' : ''}" data-action="edit-timer">
+                     <div class="menu-link ${controlsState.editDisabled ? 'disabled-interactive' : ''}" data-action="edit-timer">
                          <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
                          <div class="menu-link-text"><span data-translate="edit_timer" data-translate-category="timer">${getTranslation('edit_timer', 'timer')}</span></div>
                      </div>
@@ -566,39 +619,6 @@ function createTimerCard(timer) {
     });
 
     return card;
-}
-
-// ========== RESTO DE FUNCIONES (NO MODIFICADAS) ==========
-function updatePinnedTimerNameDisplay() {
-    const nameDisplayTool = document.querySelector('.info-tool[data-timer-name-display]');
-    if (!nameDisplayTool) return;
-
-    let span = nameDisplayTool.querySelector('span');
-    if (!span) {
-        span = document.createElement('span');
-        nameDisplayTool.innerHTML = '';
-        nameDisplayTool.appendChild(span);
-    }
-
-    const pinnedTimer = findTimerById(pinnedTimerId);
-    if (pinnedTimer) {
-        const title = pinnedTimer.id.startsWith('default-timer-')
-            ? getTranslation(pinnedTimer.title, 'timer')
-            : pinnedTimer.title;
-        span.textContent = title;
-        nameDisplayTool.setAttribute('data-translate', 'pinned_timer_tooltip');
-        nameDisplayTool.setAttribute('data-translate-category', 'timer');
-        nameDisplayTool.setAttribute('data-translate-target', 'tooltip');
-    } else {
-        span.textContent = '-';
-        nameDisplayTool.removeAttribute('data-tooltip');
-        nameDisplayTool.removeAttribute('data-translate');
-        nameDisplayTool.removeAttribute('data-translate-category');
-        nameDisplayTool.removeAttribute('data-translate-target');
-    }
-    if (window.tooltipManager && typeof window.tooltipManager.attachTooltipsToNewElements === 'function') {
-        window.tooltipManager.attachTooltipsToNewElements(nameDisplayTool.parentElement);
-    }
 }
 
 function renderTimerSearchResults(searchTerm) {
@@ -653,46 +673,31 @@ function createTimerSearchResultItem(timer) {
 
     const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
     const time = formatTime(timer.remaining, timer.type);
-
-    const isCountdown = timer.type === 'countdown';
-    const playPauseAction = timer.isRunning ? 'pause-card-timer' : 'start-card-timer';
-    const playPauseIcon = timer.isRunning ? 'pause' : 'play_arrow';
-    const playPauseTextKey = timer.isRunning ? 'pause' : 'play';
-    const isRinging = !!timer.isRinging;
-    const isRunning = !!timer.isRunning;
+    const controlsState = getTimerControlsState(timer);
 
     let dynamicActionsHTML = '';
-    if (isCountdown) {
-        // ========== LÓGICA CORREGIDA PARA BOTONES EN BÚSQUEDA ==========
-        const canStart = timer.remaining > 0 || timer.rangAt;
-        const isStartDisabled = isRinging || isRunning || !canStart;
-        const isPauseDisabled = isRinging || !isRunning;
-        
-        // Reset DESHABILITADO si:
-        // - Está corriendo o sonando  
-        // - Timer restaurado (remaining == initialDuration Y tiene rangAt)
-        // - Timer ya en tiempo original sin haber sonado (remaining >= initialDuration Y NO tiene rangAt)
-        const isRestored = timer.remaining >= timer.initialDuration && timer.rangAt;
-        const isAtOriginalState = timer.remaining >= timer.initialDuration && !timer.rangAt;
-        const isResetDisabled = isRinging || isRunning || isRestored || isAtOriginalState;
-        
-        const startPauseDisabledClass = isRunning ? (isPauseDisabled ? 'disabled-interactive' : '') : (isStartDisabled ? 'disabled-interactive' : '');
+    if (controlsState.showPlayPause || controlsState.showReset) {
+        const startPauseDisabled = controlsState.isRunning ? 
+            (controlsState.pauseDisabled ? 'disabled-interactive' : '') : 
+            (controlsState.startDisabled ? 'disabled-interactive' : '');
 
-        dynamicActionsHTML = `
-            <div class="menu-link ${startPauseDisabledClass}" data-action="${playPauseAction}">
-                <div class="menu-link-icon"><span class="material-symbols-rounded">${playPauseIcon}</span></div>
-                <div class="menu-link-text"><span>${getTranslation(playPauseTextKey, 'tooltips')}</span></div>
-            </div>
-            <div class="menu-link ${isResetDisabled ? 'disabled-interactive' : ''}" data-action="reset-card-timer">
+        const playPauseAction = controlsState.showPlayPause ? `
+            <div class="menu-link ${startPauseDisabled}" data-action="${controlsState.playPauseAction}">
+                <div class="menu-link-icon"><span class="material-symbols-rounded">${controlsState.playPauseIcon}</span></div>
+                <div class="menu-link-text"><span>${getTranslation(controlsState.playPauseTextKey, 'tooltips')}</span></div>
+            </div>` : '';
+
+        const resetAction = controlsState.showReset ? `
+            <div class="menu-link ${controlsState.resetDisabled ? 'disabled-interactive' : ''}" data-action="reset-card-timer">
                 <div class="menu-link-icon"><span class="material-symbols-rounded">refresh</span></div>
                 <div class="menu-link-text"><span>${getTranslation('reset', 'tooltips')}</span></div>
-            </div>
-        `;
+            </div>` : '';
+
+        dynamicActionsHTML = playPauseAction + resetAction;
     }
 
-    const editDeleteDisabled = isRinging || isRunning;
     const deleteLinkHtml = timer.id.startsWith('default-timer-') ? '' : `
-        <div class="menu-link ${editDeleteDisabled ? 'disabled-interactive' : ''}" data-action="delete-timer">
+        <div class="menu-link ${controlsState.deleteDisabled ? 'disabled-interactive' : ''}" data-action="delete-timer">
             <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
             <div class="menu-link-text"><span>${getTranslation('delete_timer', 'timer')}</span></div>
         </div>
@@ -716,7 +721,7 @@ function createTimerSearchResultItem(timer) {
                  </button>
                  <div class="card-dropdown-menu body-title disabled">
                      ${dynamicActionsHTML}
-                     <div class="menu-link ${editDeleteDisabled ? 'disabled-interactive' : ''}" data-action="edit-timer">
+                     <div class="menu-link ${controlsState.editDisabled ? 'disabled-interactive' : ''}" data-action="edit-timer">
                          <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
                          <div class="menu-link-text"><span>${getTranslation('edit_timer', 'timer')}</span></div>
                      </div>
@@ -788,6 +793,94 @@ function refreshSearchResults() {
     }
 }
 
+function handleTimerEnd(timerId) {
+    const timer = findTimerById(timerId);
+    if (!timer) return;
+
+    timer.isRunning = false;
+    if (activeTimers.has(timerId)) {
+        clearTimeout(activeTimers.get(timerId));
+        activeTimers.delete(timerId);
+    }
+    timer.remaining = 0;
+
+    delete timer.rangAt; // No establecer rangAt porque el usuario se enterará
+    delete timer.targetTime;
+
+    timer.isRinging = true;
+
+    updateCardDisplay(timerId);
+    renderAllTimerCards();
+    if (timer.id === pinnedTimerId) updateMainDisplay();
+    updateTimerCardControls(timerId);
+    updateMainControlsState();
+    refreshSearchResults();
+
+    const isUserTimer = userTimers.some(t => t.id === timerId);
+    if (isUserTimer) saveTimersToStorage(); else saveDefaultTimersOrder();
+
+    let soundToPlay = timer.sound;
+    const availableSounds = getAvailableSounds();
+    if (!availableSounds.some(s => s.id === soundToPlay)) {
+        console.warn(`Audio "${soundToPlay}" not found for timer "${timer.title}". Reverting to default.`);
+        soundToPlay = 'classic_beep';
+        timer.sound = soundToPlay;
+        updateTimer(timer.id, { sound: soundToPlay });
+    }
+
+    if (timer.sound) {
+        playSound(soundToPlay);
+    }
+    const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
+
+    const card = document.getElementById(timerId);
+    card?.querySelector('.card-options-container')?.classList.add('active');
+
+    showDynamicIslandNotification('timer', 'ringing', 'timer_ringing', 'notifications', {
+        title: translatedTitle,
+        toolId: timer.id
+    }, (dismissedId) => {
+        if (dismissedId === timer.id) {
+            dismissTimer(timer.id);
+        }
+    });
+}
+
+function dismissTimer(timerId) {
+    stopSound();
+    const card = document.getElementById(timerId);
+    if (card) {
+        const optionsContainer = card.querySelector('.card-options-container');
+        if (optionsContainer) {
+            optionsContainer.classList.remove('active');
+        }
+    }
+    hideDynamicIsland();
+    
+    const timer = findTimerById(timerId);
+    if (timer) {
+        timer.isRinging = false;
+        if (timer.type === 'countdown') {
+            // ✅ RESET LIMPIO SIN TAGS (usuario se enteró del sonido)
+            timer.remaining = timer.initialDuration;
+            timer.isRunning = false;
+            delete timer.targetTime;
+            delete timer.rangAt; // NO mantener historial
+            
+            updateCardDisplay(timerId);
+            if (timer.id === pinnedTimerId) updateMainDisplay();
+            updateTimerCardControls(timerId);
+            updateMainControlsState();
+            refreshSearchResults();
+            updateEverythingWidgets();
+            saveAllTimersState();
+            dispatchTimerStateChange();
+        }
+    }
+}
+
+// ========== RESTO DE FUNCIONES AUXILIARES ==========
+
 export function getTimersCount() {
     return userTimers.length;
 }
@@ -813,117 +906,8 @@ function getActiveTimerDetails() {
     return `${title} (${remainingTime} ${getTranslation('remaining', 'everything') || 'restantes'})`;
 }
 
-function initializeTimerController() {
-    const wrapper = document.querySelector('.timers-list-wrapper');
-    if (wrapper) {
-        const userContainer = createExpandableToolContainer({
-            type: 'user',
-            titleKey: 'my_timers',
-            translationCategory: 'timer',
-            icon: 'timer',
-            containerClass: 'timers-container',
-            badgeClass: 'timer-count-badge',
-            gridAttribute: 'data-timer-grid',
-            toggleFunction: toggleTimersSection
-        });
-
-        const defaultContainer = createExpandableToolContainer({
-            type: 'default',
-            titleKey: 'default_timers',
-            translationCategory: 'timer',
-            icon: 'timelapse',
-            containerClass: 'timers-container',
-            badgeClass: 'timer-count-badge',
-            gridAttribute: 'data-timer-grid',
-            toggleFunction: toggleTimersSection
-        });
-        wrapper.appendChild(userContainer);
-        wrapper.appendChild(defaultContainer);
-    }
-    
-    const section = document.querySelector('.section-timer');
-    if (!section) return;
-
-    const startBtn = section.querySelector('[data-action="start-pinned-timer"]');
-    const pauseBtn = section.querySelector('[data-action="pause-pinned-timer"]');
-    const resetBtn = section.querySelector('[data-action="reset-pinned-timer"]');
-
-    if (startBtn) {
-        startBtn.addEventListener('click', () => {
-            if (pinnedTimerId) {
-                startTimer(pinnedTimerId);
-            }
-        });
-    }
-
-    if (pauseBtn) {
-        pauseBtn.addEventListener('click', () => {
-            if (pinnedTimerId) {
-                pauseTimer(pinnedTimerId);
-            }
-        });
-    }
-
-    if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
-            if (pinnedTimerId) {
-                resetTimer(pinnedTimerId);
-            }
-        });
-    }
-    
-    loadAndRestoreTimers();
-    renderAllTimerCards();
-    updateMainDisplay();
-    initializeSortableGrids();
-    updateMainControlsState();
-    updateTimerCounts();
-
-    const searchInput = document.getElementById('timer-search-input');
-    if (searchInput) {
-        searchInput.addEventListener('input', e => renderTimerSearchResults(e.target.value.toLowerCase()));
-    }
-
-    window.addEventListener('beforeunload', () => {
-        localStorage.setItem(LAST_VISIT_KEY, Date.now().toString());
-    });
-
-    window.timerManager = {
-        startTimer,
-        pauseTimer,
-        resetTimer,
-        handleEditTimer,
-        handleDeleteTimer,
-        dismissTimer,
-        handlePinTimer,
-        toggleTimersSection,
-        findTimerById,
-        getTimersCount,
-        getTimerLimit, 
-        getRunningTimersCount,
-        getActiveTimerDetails,
-        getAllTimers: () => ({ userTimers, defaultTimers: defaultTimersState }),
-        saveAllTimers: () => {
-            saveTimersToStorage();
-            saveDefaultTimersOrder();
-        },
-        renderAllTimerCards
-    };
-
-    updateEverythingWidgets();
-
-    document.addEventListener('moduleDeactivated', (e) => {
-        if (e.detail && e.detail.module === 'toggleMenuTimer') {
-            const menuElement = document.querySelector('.menu-timer[data-menu="timer"]');
-            if (!menuElement) return;
-
-            const searchInput = menuElement.querySelector('#timer-search-input');
-            if (searchInput) {
-                searchInput.value = '';
-                renderTimerSearchResults('');
-            }
-        }
-    });
+function findTimerById(timerId) {
+    return userTimers.find(t => t.id === timerId) || defaultTimersState.find(t => t.id === timerId);
 }
 
 function saveAllTimersState() {
@@ -937,33 +921,6 @@ function saveTimersToStorage() {
 
 function saveDefaultTimersOrder() {
     localStorage.setItem(DEFAULT_TIMERS_STORAGE_KEY, JSON.stringify(defaultTimersState));
-}
-
-function findTimerById(timerId) {
-    return userTimers.find(t => t.id === timerId) || defaultTimersState.find(t => t.id === timerId);
-}
-
-function pauseTimer(timerId) {
-    const timer = findTimerById(timerId);
-    if (!timer || !timer.isRunning) return;
-
-    timer.isRunning = false;
-    if (activeTimers.has(timer.id)) {
-        clearTimeout(activeTimers.get(timer.id));
-        activeTimers.delete(timer.id);
-    }
-
-    if(timer.type === 'countdown') {
-        timer.remaining = timer.targetTime - Date.now();
-    }
-    delete timer.targetTime;
-
-    updateTimerCardControls(timerId);
-    updateMainControlsState();
-    refreshSearchResults();
-    updateEverythingWidgets();
-    saveAllTimersState();
-    dispatchTimerStateChange();
 }
 
 function startCountdownTimer(timer) {
@@ -1017,37 +974,32 @@ function startCountToDateTimer(timer) {
     tick();
 }
 
-function initializeSortableGrids() {
-    if (!allowCardMovement) return;
+function formatTime(ms, type = 'countdown') {
+    if (ms <= 0) {
+        return type === 'count_to_date' ? getTranslation('event_finished', 'timer') || "¡Evento finalizado!" : "00:00:00";
+    }
 
-    const sortableOptions = {
-        animation: 150,
-        filter: '.card-menu-container',
-        ghostClass: 'sortable-ghost',
-        chosenClass: 'sortable-chosen',
-        dragClass: 'sortable-drag',
-    };
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
 
-    initializeSortable('.tool-grid[data-timer-grid="user"]', {
-        ...sortableOptions,
-        onEnd: function () {
-            const grid = document.querySelector('.tool-grid[data-timer-grid="user"]');
-            const newOrder = Array.from(grid.querySelectorAll('.tool-card')).map(card => card.id);
-            userTimers.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
-            saveTimersToStorage();
+    if (type === 'count_to_date') {
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600).toString().padStart(2, '0');
+        const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+        const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+        if (days > 0) {
+            return `${days}d ${hours}h ${minutes}m ${seconds}s`;
         }
-    });
-
-    initializeSortable('.tool-grid[data-timer-grid="default"]', {
-        ...sortableOptions,
-        onEnd: function () {
-            const grid = document.querySelector('.tool-grid[data-timer-grid="default"]');
-            const newOrder = Array.from(grid.querySelectorAll('.tool-card')).map(card => card.id);
-            defaultTimersState.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
-            saveDefaultTimersOrder();
-        }
-    });
+        return `${hours}:${minutes}:${seconds}`;
+    } else {
+        const hours = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+        const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+        const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+        return `${hours}:${minutes}:${seconds}`;
+    }
 }
+
+// ========== RESTO DE FUNCIONES PRINCIPALES (renderAllTimerCards, updateMainDisplay, etc.) ==========
+// [Las demás funciones continúan igual que en el código original]
 
 export function addTimerAndRender(timerData) {
     const newTimer = {
@@ -1100,6 +1052,8 @@ export function addTimerAndRender(timerData) {
     updateEverythingWidgets();
     dispatchTimerStateChange();
 }
+
+// ========== FUNCIONES DE INICIALIZACIÓN Y MANEJO ==========
 
 function renderAllTimerCards() {
     const userContainer = document.querySelector('.tool-grid[data-timer-grid="user"]');
@@ -1185,81 +1139,36 @@ function updatePinnedStatesInUI() {
     });
 }
 
-function formatTime(ms, type = 'countdown') {
-    if (ms <= 0) {
-        return type === 'count_to_date' ? getTranslation('event_finished', 'timer') || "¡Evento finalizado!" : "00:00:00";
+function updatePinnedTimerNameDisplay() {
+    const nameDisplayTool = document.querySelector('.info-tool[data-timer-name-display]');
+    if (!nameDisplayTool) return;
+
+    let span = nameDisplayTool.querySelector('span');
+    if (!span) {
+        span = document.createElement('span');
+        nameDisplayTool.innerHTML = '';
+        nameDisplayTool.appendChild(span);
     }
 
-    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-
-    if (type === 'count_to_date') {
-        const days = Math.floor(totalSeconds / 86400);
-        const hours = Math.floor((totalSeconds % 86400) / 3600).toString().padStart(2, '0');
-        const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
-        const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-        if (days > 0) {
-            return `${days}d ${hours}h ${minutes}m ${seconds}s`;
-        }
-        return `${hours}:${minutes}:${seconds}`;
+    const pinnedTimer = findTimerById(pinnedTimerId);
+    if (pinnedTimer) {
+        const title = pinnedTimer.id.startsWith('default-timer-')
+            ? getTranslation(pinnedTimer.title, 'timer')
+            : pinnedTimer.title;
+        span.textContent = title;
+        nameDisplayTool.setAttribute('data-translate', 'pinned_timer_tooltip');
+        nameDisplayTool.setAttribute('data-translate-category', 'timer');
+        nameDisplayTool.setAttribute('data-translate-target', 'tooltip');
     } else {
-        const hours = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
-        const minutes = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
-        const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-        return `${hours}:${minutes}:${seconds}`;
+        span.textContent = '-';
+        nameDisplayTool.removeAttribute('data-tooltip');
+        nameDisplayTool.removeAttribute('data-translate');
+        nameDisplayTool.removeAttribute('data-translate-category');
+        nameDisplayTool.removeAttribute('data-translate-target');
     }
-}
-
-function handleTimerEnd(timerId) {
-    const timer = findTimerById(timerId);
-    if (!timer) return;
-
-    timer.isRunning = false;
-    if (activeTimers.has(timerId)) {
-        clearTimeout(activeTimers.get(timerId));
-        activeTimers.delete(timerId);
+    if (window.tooltipManager && typeof window.tooltipManager.attachTooltipsToNewElements === 'function') {
+        window.tooltipManager.attachTooltipsToNewElements(nameDisplayTool.parentElement);
     }
-    timer.remaining = 0;
-
-    delete timer.rangAt;
-    delete timer.targetTime;
-
-    timer.isRinging = true;
-
-    updateCardDisplay(timerId);
-    renderAllTimerCards();
-    if (timer.id === pinnedTimerId) updateMainDisplay();
-    updateTimerCardControls(timerId);
-    updateMainControlsState();
-    refreshSearchResults();
-
-    const isUserTimer = userTimers.some(t => t.id === timerId);
-    if (isUserTimer) saveTimersToStorage(); else saveDefaultTimersOrder();
-
-    let soundToPlay = timer.sound;
-    const availableSounds = getAvailableSounds();
-    if (!availableSounds.some(s => s.id === soundToPlay)) {
-        console.warn(`Audio "${soundToPlay}" not found for timer "${timer.title}". Reverting to default.`);
-        soundToPlay = 'classic_beep';
-        timer.sound = soundToPlay;
-        updateTimer(timer.id, { sound: soundToPlay });
-    }
-
-    if (timer.sound) {
-        playSound(soundToPlay);
-    }
-    const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
-
-    const card = document.getElementById(timerId);
-    card?.querySelector('.card-options-container')?.classList.add('active');
-
-    showDynamicIslandNotification('timer', 'ringing', 'timer_ringing', 'notifications', {
-        title: translatedTitle,
-        toolId: timer.id
-    }, (dismissedId) => {
-        if (dismissedId === timer.id) {
-            dismissTimer(timer.id);
-        }
-    });
 }
 
 function toggleTimersSection(type) {
@@ -1394,24 +1303,149 @@ function handleDeleteTimer(timerId) {
     });
 }
 
-function dismissTimer(timerId) {
-    stopSound();
-    const card = document.getElementById(timerId);
-    if (card) {
-        const optionsContainer = card.querySelector('.card-options-container');
-        if (optionsContainer) {
-            optionsContainer.classList.remove('active');
-        }
-    }
-    hideDynamicIsland();
-    const timer = findTimerById(timerId);
+function initializeSortableGrids() {
+    if (!allowCardMovement) return;
 
-    if (timer) {
-        timer.isRinging = false;
-        if (timer.type === 'countdown') {
-            resetTimer(timer.id);
+    const sortableOptions = {
+        animation: 150,
+        filter: '.card-menu-container',
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+    };
+
+    initializeSortable('.tool-grid[data-timer-grid="user"]', {
+        ...sortableOptions,
+        onEnd: function () {
+            const grid = document.querySelector('.tool-grid[data-timer-grid="user"]');
+            const newOrder = Array.from(grid.querySelectorAll('.tool-card')).map(card => card.id);
+            userTimers.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+            saveTimersToStorage();
         }
+    });
+
+    initializeSortable('.tool-grid[data-timer-grid="default"]', {
+        ...sortableOptions,
+        onEnd: function () {
+            const grid = document.querySelector('.tool-grid[data-timer-grid="default"]');
+            const newOrder = Array.from(grid.querySelectorAll('.tool-card')).map(card => card.id);
+            defaultTimersState.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+            saveDefaultTimersOrder();
+        }
+    });
+}
+
+function initializeTimerController() {
+    const wrapper = document.querySelector('.timers-list-wrapper');
+    if (wrapper) {
+        const userContainer = createExpandableToolContainer({
+            type: 'user',
+            titleKey: 'my_timers',
+            translationCategory: 'timer',
+            icon: 'timer',
+            containerClass: 'timers-container',
+            badgeClass: 'timer-count-badge',
+            gridAttribute: 'data-timer-grid',
+            toggleFunction: toggleTimersSection
+        });
+
+        const defaultContainer = createExpandableToolContainer({
+            type: 'default',
+            titleKey: 'default_timers',
+            translationCategory: 'timer',
+            icon: 'timelapse',
+            containerClass: 'timers-container',
+            badgeClass: 'timer-count-badge',
+            gridAttribute: 'data-timer-grid',
+            toggleFunction: toggleTimersSection
+        });
+        wrapper.appendChild(userContainer);
+        wrapper.appendChild(defaultContainer);
     }
+    
+    const section = document.querySelector('.section-timer');
+    if (!section) return;
+
+    const startBtn = section.querySelector('[data-action="start-pinned-timer"]');
+    const pauseBtn = section.querySelector('[data-action="pause-pinned-timer"]');
+    const resetBtn = section.querySelector('[data-action="reset-pinned-timer"]');
+
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            if (pinnedTimerId) {
+                startTimer(pinnedTimerId);
+            }
+        });
+    }
+
+    if (pauseBtn) {
+        pauseBtn.addEventListener('click', () => {
+            if (pinnedTimerId) {
+                pauseTimer(pinnedTimerId);
+            }
+        });
+    }
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if (pinnedTimerId) {
+                resetTimer(pinnedTimerId);
+            }
+        });
+    }
+    
+    loadAndRestoreTimers();
+    renderAllTimerCards();
+    updateMainDisplay();
+    initializeSortableGrids();
+    updateMainControlsState();
+    updateTimerCounts();
+
+    const searchInput = document.getElementById('timer-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', e => renderTimerSearchResults(e.target.value.toLowerCase()));
+    }
+
+    window.addEventListener('beforeunload', () => {
+        localStorage.setItem(LAST_VISIT_KEY, Date.now().toString());
+    });
+
+    window.timerManager = {
+        startTimer,
+        pauseTimer,
+        resetTimer,
+        handleEditTimer,
+        handleDeleteTimer,
+        dismissTimer,
+        handlePinTimer,
+        toggleTimersSection,
+        findTimerById,
+        getTimersCount,
+        getTimerLimit, 
+        getRunningTimersCount,
+        getActiveTimerDetails,
+        getAllTimers: () => ({ userTimers, defaultTimers: defaultTimersState }),
+        saveAllTimers: () => {
+            saveTimersToStorage();
+            saveDefaultTimersOrder();
+        },
+        renderAllTimerCards
+    };
+
+    updateEverythingWidgets();
+
+    document.addEventListener('moduleDeactivated', (e) => {
+        if (e.detail && e.detail.module === 'toggleMenuTimer') {
+            const menuElement = document.querySelector('.menu-timer[data-menu="timer"]');
+            if (!menuElement) return;
+
+            const searchInput = menuElement.querySelector('#timer-search-input');
+            if (searchInput) {
+                searchInput.value = '';
+                renderTimerSearchResults('');
+            }
+        }
+    });
 }
 
 // ========== EVENTOS DE TRADUCCIÓN ==========
