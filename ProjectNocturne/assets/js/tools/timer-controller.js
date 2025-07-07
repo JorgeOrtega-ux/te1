@@ -14,34 +14,32 @@ let defaultTimersState = [];
 let activeTimers = new Map();
 let pinnedTimerId = null;
 
-// --- INICIO DE LA CORRECCIÓN 1: Se elimina la propiedad 'endAction' ---
 const DEFAULT_TIMERS = [
     { id: 'default-timer-2', title: 'short_break_5', type: 'countdown', initialDuration: 300000, remaining: 300000, sound: 'peaceful_tone', isRunning: false, isPinned: false },
     { id: 'default-timer-4', title: 'exercise_30', type: 'countdown', initialDuration: 1800000, remaining: 1800000, sound: 'digital_alarm', isRunning: false, isPinned: false },
     { id: 'default-timer-5', title: 'study_session_45', type: 'countdown', initialDuration: 2700000, remaining: 2700000, sound: 'gentle_chime', isRunning: false, isPinned: false }
 ];
-// --- FIN DE LA CORRECCIÓN 1 ---
 
-// Función para notificar cambios de estado
 function dispatchTimerStateChange() {
     document.dispatchEvent(new CustomEvent('timerStateChanged'));
 }
 
+/**
+ * --- FUNCIÓN RESTAURADA Y MEJORADA ---
+ * Calcula y formatea el tiempo transcurrido desde un timestamp dado para la etiqueta "Sonó hace...".
+ * @param {number} timestamp - El momento en el pasado desde el que se calcula el tiempo.
+ * @returns {string} Una cadena de texto como "2 minutos" o "3 horas".
+ */
 function formatTimeSince(timestamp) {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
-    if (seconds < 60) return `${seconds} ${getTranslation('seconds', 'timer')}`;
+    const minute = 60, hour = 3600, day = 86400, year = 31536000;
 
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes} ${getTranslation('minutes', 'timer')}`;
-
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} ${getTranslation('hours', 'timer')}`;
-
-    const days = Math.floor(hours / 24);
-    if (days < 365) return `${days} ${getTranslation('days', 'timer')}`;
-
-    const years = Math.floor(days / 365);
-    return `${years} ${getTranslation('years', 'timer')}`;
+    if (seconds < minute) return `${seconds} ${getTranslation('seconds', 'timer')}`;
+    if (seconds < hour) return `${Math.floor(seconds / minute)} ${getTranslation('minutes', 'timer')}`;
+    if (seconds < day) return `${Math.floor(seconds / hour)} ${getTranslation('hours', 'timer')}`;
+    if (seconds < year) return `${Math.floor(seconds / day)} ${getTranslation('days', 'timer')}`;
+    
+    return `${Math.floor(seconds / year)} ${getTranslation('years', 'timer')}`;
 }
 
 
@@ -260,7 +258,7 @@ function getActiveTimerDetails() {
     }
 
     const title = runningTimer.id.startsWith('default-timer-') ? getTranslation(runningTimer.title, 'timer') : runningTimer.title;
-    const remainingTime = formatTime(runningTimer.remaining, runningTimer.type);
+    const remainingTime = formatTime(runningTimer.remaining, timer.type);
 
     return `${title} (${remainingTime} ${getTranslation('remaining', 'everything') || 'restantes'})`;
 }
@@ -371,6 +369,12 @@ function initializeTimerController() {
     });
 }
 
+/**
+ * --- LÓGICA DE RESTAURACIÓN CORREGIDA ---
+ * Esta función ahora detecta si un temporizador finalizó mientras la página
+ * estaba cerrada y establece las propiedades 'isRinging' y 'rangAt' para
+ * mostrar la etiqueta "Sonó hace...".
+ */
 function loadAndRestoreTimers() {
     const storedUserTimers = localStorage.getItem(TIMERS_STORAGE_KEY);
     if (storedUserTimers) {
@@ -399,32 +403,22 @@ function loadAndRestoreTimers() {
     const allTimers = [...userTimers, ...defaultTimersState];
     const now = Date.now();
 
-  allTimers.forEach(timer => {
-    if (timer.isRinging) {
-        timer.isRunning = false;
-        timer.isRinging = false;
-        if (timer.type === 'countdown') {
-            timer.remaining = timer.initialDuration;
-        } else {
-            timer.remaining = 0;
-        }
-        delete timer.rangAt;
-        delete timer.targetTime;
-    }
-    else if (timer.isRunning) {
-        if (timer.type === 'countdown') {
-            if (timer.targetTime) {
-                const timeSinceEnd = now - timer.targetTime;
-                if (timeSinceEnd > 0) {
-                    timer.isRunning = false;
-                    timer.remaining = timer.initialDuration;
-                    delete timer.targetTime;
-                } else {
-                    timer.remaining = Math.abs(timeSinceEnd);
-                    startCountdownTimer(timer);
-                }
+    allTimers.forEach(timer => {
+        if (timer.isRunning && timer.targetTime) {
+            const timeSinceEnd = now - timer.targetTime;
+            if (timeSinceEnd > 0) {
+                // El temporizador terminó mientras la página estaba cerrada.
+                timer.isRunning = false;
+                timer.remaining = 0;
+                timer.isRinging = true; // Marcarlo como sonando.
+                timer.rangAt = timer.targetTime; // Guardar el momento en que sonó.
+                delete timer.targetTime;
+            } else {
+                // El temporizador todavía está corriendo.
+                timer.remaining = Math.abs(timeSinceEnd);
+                startCountdownTimer(timer);
             }
-        } else if (timer.type === 'count_to_date') {
+        } else if (timer.type === 'count_to_date' && timer.isRunning) {
             timer.remaining = new Date(timer.targetDate).getTime() - now;
             if (timer.remaining > 0) {
                 startCountToDateTimer(timer);
@@ -433,8 +427,7 @@ function loadAndRestoreTimers() {
                 timer.isRunning = false;
             }
         }
-    }
-});
+    });
 
     let pinnedTimer = allTimers.find(t => t.isPinned);
     if (!pinnedTimer && allTimers.length > 0) {
@@ -446,6 +439,7 @@ function loadAndRestoreTimers() {
 
     saveAllTimersState();
 }
+
 
 function saveAllTimersState() {
     saveTimersToStorage();
@@ -759,6 +753,11 @@ function renderAllTimerCards() {
     }, 50);
 }
 
+/**
+ * --- FUNCIÓN CLAVE MEJORADA ---
+ * Ahora, esta función incluye la lógica para mostrar la etiqueta "Sonó hace..."
+ * si el temporizador tiene la propiedad `rangAt`.
+ */
 function createTimerCard(timer) {
     const card = document.createElement('div');
     card.className = 'tool-card timer-card';
@@ -768,6 +767,7 @@ function createTimerCard(timer) {
         card.classList.add('timer-finished');
     }
 
+    // --- LÓGICA PARA LA NUEVA ETIQUETA ---
     let rangAgoTag = '';
     if (timer.rangAt) {
         const timeAgo = formatTimeSince(timer.rangAt);
@@ -858,6 +858,7 @@ function createTimerCard(timer) {
     return card;
 }
 
+
 function updateMainDisplay() {
     const mainDisplay = document.querySelector('.tool-timer span');
     if (!mainDisplay) return;
@@ -880,48 +881,48 @@ function updateMainControlsState() {
     const resetBtn = section.querySelector('[data-action="reset-pinned-timer"]');
     const addTimerBtn = section.querySelector('[data-module="toggleMenuTimer"]');
 
+    if (!startBtn || !pauseBtn || !resetBtn || !addTimerBtn) {
+        console.warn("No se encontraron todos los botones de control principal del temporizador.");
+        return;
+    }
+
     const pinnedTimer = findTimerById(pinnedTimerId);
 
+    let isStartDisabled = true;
+    let isPauseDisabled = true;
+    let isResetDisabled = true;
+    let isAddDisabled = false;
+
     if (!pinnedTimer) {
-        startBtn?.classList.add('disabled-interactive');
-        pauseBtn?.classList.add('disabled-interactive');
-        resetBtn?.classList.add('disabled-interactive');
-        addTimerBtn?.classList.remove('disabled-interactive');
-        return;
+        isAddDisabled = false;
+    } else {
+        const { isRunning, isRinging, remaining, initialDuration, type } = pinnedTimer;
+
+        isAddDisabled = !!isRinging;
+
+        if (type === 'count_to_date') {
+            isStartDisabled = true;
+            isPauseDisabled = true;
+            isResetDisabled = true;
+        } else {
+            if (isRunning) {
+                isStartDisabled = true;
+                isPauseDisabled = false;
+                isResetDisabled = false;
+            } else {
+                isStartDisabled = !!isRinging || remaining <= 0;
+                isPauseDisabled = true;
+                isResetDisabled = remaining >= initialDuration || !!isRinging;
+            }
+        }
     }
 
-    const isRunning = pinnedTimer.isRunning;
-    const isRinging = pinnedTimer.isRinging;
-    const isAtInitialState = pinnedTimer.remaining === pinnedTimer.initialDuration;
-    const isCountToDate = pinnedTimer.type === 'count_to_date';
-
-    if (isCountToDate) {
-        startBtn?.classList.add('disabled-interactive');
-        pauseBtn?.classList.add('disabled-interactive');
-        resetBtn?.classList.add('disabled-interactive');
-        addTimerBtn?.classList.remove('disabled-interactive');
-        return;
-    }
-
-    addTimerBtn?.classList.toggle('disabled-interactive', isRinging);
-
-    if (isRunning) {
-        startBtn?.classList.add('disabled-interactive');
-        pauseBtn?.classList.remove('disabled-interactive');
-        resetBtn?.classList.remove('disabled-interactive');
-    }
-    else {
-        startBtn?.classList.remove('disabled-interactive');
-        pauseBtn?.classList.add('disabled-interactive');
-        resetBtn?.classList.toggle('disabled-interactive', isAtInitialState || isRinging);
-    }
-
-    if (isRinging) {
-        startBtn?.classList.add('disabled-interactive');
-        pauseBtn?.classList.add('disabled-interactive');
-        resetBtn?.classList.add('disabled-interactive');
-    }
+    startBtn.classList.toggle('disabled-interactive', isStartDisabled);
+    pauseBtn.classList.toggle('disabled-interactive', isPauseDisabled);
+    resetBtn.classList.toggle('disabled-interactive', isResetDisabled);
+    addTimerBtn.classList.toggle('disabled-interactive', isAddDisabled);
 }
+
 
 function updateCardDisplay(timerId) {
     const timer = findTimerById(timerId);
@@ -1029,7 +1030,6 @@ function formatTime(ms, type = 'countdown') {
     }
 }
 
-// --- INICIO DE LA CORRECCIÓN 2: Se simplifica la función handleTimerEnd ---
 function handleTimerEnd(timerId) {
     const timer = findTimerById(timerId);
     if (!timer) return;
@@ -1040,11 +1040,14 @@ function handleTimerEnd(timerId) {
         activeTimers.delete(timerId);
     }
     timer.remaining = 0;
-    if (timer.type === 'countdown') {
-        delete timer.targetTime;
-    }
+    
+    timer.rangAt = timer.targetTime || Date.now();
+    delete timer.targetTime;
+    
     timer.isRinging = true;
+
     updateCardDisplay(timerId);
+    renderAllTimerCards();
     if (timer.id === pinnedTimerId) updateMainDisplay();
     updateTimerCardControls(timerId);
     updateMainControlsState();
@@ -1067,7 +1070,6 @@ function handleTimerEnd(timerId) {
     }
     const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
     
-    // La lógica de 'restart' se elimina. Todos los temporizadores ahora muestran el botón de descartar.
     const card = document.getElementById(timerId);
     card?.querySelector('.card-options-container')?.classList.add('active');
 
@@ -1080,7 +1082,7 @@ function handleTimerEnd(timerId) {
         }
     });
 }
-// --- FIN DE LA CORRECCIÓN 2 ---
+
 
 function toggleTimersSection(type) {
     const grid = document.querySelector(`.tool-grid[data-timer-grid="${type}"]`);
