@@ -245,7 +245,7 @@ export function getTimersCount() {
 }
 
 export function getTimerLimit() {
-    return 100;
+    return 25;
 }
 
 function getRunningTimersCount() {

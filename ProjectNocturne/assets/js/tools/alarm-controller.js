@@ -244,7 +244,7 @@ export function getAlarmCount() {
 }
 
 export function getAlarmLimit() {
-    return 100;
+    return 25;
 }
 function createAlarm(title, hour, minute, sound) {
     const alarmLimit = getAlarmLimit();
