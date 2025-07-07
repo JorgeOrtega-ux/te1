@@ -397,39 +397,52 @@ function loadAndRestoreTimers() {
     const allTimers = [...userTimers, ...defaultTimersState];
     const now = Date.now();
 
-    allTimers.forEach(timer => {
-        // ========== INICIO DEL CÓDIGO CORREGIDO ==========
-        if (timer.type === 'countdown' && !timer.isRunning && timer.remaining <= 0) {
-            // Si el temporizador ha terminado, restablécelo a su duración inicial.
+  allTimers.forEach(timer => {
+    // --- INICIO DE LA LÓGICA CORREGIDA ---
+    // Primero, verifica si un temporizador quedó en estado "sonando".
+    // Este estado no debe persistir después de recargar la página.
+    if (timer.isRinging) {
+        timer.isRunning = false;
+        timer.isRinging = false;
+        // Para temporizadores de cuenta regresiva, se restaura su duración inicial.
+        if (timer.type === 'countdown') {
             timer.remaining = timer.initialDuration;
-            delete timer.rangAt; // Elimina el estado de "sonando"
-            delete timer.isRinging;
-        } else if (timer.isRunning) {
-        // ========== FIN DEL CÓDIGO CORREGIDO ==========
-            if (timer.type === 'countdown') {
-                if (timer.targetTime) {
-                    const timeSinceEnd = now - timer.targetTime;
-                    if (timeSinceEnd > 0) {
-                        timer.isRunning = false;
-                        timer.rangAt = timer.targetTime;
-                        timer.remaining = timer.initialDuration;
-                        delete timer.targetTime;
-                    } else {
-                        timer.remaining = Math.abs(timeSinceEnd);
-                        startCountdownTimer(timer);
-                    }
-                }
-            } else if (timer.type === 'count_to_date') {
-                timer.remaining = new Date(timer.targetDate).getTime() - now;
-                if (timer.remaining > 0) {
-                    startCountToDateTimer(timer);
-                } else {
-                    timer.remaining = 0;
+        } else {
+            // Para otros tipos, simplemente se deja en 0.
+            timer.remaining = 0;
+        }
+        // Se eliminan los estados conflictivos.
+        delete timer.rangAt;
+        delete timer.targetTime;
+    }
+    // Si no estaba sonando, entonces se verifica si estaba corriendo.
+    else if (timer.isRunning) {
+        if (timer.type === 'countdown') {
+            if (timer.targetTime) {
+                const timeSinceEnd = now - timer.targetTime;
+                if (timeSinceEnd > 0) {
+                    // El temporizador terminó mientras la página estaba cerrada. Se reinicia.
                     timer.isRunning = false;
+                    timer.remaining = timer.initialDuration;
+                    delete timer.targetTime;
+                } else {
+                    // El temporizador sigue activo. Se reanuda.
+                    timer.remaining = Math.abs(timeSinceEnd);
+                    startCountdownTimer(timer);
                 }
             }
+        } else if (timer.type === 'count_to_date') {
+            timer.remaining = new Date(timer.targetDate).getTime() - now;
+            if (timer.remaining > 0) {
+                startCountToDateTimer(timer);
+            } else {
+                timer.remaining = 0;
+                timer.isRunning = false;
+            }
         }
-    });
+    }
+    // --- FIN DE LA LÓGICA CORREGIDA ---
+});
 
     let pinnedTimer = allTimers.find(t => t.isPinned);
     if (!pinnedTimer && allTimers.length > 0) {
