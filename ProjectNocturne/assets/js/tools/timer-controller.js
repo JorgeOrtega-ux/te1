@@ -9,6 +9,7 @@ import { showConfirmation } from '../general/confirmation-modal-controller.js';
 
 const TIMERS_STORAGE_KEY = 'user-timers';
 const DEFAULT_TIMERS_STORAGE_KEY = 'default-timers-order';
+const LAST_VISIT_KEY = 'last-timer-visit-timestamp';
 let userTimers = [];
 let defaultTimersState = [];
 let activeTimers = new Map();
@@ -130,8 +131,8 @@ function createTimerSearchResultItem(timer) {
 
     let dynamicActionsHTML = '';
     if (isCountdown) {
-        const startPauseDisabled = isRinging || hasRang ? 'disabled-interactive' : '';
-        const resetDisabled = isRinging || hasRang || (!timer.isRunning && timer.remaining >= timer.initialDuration) ? 'disabled-interactive' : '';
+        const startPauseDisabled = isRinging || timer.isRunning ? 'disabled-interactive' : '';
+        const resetDisabled = isRinging || timer.isRunning || timer.remaining >= timer.initialDuration ? 'disabled-interactive' : '';
         
         dynamicActionsHTML = `
             <div class="menu-link ${startPauseDisabled}" data-action="${playPauseAction}">
@@ -336,6 +337,10 @@ function initializeTimerController() {
         searchInput.addEventListener('input', e => renderTimerSearchResults(e.target.value.toLowerCase()));
     }
 
+    window.addEventListener('beforeunload', () => {
+        localStorage.setItem(LAST_VISIT_KEY, Date.now().toString());
+    });
+
     window.timerManager = {
         startTimer,
         pauseTimer,
@@ -400,19 +405,20 @@ function loadAndRestoreTimers() {
 
     const allTimers = [...userTimers, ...defaultTimersState];
     const now = Date.now();
+    const lastVisit = parseInt(localStorage.getItem(LAST_VISIT_KEY) || '0', 10);
 
     allTimers.forEach(timer => {
-        if (timer.isRunning && timer.targetTime) {
-            const timeSinceEnd = now - timer.targetTime;
-            if (timeSinceEnd > 0) {
+        if (timer.type === 'countdown' && timer.isRunning && timer.targetTime) {
+            const timeWhenFinished = timer.targetTime;
+            if (now >= timeWhenFinished) { 
                 timer.isRunning = false;
-                timer.isRinging = false;
+                timer.isRinging = false; 
+                timer.rangAt = timeWhenFinished;
                 timer.remaining = timer.initialDuration;
-                timer.rangAt = timer.targetTime;
                 delete timer.targetTime;
-            } else {
-                timer.remaining = Math.abs(timeSinceEnd);
-                startCountdownTimer(timer);
+            } else { 
+                timer.remaining = timeWhenFinished - now;
+                startCountdownTimer(timer); 
             }
         } else if (timer.type === 'count_to_date' && timer.isRunning) {
             timer.remaining = new Date(timer.targetDate).getTime() - now;
@@ -456,37 +462,27 @@ function findTimerById(timerId) {
 
 function startTimer(timerId) {
     const timer = findTimerById(timerId);
-    if (!timer || timer.isRunning) return;
+    if (!timer || timer.isRunning || timer.remaining <= 0) return;
 
     delete timer.rangAt;
-    renderAllTimerCards();
-    updateTimerCardControls(timerId); 
+    timer.isRunning = true;
 
-    if (timer.type === 'count_to_date') {
-        if (timer.remaining <= 0) return;
-        startCountToDateTimer(timer);
-    } else {
-        if (timer.remaining <= 0) return;
+    if (timer.type === 'countdown') {
         timer.targetTime = Date.now() + timer.remaining;
         startCountdownTimer(timer);
+    } else {
+        startCountToDateTimer(timer);
     }
-
+    
+    updateTimerCardControls(timerId);
     updateMainControlsState();
     refreshSearchResults();
     updateEverythingWidgets();
-    const isUserTimer = userTimers.some(t => t.id === timerId);
-    if (isUserTimer) {
-        saveTimersToStorage();
-    } else {
-        saveDefaultTimersOrder();
-    }
-    updateEverythingWidgets();
+    saveAllTimersState();
     dispatchTimerStateChange();
 }
 
 function startCountdownTimer(timer) {
-    timer.isRunning = true;
-
     const tick = () => {
         if (!timer.isRunning) {
             if (activeTimers.has(timer.id)) {
@@ -496,7 +492,7 @@ function startCountdownTimer(timer) {
             return;
         }
 
-        timer.remaining = timer.targetTime ? timer.targetTime - Date.now() : 0;
+        timer.remaining = timer.targetTime - Date.now();
 
         updateCardDisplay(timer.id);
         if (timer.id === pinnedTimerId) updateMainDisplay();
@@ -509,13 +505,10 @@ function startCountdownTimer(timer) {
             activeTimers.set(timer.id, timeoutId);
         }
     };
-
     tick();
 }
 
 function startCountToDateTimer(timer) {
-    timer.isRunning = true;
-
     const tick = () => {
         if (!timer.isRunning) {
             if (activeTimers.has(timer.id)) {
@@ -537,7 +530,6 @@ function startCountToDateTimer(timer) {
             activeTimers.set(timer.id, timeoutId);
         }
     };
-
     tick();
 }
 
@@ -550,52 +542,44 @@ function pauseTimer(timerId) {
         clearTimeout(activeTimers.get(timer.id));
         activeTimers.delete(timer.id);
     }
-
-    delete timer.targetTime;
-
-    const isUserTimer = userTimers.some(t => t.id === timerId);
-    if (isUserTimer) {
-        saveTimersToStorage();
-    } else {
-        saveDefaultTimersOrder();
+    
+    if(timer.type === 'countdown') {
+        timer.remaining = timer.targetTime - Date.now();
     }
+    delete timer.targetTime;
 
     updateTimerCardControls(timerId);
     updateMainControlsState();
     refreshSearchResults();
     updateEverythingWidgets();
+    saveAllTimersState();
     dispatchTimerStateChange();
 }
-
 
 function resetTimer(timerId) {
     const timer = findTimerById(timerId);
     if (!timer) return;
 
-    delete timer.rangAt;
-    renderAllTimerCards();
-
+    timer.isRunning = false;
+    if (activeTimers.has(timerId)) {
+        clearTimeout(activeTimers.get(timer.id));
+        activeTimers.delete(timer.id);
+    }
+    
+    delete timer.rangAt; 
+    delete timer.targetTime;
     timer.isRinging = false;
-
-    pauseTimer(timerId);
-
     if (timer.type !== 'count_to_date') {
         timer.remaining = timer.initialDuration;
     }
-    timer.isRunning = false;
-    delete timer.targetTime;
-
+    
     updateCardDisplay(timerId);
-    if (timer.id === pinnedTimerId) {
-        updateMainDisplay();
-    }
-
-    const isUserTimer = userTimers.some(t => t.id === timerId);
-    if (isUserTimer) saveTimersToStorage(); else saveDefaultTimersOrder();
+    if (timer.id === pinnedTimerId) updateMainDisplay();
     updateTimerCardControls(timerId);
     updateMainControlsState();
     refreshSearchResults();
     updateEverythingWidgets();
+    saveAllTimersState();
     dispatchTimerStateChange();
 }
 
@@ -774,8 +758,8 @@ function createTimerCard(timer) {
 
     let countdownMenu = '';
     if (isCountdown) {
-        const startPauseDisabled = isRinging || hasRang ? 'disabled-interactive' : '';
-        const resetDisabled = isRinging || hasRang || (!timer.isRunning && timer.remaining >= timer.initialDuration) ? 'disabled-interactive' : '';
+        const startPauseDisabled = isRinging || timer.isRunning ? 'disabled-interactive' : '';
+        const resetDisabled = isRinging || timer.isRunning || timer.remaining >= timer.initialDuration ? 'disabled-interactive' : '';
         
         countdownMenu = `
         <div class="menu-link ${startPauseDisabled}" data-action="${playPauseAction}">
@@ -868,6 +852,7 @@ function updateMainDisplay() {
     updatePinnedTimerNameDisplay();
 }
 
+// CORREGIDO: Lógica de actualización de controles principales mejorada
 function updateMainControlsState() {
     const section = document.querySelector('.section-timer');
     if (!section) return;
@@ -878,51 +863,25 @@ function updateMainControlsState() {
     const addTimerBtn = section.querySelector('[data-module="toggleMenuTimer"]');
 
     if (!startBtn || !pauseBtn || !resetBtn || !addTimerBtn) {
-        console.warn("No se encontraron todos los botones de control principal del temporizador.");
         return;
     }
 
     const pinnedTimer = findTimerById(pinnedTimerId);
 
-    let isStartDisabled = true;
-    let isPauseDisabled = true;
-    let isResetDisabled = true;
-    let isAddDisabled = false;
+    let isStartDisabled = true, isPauseDisabled = true, isResetDisabled = true;
+    let isAnyRinging = [...userTimers, ...defaultTimersState].some(t => t.isRinging);
 
-    if (!pinnedTimer) {
-        isAddDisabled = false;
-    } else {
-        const { isRunning, isRinging, remaining, initialDuration, type, rangAt } = pinnedTimer;
-
-        isAddDisabled = !!isRinging;
-
-        if (type === 'count_to_date') {
-            isStartDisabled = true;
-            isPauseDisabled = true;
-            isResetDisabled = true;
-        } else {
-            if (isRunning) {
-                isStartDisabled = true;
-                isPauseDisabled = false;
-                isResetDisabled = false;
-            } else {
-                if (rangAt) {
-                    isStartDisabled = false;
-                    isPauseDisabled = true;
-                    isResetDisabled = true;
-                } else {
-                    isStartDisabled = !!isRinging || remaining <= 0;
-                    isPauseDisabled = true;
-                    isResetDisabled = (remaining >= initialDuration) || !!isRinging;
-                }
-            }
-        }
+    if (pinnedTimer && pinnedTimer.type === 'countdown') {
+        const { isRunning, isRinging, remaining, initialDuration, rangAt } = pinnedTimer;
+        isStartDisabled = isRunning || isRinging || remaining <= 0;
+        isPauseDisabled = !isRunning || isRinging;
+        isResetDisabled = isRunning || isRinging || (remaining >= initialDuration && !rangAt);
     }
 
     startBtn.classList.toggle('disabled-interactive', isStartDisabled);
     pauseBtn.classList.toggle('disabled-interactive', isPauseDisabled);
     resetBtn.classList.toggle('disabled-interactive', isResetDisabled);
-    addTimerBtn.classList.toggle('disabled-interactive', isAddDisabled);
+    addTimerBtn.classList.toggle('disabled-interactive', isAnyRinging);
 }
 
 
@@ -949,33 +908,58 @@ function updateCardDisplay(timerId) {
     }
 }
 
+// CORREGIDO: Lógica unificada para actualizar los controles de una tarjeta
 function updateTimerCardControls(timerId) {
     const timer = findTimerById(timerId);
     if (!timer) return;
+
+    const cardElements = document.querySelectorAll(`#${timerId}, #search-timer-${timerId}`);
     
-    const card = document.getElementById(timerId);
-    if (!card) return;
+    cardElements.forEach(card => {
+        const playPauseLink = card.querySelector('[data-action="start-card-timer"], [data-action="pause-card-timer"]');
+        if (playPauseLink) {
+            const icon = playPauseLink.querySelector('.material-symbols-rounded');
+            const text = playPauseLink.querySelector('.menu-link-text span');
 
-    const playPauseLink = card.querySelector('[data-action="start-card-timer"], [data-action="pause-card-timer"]');
-    const resetLink = card.querySelector('[data-action="reset-card-timer"]');
-    const editLink = card.querySelector('[data-action="edit-timer"]');
-    const deleteLink = card.querySelector('[data-action="delete-timer"]');
+            if (timer.isRunning) {
+                playPauseLink.dataset.action = 'pause-card-timer';
+                if(icon) icon.textContent = 'pause';
+                if(text) {
+                    text.dataset.translate = 'pause';
+                    text.textContent = getTranslation('pause', 'tooltips');
+                }
+            } else {
+                playPauseLink.dataset.action = 'start-card-timer';
+                if(icon) icon.textContent = 'play_arrow';
+                if(text) {
+                    text.dataset.translate = 'play';
+                    text.textContent = getTranslation('play', 'tooltips');
+                }
+            }
+        }
+        
+        const resetLink = card.querySelector('[data-action="reset-card-timer"]');
+        const editLink = card.querySelector('[data-action="edit-timer"]');
+        const deleteLink = card.querySelector('[data-action="delete-timer"]');
 
-    const isDisabled = timer.isRinging;
-    const hasRang = !!timer.rangAt;
+        const isRinging = !!timer.isRinging;
+        const isRunning = !!timer.isRunning;
+        const hasRang = !!timer.rangAt;
+        const isPristine = timer.remaining >= timer.initialDuration && !hasRang;
 
-    if (playPauseLink) {
-        playPauseLink.classList.toggle('disabled-interactive', isDisabled || hasRang);
-    }
-    if (resetLink) {
-        resetLink.classList.toggle('disabled-interactive', isDisabled || hasRang || (!timer.isRunning && timer.remaining >= timer.initialDuration));
-    }
-    if(editLink) {
-        editLink.classList.toggle('disabled-interactive', isDisabled);
-    }
-    if(deleteLink) {
-        deleteLink.classList.toggle('disabled-interactive', isDisabled);
-    }
+        if (playPauseLink) {
+            playPauseLink.classList.toggle('disabled-interactive', isRinging || hasRang || isRunning);
+        }
+        if (resetLink) {
+            resetLink.classList.toggle('disabled-interactive', isRinging || isRunning || isPristine);
+        }
+        if(editLink) {
+            editLink.classList.toggle('disabled-interactive', isRinging || isRunning);
+        }
+        if(deleteLink) {
+            deleteLink.classList.toggle('disabled-interactive', isRinging || isRunning);
+        }
+    });
 }
 
 function updatePinnedStatesInUI() {
