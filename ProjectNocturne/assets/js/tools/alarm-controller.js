@@ -19,16 +19,6 @@ const DEFAULT_ALARMS = [
 let userAlarms = [];
 let defaultAlarmsState = [];
 
-// ================== INICIO DE LA MODIFICACIÓN =====================
-
-/**
- * Notifica que el estado de una alarma ha cambiado.
- * Esto permite que otros módulos, como el gestor de títulos, reaccionen.
- */
-function dispatchAlarmStateChange() {
-    document.dispatchEvent(new CustomEvent('alarmStateChanged'));
-}
-
 /**
  * Comprueba si alguna alarma debe sonar en el minuto actual.
  * Se ejecuta una vez por segundo para máxima precisión, pero solo actúa
@@ -77,8 +67,6 @@ function startClock() {
     }
     tick(); // Inicia el ciclo
 }
-
-// =================== FIN DE LA MODIFICACIÓN =======================
 
 function renderAlarmSearchResults(searchTerm) {
     const menuElement = document.querySelector('.menu-alarm[data-menu="alarm"]');
@@ -221,26 +209,6 @@ function getActiveAlarmsCount() {
     return allAlarms.length;
 }
 
-function getNextAlarmDetails() {
-    const now = new Date();
-    const activeAlarms = [...userAlarms, ...defaultAlarmsState].filter(a => a.enabled);
-    if (activeAlarms.length === 0) {
-        return null;
-    }
-    const upcomingAlarms = activeAlarms.map(alarm => {
-        const alarmTime = new Date();
-        alarmTime.setHours(alarm.hour, alarm.minute, 0, 0);
-        if (alarmTime <= now) {
-            alarmTime.setDate(alarmTime.getDate() + 1);
-        }
-        return { ...alarm, time: alarmTime };
-    }).sort((a, b) => a.time - b.time);
-    const nextAlarm = upcomingAlarms[0];
-    const title = nextAlarm.type === 'default' ? getTranslation(nextAlarm.title, 'alarms') : nextAlarm.title;
-    const timeString = nextAlarm.time.toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit', hour12: !use24HourFormat });
-    return `${title} (${timeString})`;
-}
-
 function updateAlarmCounts() {
     const userAlarmsCount = userAlarms.length;
     const defaultAlarmsCount = defaultAlarmsState.length;
@@ -306,7 +274,6 @@ function createAlarm(title, hour, minute, sound) {
     updateAlarmCounts();
     showDynamicIslandNotification('alarm', 'created', 'alarm_created', 'notifications', { title: alarm.title });
     updateEverythingWidgets();
-    dispatchAlarmStateChange();
     return true;
 }
 
@@ -461,7 +428,6 @@ function dismissAlarm(alarmId) {
             optionsContainer.classList.remove('active');
         }
     }
-    dispatchAlarmStateChange();
 }
 
 function findAlarmById(alarmId) {
@@ -481,7 +447,6 @@ function toggleAlarm(alarmId) {
     updateAlarmCardVisuals(alarm);
     refreshSearchResults();
     updateEverythingWidgets();
-    dispatchAlarmStateChange();
 }
 
 function deleteAlarm(alarmId) {
@@ -511,7 +476,6 @@ function deleteAlarm(alarmId) {
     showDynamicIslandNotification('alarm', 'deleted', 'alarm_deleted', 'notifications', { title: originalTitle });
     refreshSearchResults();
     updateEverythingWidgets();
-    dispatchAlarmStateChange();
 }
 
 function updateAlarm(alarmId, newData) {
@@ -745,7 +709,6 @@ export function initializeAlarmClock() {
         getAlarmCount,
         getAlarmLimit,
         getActiveAlarmsCount,
-        getNextAlarmDetails,
         getAllAlarms: () => ({ userAlarms, defaultAlarms: defaultAlarmsState }),
         saveAllAlarms: () => {
             saveAlarmsToStorage();

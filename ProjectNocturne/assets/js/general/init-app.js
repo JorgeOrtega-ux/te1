@@ -1,5 +1,4 @@
 // ========== APPLICATION MAIN INITIALIZER - UPDATED FOR UNIFIED MODULE MANAGER ==========
-import { initTitleManager } from './title-manager.js'; // <-- AÑADIR ESTA LÍNEA
 import { initLocationManager, resetLocationSearch } from '../general/location-manager.js';
 
 import { initColorSearchSystem } from '../tools/color-search-system.js';
@@ -323,7 +322,6 @@ function initApp() {
 }
 
 function initializeMainComponents() {
-    initTitleManager(); // <-- AÑADIR ESTA LÍNEA
     initSidebarMobile();
     initSidebarSections();
     initControlCenter();

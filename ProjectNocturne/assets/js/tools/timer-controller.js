@@ -482,8 +482,6 @@ function startTimer(timerId) {
     dispatchTimerStateChange();
 }
 
-// ================== INICIO DE LA MODIFICACIÓN =====================
-
 function startCountdownTimer(timer) {
     timer.isRunning = true;
 
@@ -566,8 +564,6 @@ function pauseTimer(timerId) {
     updateEverythingWidgets();
     dispatchTimerStateChange();
 }
-
-// =================== FIN DE LA MODIFICACIÓN =======================
 
 
 function resetTimer(timerId) {
@@ -1003,7 +999,7 @@ function formatTime(ms, type = 'countdown') {
         return type === 'count_to_date' ? getTranslation('event_finished', 'timer') || "¡Evento finalizado!" : "00:00:00";
     }
 
-    const totalSeconds = Math.max(0, Math.round(ms / 1000));
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
 
     if (type === 'count_to_date') {
         const days = Math.floor(totalSeconds / 86400);

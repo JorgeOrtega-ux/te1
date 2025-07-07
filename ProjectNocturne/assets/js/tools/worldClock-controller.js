@@ -12,11 +12,6 @@ const CLOCKS_STORAGE_KEY = 'world-clocks';
 let userClocks = [];
 let mainDisplayInterval = null;
 
-// Función para notificar cambios de estado
-function dispatchWorldClockStateChange() {
-    document.dispatchEvent(new CustomEvent('worldClockStateChanged'));
-}
-
 function renderWorldClockSearchResults(searchTerm) {
     // ================== INICIO DEL CÓDIGO CORREGIDO ==================
     const menuElement = document.querySelector('.menu-worldClock[data-menu="worldClock"]');
@@ -527,7 +522,6 @@ function pinClock(button) {
     if (timezone) {
         updateZoneInfo(timezone);
         updateMainPinnedDisplay(card);
-        dispatchWorldClockStateChange();
     }
 }
 function deleteClock(clockId) {

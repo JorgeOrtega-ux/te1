@@ -27,7 +27,11 @@
 .dark-mode .info-tool {
     border-color: #ffffff20;
 }
-
+.dark-mode .card-dismiss-btn {
+    color: #fff;
+    background-color: #ffffff20;
+    border-color: #ffffff20;
+}
 .dark-mode .tool-card.sortable-chosen {
     background-color: #3a3b3d;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
