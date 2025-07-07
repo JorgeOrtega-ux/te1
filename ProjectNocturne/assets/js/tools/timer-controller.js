@@ -32,8 +32,8 @@ function formatTimeSince(timestamp) {
     if (seconds < minute) return `${seconds} ${getTranslation('seconds', 'timer')}`;
     if (seconds < hour) return `${Math.floor(seconds / minute)} ${getTranslation('minutes', 'timer')}`;
     if (seconds < day) return `${Math.floor(seconds / hour)} ${getTranslation('hours', 'timer')}`;
-    if (seconds < year) return `${Math.floor(seconds / year)} ${getTranslation('days', 'timer')}`;
-    
+    if (seconds < year) return `${Math.floor(seconds / year)} ${getTranslation('years', 'timer')}`;
+
     return `${Math.floor(seconds / year)} ${getTranslation('years', 'timer')}`;
 }
 
@@ -128,27 +128,30 @@ function createTimerSearchResultItem(timer) {
     const playPauseTextKey = timer.isRunning ? 'pause' : 'play';
     const hasRang = !!timer.rangAt;
     const isRinging = !!timer.isRinging;
+    const isRunning = !!timer.isRunning;
 
     let dynamicActionsHTML = '';
     if (isCountdown) {
-        const startPauseDisabled = isRinging || timer.isRunning ? 'disabled-interactive' : '';
-        const resetDisabled = isRinging || timer.isRunning || timer.remaining >= timer.initialDuration ? 'disabled-interactive' : '';
-        
+        const isStartDisabled = isRinging || isRunning || (timer.remaining <= 0 && !hasRang);
+        const isPauseDisabled = isRinging || !isRunning;
+        const isResetDisabled = isRinging || isRunning || (timer.remaining >= timer.initialDuration && !hasRang);
+        const startPauseDisabledClass = isRunning ? (isPauseDisabled ? 'disabled-interactive' : '') : (isStartDisabled ? 'disabled-interactive' : '');
+
         dynamicActionsHTML = `
-            <div class="menu-link ${startPauseDisabled}" data-action="${playPauseAction}">
+            <div class="menu-link ${startPauseDisabledClass}" data-action="${playPauseAction}">
                 <div class="menu-link-icon"><span class="material-symbols-rounded">${playPauseIcon}</span></div>
                 <div class="menu-link-text"><span>${getTranslation(playPauseTextKey, 'tooltips')}</span></div>
             </div>
-            <div class="menu-link ${resetDisabled}" data-action="reset-card-timer">
+            <div class="menu-link ${isResetDisabled ? 'disabled-interactive' : ''}" data-action="reset-card-timer">
                 <div class="menu-link-icon"><span class="material-symbols-rounded">refresh</span></div>
                 <div class="menu-link-text"><span>${getTranslation('reset', 'tooltips')}</span></div>
             </div>
         `;
     }
-    
-    const editDeleteDisabled = isRinging ? 'disabled-interactive' : '';
+
+    const editDeleteDisabled = isRinging || isRunning;
     const deleteLinkHtml = timer.id.startsWith('default-timer-') ? '' : `
-        <div class="menu-link ${editDeleteDisabled}" data-action="delete-timer">
+        <div class="menu-link ${editDeleteDisabled ? 'disabled-interactive' : ''}" data-action="delete-timer">
             <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
             <div class="menu-link-text"><span>${getTranslation('delete_timer', 'timer')}</span></div>
         </div>
@@ -171,7 +174,7 @@ function createTimerSearchResultItem(timer) {
                  </button>
                  <div class="card-dropdown-menu body-title disabled">
                      ${dynamicActionsHTML}
-                     <div class="menu-link ${editDeleteDisabled}" data-action="edit-timer">
+                     <div class="menu-link ${editDeleteDisabled ? 'disabled-interactive' : ''}" data-action="edit-timer">
                          <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
                          <div class="menu-link-text"><span>${getTranslation('edit_timer', 'timer')}</span></div>
                      </div>
@@ -182,6 +185,7 @@ function createTimerSearchResultItem(timer) {
     `;
     return item;
 }
+
 
 function addSearchItemEventListeners(item) {
     const menuContainer = item.querySelector('.card-menu-container');
@@ -405,41 +409,45 @@ function loadAndRestoreTimers() {
 
     const allTimers = [...userTimers, ...defaultTimersState];
     const now = Date.now();
-    const lastVisit = parseInt(localStorage.getItem(LAST_VISIT_KEY) || '0', 10);
 
     allTimers.forEach(timer => {
-        if (timer.type === 'countdown' && timer.isRunning && timer.targetTime) {
-            const timeWhenFinished = timer.targetTime;
-            if (now >= timeWhenFinished) { 
-                timer.isRunning = false;
-                timer.isRinging = false; 
-                timer.rangAt = timeWhenFinished;
-                timer.remaining = timer.initialDuration;
-                delete timer.targetTime;
-            } else { 
-                timer.remaining = timeWhenFinished - now;
-                startCountdownTimer(timer); 
+        if (timer.type === 'countdown') {
+            if (timer.isRunning && timer.targetTime) {
+                const timeWhenFinished = timer.targetTime;
+                if (now >= timeWhenFinished) {
+                    timer.isRunning = false;
+                    timer.isRinging = false;
+                    timer.rangAt = timeWhenFinished;
+                    timer.remaining = 0;
+                    delete timer.targetTime;
+                } else {
+                    timer.remaining = timeWhenFinished - now;
+                    startCountdownTimer(timer);
+                    updateTimerCardControls(timer.id);
+                }
             }
         } else if (timer.type === 'count_to_date' && timer.isRunning) {
             timer.remaining = new Date(timer.targetDate).getTime() - now;
-            if (timer.remaining > 0) {
-                startCountToDateTimer(timer);
-            } else {
+            if (timer.remaining <= 0) {
                 timer.remaining = 0;
                 timer.isRunning = false;
+            } else {
+                startCountToDateTimer(timer);
             }
         }
     });
 
+
     let pinnedTimer = allTimers.find(t => t.isPinned);
     if (!pinnedTimer && allTimers.length > 0) {
         pinnedTimer = allTimers[0];
-        pinnedTimer.isPinned = true;
+        if (pinnedTimer) pinnedTimer.isPinned = true;
     }
     pinnedTimerId = pinnedTimer ? pinnedTimer.id : null;
     allTimers.forEach(t => t.isPinned = (t.id === pinnedTimerId));
 
     saveAllTimersState();
+    updateMainControlsState();
 }
 
 
@@ -464,6 +472,8 @@ function startTimer(timerId) {
     const timer = findTimerById(timerId);
     if (!timer || timer.isRunning || timer.remaining <= 0) return;
 
+    handlePinTimer(timerId);
+
     delete timer.rangAt;
     timer.isRunning = true;
 
@@ -473,7 +483,7 @@ function startTimer(timerId) {
     } else {
         startCountToDateTimer(timer);
     }
-    
+
     updateTimerCardControls(timerId);
     updateMainControlsState();
     refreshSearchResults();
@@ -481,6 +491,7 @@ function startTimer(timerId) {
     saveAllTimersState();
     dispatchTimerStateChange();
 }
+
 
 function startCountdownTimer(timer) {
     const tick = () => {
@@ -542,7 +553,7 @@ function pauseTimer(timerId) {
         clearTimeout(activeTimers.get(timer.id));
         activeTimers.delete(timer.id);
     }
-    
+
     if(timer.type === 'countdown') {
         timer.remaining = timer.targetTime - Date.now();
     }
@@ -565,14 +576,14 @@ function resetTimer(timerId) {
         clearTimeout(activeTimers.get(timer.id));
         activeTimers.delete(timer.id);
     }
-    
-    delete timer.rangAt; 
+
+    delete timer.rangAt;
     delete timer.targetTime;
     timer.isRinging = false;
     if (timer.type !== 'count_to_date') {
         timer.remaining = timer.initialDuration;
     }
-    
+
     updateCardDisplay(timerId);
     if (timer.id === pinnedTimerId) updateMainDisplay();
     updateTimerCardControls(timerId);
@@ -755,28 +766,31 @@ function createTimerCard(timer) {
     const playPauseTextKey = timer.isRunning ? 'pause' : 'play';
     const hasRang = !!timer.rangAt;
     const isRinging = !!timer.isRinging;
+    const isRunning = !!timer.isRunning;
 
     let countdownMenu = '';
     if (isCountdown) {
-        const startPauseDisabled = isRinging || timer.isRunning ? 'disabled-interactive' : '';
-        const resetDisabled = isRinging || timer.isRunning || timer.remaining >= timer.initialDuration ? 'disabled-interactive' : '';
-        
+        const isStartDisabled = isRinging || isRunning || (timer.remaining <= 0 && !hasRang);
+        const isPauseDisabled = isRinging || !isRunning;
+        const isResetDisabled = isRinging || isRunning || (timer.remaining >= timer.initialDuration && !hasRang);
+        const startPauseDisabledClass = isRunning ? (isPauseDisabled ? 'disabled-interactive' : '') : (isStartDisabled ? 'disabled-interactive' : '');
+
         countdownMenu = `
-        <div class="menu-link ${startPauseDisabled}" data-action="${playPauseAction}">
+        <div class="menu-link ${startPauseDisabledClass}" data-action="${playPauseAction}">
             <div class="menu-link-icon"><span class="material-symbols-rounded">${playPauseIcon}</span></div>
             <div class="menu-link-text"><span data-translate="${playPauseTextKey}" data-translate-category="tooltips">${getTranslation(playPauseTextKey, 'tooltips')}</span></div>
         </div>
-        <div class="menu-link ${resetDisabled}" data-action="reset-card-timer">
+        <div class="menu-link ${isResetDisabled ? 'disabled-interactive' : ''}" data-action="reset-card-timer">
             <div class="menu-link-icon"><span class="material-symbols-rounded">refresh</span></div>
             <div class="menu-link-text"><span data-translate="reset" data-translate-category="tooltips">${getTranslation('reset', 'tooltips')}</span></div>
         </div>
         `;
     }
-    
-    const editDeleteDisabled = isRinging ? 'disabled-interactive' : '';
+
+    const editDeleteDisabled = isRinging || isRunning;
     const isDefault = timer.id.startsWith('default-timer-');
     const deleteLinkHtml = isDefault ? '' : `
-        <div class="menu-link ${editDeleteDisabled}" data-action="delete-timer">
+        <div class="menu-link ${editDeleteDisabled ? 'disabled-interactive' : ''}" data-action="delete-timer">
             <div class="menu-link-icon"><span class="material-symbols-rounded">delete</span></div>
             <div class="menu-link-text"><span data-translate="delete_timer" data-translate-category="timer">${getTranslation('delete_timer', 'timer')}</span></div>
         </div>
@@ -816,7 +830,7 @@ function createTimerCard(timer) {
                  </button>
                  <div class="card-dropdown-menu body-title disabled">
                      ${countdownMenu}
-                     <div class="menu-link ${editDeleteDisabled}" data-action="edit-timer">
+                     <div class="menu-link ${editDeleteDisabled ? 'disabled-interactive' : ''}" data-action="edit-timer">
                          <div class="menu-link-icon"><span class="material-symbols-rounded">edit</span></div>
                          <div class="menu-link-text"><span data-translate="edit_timer" data-translate-category="timer">${getTranslation('edit_timer', 'timer')}</span></div>
                      </div>
@@ -839,6 +853,7 @@ function createTimerCard(timer) {
 }
 
 
+
 function updateMainDisplay() {
     const mainDisplay = document.querySelector('.tool-timer span');
     if (!mainDisplay) return;
@@ -852,7 +867,6 @@ function updateMainDisplay() {
     updatePinnedTimerNameDisplay();
 }
 
-// CORREGIDO: Lógica de actualización de controles principales mejorada
 function updateMainControlsState() {
     const section = document.querySelector('.section-timer');
     if (!section) return;
@@ -867,13 +881,13 @@ function updateMainControlsState() {
     }
 
     const pinnedTimer = findTimerById(pinnedTimerId);
+    let isAnyRinging = [...userTimers, ...defaultTimersState].some(t => t.isRinging);
 
     let isStartDisabled = true, isPauseDisabled = true, isResetDisabled = true;
-    let isAnyRinging = [...userTimers, ...defaultTimersState].some(t => t.isRinging);
 
     if (pinnedTimer && pinnedTimer.type === 'countdown') {
         const { isRunning, isRinging, remaining, initialDuration, rangAt } = pinnedTimer;
-        isStartDisabled = isRunning || isRinging || remaining <= 0;
+        isStartDisabled = isRunning || isRinging || rangAt || remaining <= 0;
         isPauseDisabled = !isRunning || isRinging;
         isResetDisabled = isRunning || isRinging || (remaining >= initialDuration && !rangAt);
     }
@@ -908,26 +922,29 @@ function updateCardDisplay(timerId) {
     }
 }
 
-// CORREGIDO: Lógica unificada para actualizar los controles de una tarjeta
 function updateTimerCardControls(timerId) {
     const timer = findTimerById(timerId);
     if (!timer) return;
 
     const cardElements = document.querySelectorAll(`#${timerId}, #search-timer-${timerId}`);
-    
+
     cardElements.forEach(card => {
         const playPauseLink = card.querySelector('[data-action="start-card-timer"], [data-action="pause-card-timer"]');
         if (playPauseLink) {
             const icon = playPauseLink.querySelector('.material-symbols-rounded');
             const text = playPauseLink.querySelector('.menu-link-text span');
+            const isRunning = timer.isRunning;
+            const isRinging = !!timer.isRinging;
+            const hasRang = !!timer.rangAt;
 
-            if (timer.isRunning) {
+            if (isRunning) {
                 playPauseLink.dataset.action = 'pause-card-timer';
                 if(icon) icon.textContent = 'pause';
                 if(text) {
                     text.dataset.translate = 'pause';
                     text.textContent = getTranslation('pause', 'tooltips');
                 }
+                playPauseLink.classList.toggle('disabled-interactive', isRinging);
             } else {
                 playPauseLink.dataset.action = 'start-card-timer';
                 if(icon) icon.textContent = 'play_arrow';
@@ -935,30 +952,22 @@ function updateTimerCardControls(timerId) {
                     text.dataset.translate = 'play';
                     text.textContent = getTranslation('play', 'tooltips');
                 }
+                playPauseLink.classList.toggle('disabled-interactive', isRinging || hasRang || timer.remaining <= 0);
             }
         }
-        
+
         const resetLink = card.querySelector('[data-action="reset-card-timer"]');
+        if (resetLink) {
+            const isResetDisabled = !!timer.isRinging || !!timer.isRunning || (timer.remaining >= timer.initialDuration && !timer.rangAt);
+            resetLink.classList.toggle('disabled-interactive', isResetDisabled);
+        }
+
         const editLink = card.querySelector('[data-action="edit-timer"]');
         const deleteLink = card.querySelector('[data-action="delete-timer"]');
+        const editDeleteDisabled = !!timer.isRinging || !!timer.isRunning;
 
-        const isRinging = !!timer.isRinging;
-        const isRunning = !!timer.isRunning;
-        const hasRang = !!timer.rangAt;
-        const isPristine = timer.remaining >= timer.initialDuration && !hasRang;
-
-        if (playPauseLink) {
-            playPauseLink.classList.toggle('disabled-interactive', isRinging || hasRang || isRunning);
-        }
-        if (resetLink) {
-            resetLink.classList.toggle('disabled-interactive', isRinging || isRunning || isPristine);
-        }
-        if(editLink) {
-            editLink.classList.toggle('disabled-interactive', isRinging || isRunning);
-        }
-        if(deleteLink) {
-            deleteLink.classList.toggle('disabled-interactive', isRinging || isRunning);
-        }
+        if(editLink) editLink.classList.toggle('disabled-interactive', editDeleteDisabled);
+        if(deleteLink) deleteLink.classList.toggle('disabled-interactive', editDeleteDisabled);
     });
 }
 
@@ -1022,10 +1031,10 @@ function handleTimerEnd(timerId) {
         activeTimers.delete(timerId);
     }
     timer.remaining = 0;
-    
+
     delete timer.rangAt;
     delete timer.targetTime;
-    
+
     timer.isRinging = true;
 
     updateCardDisplay(timerId);
@@ -1051,7 +1060,7 @@ function handleTimerEnd(timerId) {
         playSound(soundToPlay);
     }
     const translatedTitle = timer.id.startsWith('default-timer-') ? getTranslation(timer.title, 'timer') : timer.title;
-    
+
     const card = document.getElementById(timerId);
     card?.querySelector('.card-options-container')?.classList.add('active');
 
@@ -1267,7 +1276,7 @@ function dismissTimer(timerId) {
     if (timer) {
         timer.isRinging = false;
         if (timer.type === 'countdown') {
-            resetTimer(timerId);
+            resetTimer(timer.id);
         }
     }
 }
