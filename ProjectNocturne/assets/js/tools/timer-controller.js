@@ -398,7 +398,14 @@ function loadAndRestoreTimers() {
     const now = Date.now();
 
     allTimers.forEach(timer => {
-        if (timer.isRunning) {
+        // ========== INICIO DEL CÓDIGO CORREGIDO ==========
+        if (timer.type === 'countdown' && !timer.isRunning && timer.remaining <= 0) {
+            // Si el temporizador ha terminado, restablécelo a su duración inicial.
+            timer.remaining = timer.initialDuration;
+            delete timer.rangAt; // Elimina el estado de "sonando"
+            delete timer.isRinging;
+        } else if (timer.isRunning) {
+        // ========== FIN DEL CÓDIGO CORREGIDO ==========
             if (timer.type === 'countdown') {
                 if (timer.targetTime) {
                     const timeSinceEnd = now - timer.targetTime;
