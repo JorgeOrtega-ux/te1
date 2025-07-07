@@ -9,7 +9,10 @@
                     <span class="material-symbols-rounded">search</span>
                 </div>
                 <div class="search-content-text">
-                    <input type="text" id="timer-search-input" class="body-title" autocomplete="off" data-translate="search_timers_placeholder" data-translate-category="search" data-translate-target="placeholder">
+                    <input type="text" id="timer-search-input" class="body-title" autocomplete="off"
+                           data-translate="search_timers_placeholder"
+                           data-translate-category="search"
+                           data-translate-target="placeholder">
                 </div>
             </div>
         </div>
@@ -22,7 +25,9 @@
                             <div class="custom-select-content-left">
                                 <div class="custom-select-content-left-inner">
                                     <span class="material-symbols-rounded" id="timer-type-icon">timer</span>
-                                    <span id="timer-type-display" data-translate="countdown" data-translate-category="timer"></span>
+                                    <span id="timer-type-display"
+                                          data-translate="countdown"
+                                          data-translate-category="timer"></span>
                                 </div>
                             </div>
                             <div class="custom-select-content-right">
@@ -62,7 +67,10 @@
                             </div>
                             <div class="menu-content-general">
                                 <div class="enter-text-tool">
-                                    <input type="text" id="timer-title" data-translate="my_new_timer_placeholder" data-translate-category="timer" data-translate-target="placeholder">
+                                    <input type="text" id="timer-title"
+                                           data-translate="my_new_timer_placeholder"
+                                           data-translate-category="timer"
+                                           data-translate-target="placeholder">
                                 </div>
                             </div>
                         </div>
@@ -114,9 +122,11 @@
                             </div>
                             <div class="menu-content-general">
                                 <div class="custom-select-wrapper custom-select-wrapper--row">
-                                    <div class="custom-select-content" data-action="open-sounds-menu" data-context="countdown">
+                                <div class="custom-select-content" data-action="open-sounds-menu" data-context="countdown">
                                         <div class="custom-select-content-left">
-                                            <span id="countdown-selected-sound" data-translate="classic_beep" data-translate-category="sounds"></span>
+                                            <span id="countdown-selected-sound"
+                                                  data-translate="classic_beep"
+                                                  data-translate-category="sounds"></span>
                                         </div>
                                         <div class="custom-select-content-right">
                                             <span class="material-symbols-rounded">arrow_right</span>
@@ -139,7 +149,10 @@
                             </div>
                             <div class="menu-content-general">
                                 <div class="enter-text-tool">
-                                    <input type="text" id="countto-title" data-translate="my_event_placeholder" data-translate-category="timer" data-translate-target="placeholder">
+                                    <input type="text" id="countto-title"
+                                           data-translate="my_event_placeholder"
+                                           data-translate-category="timer"
+                                           data-translate-target="placeholder">
                                 </div>
                             </div>
                         </div>
@@ -165,7 +178,8 @@
                                     <div class="date-time-selector">
                                         <div class="custom-select-content" data-action="open-time-picker-menu">
                                             <div class="custom-select-content-left">
-                                                <span id="selected-hour-display">--</span> : <span id="selected-minute-display">--</span>
+                                                <span id="selected-hour-display">--</span> :
+                                                <span id="selected-minute-display">--</span>
                                             </div>
                                             <div class="custom-select-content-right">
                                                 <span class="material-symbols-rounded">schedule</span>
@@ -184,12 +198,14 @@
                             </div>
                             <div class="menu-content-general">
                                 <div class="custom-select-wrapper custom-select-wrapper--row">
-                                    <div class="custom-select-content" data-action="open-sounds-menu" data-context="count_to_date">
+                                <div class="custom-select-content" data-action="open-sounds-menu" data-context="count_to_date">
                                         <div class="custom-select-content-left">
-                                            <span id="count-to-date-selected-sound" data-translate="classic_beep" data-translate-category="sounds"></span>
+                                            <span id="count-to-date-selected-sound"
+                                                  data-translate="classic_beep"
+                                                  data-translate-category="sounds"></span>
                                         </div>
                                         <div class="custom-select-content-right">
-                                            <span class="material-symbols-rounded">arrow_right</span>
+                                       <span class="material-symbols-rounded">arrow_right</span>
                                         </div>
                                     </div>
                                     <div class="menu-action-button" data-action="previewCountToDateSound">
@@ -200,6 +216,11 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="menu-section-bottom">
+            <div class="create-tool" data-action="createTimer">
+                <span data-translate="create_timer" data-translate-category="timer"></span>
             </div>
         </div>
     </div>

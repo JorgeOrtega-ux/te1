@@ -1,7 +1,6 @@
 // ========== general-tools.js - CÓDIGO COMPLETO ACTUALIZADO ==========
 
 import { getTranslation } from '../general/translations-controller.js';
-import { PREMIUM_FEATURES } from '../general/main.js';
 import { showConfirmation } from '../general/confirmation-modal-controller.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 
@@ -408,15 +407,15 @@ function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
 }
 export async function handleAudioUpload(callback) {
     await populateAudioCache();
-    const uploadLimit = PREMIUM_FEATURES ? 10 : 1;
-    const singleFileSizeLimit = PREMIUM_FEATURES ? 1024 * 1024 * 1024 : 256 * 1024 * 1024;
-    const maxSizeInMB = PREMIUM_FEATURES ? '1 GB' : '256 MB';
+    const uploadLimit = 10;
+    const singleFileSizeLimit = 1024 * 1024 * 1024;
+    const maxSizeInMB = '1 GB';
 
     if (userAudiosCache.length >= uploadLimit) {
-        const messageKey = PREMIUM_FEATURES ? 'limit_reached_message_premium' : 'premium_limit_reached_message';
+        const messageKey = 'limit_reached_message_premium';
         showDynamicIslandNotification(
             'system',
-            PREMIUM_FEATURES ? 'limit_reached' : 'limit_reached_premium',
+            'limit_reached',
             messageKey,
             'notifications',
             { type: getTranslation('audio_singular', 'sounds') }

@@ -1,5 +1,5 @@
 // Ruta: /assets/js/tools/alarm-controller.js
-import { use24HourFormat, PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
+import { use24HourFormat, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
 import { playSound as playAlarmSound, stopSound as stopAlarmSound, initializeSortable, getAvailableSounds, handleAlarmCardAction, getSoundNameById, createExpandableToolContainer } from './general-tools.js';
 import { showDynamicIslandNotification, hideDynamicIsland } from '../general/dynamic-island-controller.js';
@@ -244,7 +244,7 @@ export function getAlarmCount() {
 }
 
 export function getAlarmLimit() {
-    return PREMIUM_FEATURES ? 100 : 5;
+    return 100;
 }
 function createAlarm(title, hour, minute, sound) {
     const alarmLimit = getAlarmLimit();

@@ -1,7 +1,6 @@
 // /assets/js/tools/stopwatch-controller.js
 
 import { getTranslation } from '../general/translations-controller.js';
-import { PREMIUM_FEATURES } from '../general/main.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 
@@ -17,7 +16,7 @@ const stopwatchState = {
 let displayElement, startBtn, stopBtn, lapBtn, resetBtn, lapsTableBody, sectionBottom;
 
 export function getLapLimit() {
-    return PREMIUM_FEATURES ? 10000 : 1000;
+    return 10000;
 }
 
 function saveState() {

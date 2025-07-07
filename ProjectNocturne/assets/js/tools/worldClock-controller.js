@@ -1,4 +1,4 @@
-import { PREMIUM_FEATURES, use24HourFormat, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
+import { use24HourFormat, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareWorldClockForEdit } from './menu-interactions.js';
 import { updateZoneInfo } from './zoneinfo-controller.js';
 import { initializeSortable, handleWorldClockCardAction } from './general-tools.js';
@@ -301,12 +301,12 @@ function getClockCount() {
     return 0;
 }
 function getClockLimit() {
-    return PREMIUM_FEATURES ? 100 : 5;
+    return 100;
 }
 function createAndStartClockCard(title, country, timezone, existingId = null, save = true) {
     const grid = document.querySelector('.world-clocks-grid');
     if (!grid) return;
-    const totalClockLimit = PREMIUM_FEATURES ? 100 : 5;
+    const totalClockLimit = 100;
     const totalCurrentClocks = grid.querySelectorAll('.tool-card').length;
     const hasLocalClock = document.querySelector('.local-clock-card');
     const actualCurrentClocks = hasLocalClock && existingId !== 'local' ? totalCurrentClocks - 1 : totalCurrentClocks;

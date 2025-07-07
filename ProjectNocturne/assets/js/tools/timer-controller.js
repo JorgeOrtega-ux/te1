@@ -1,6 +1,6 @@
 // Ruta: /assets/js/tools/timer-controller.js
 import { getTranslation } from '../general/translations-controller.js';
-import { PREMIUM_FEATURES, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
+import { activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
 import { playSound, stopSound, initializeSortable, getAvailableSounds, handleTimerCardAction, getSoundNameById, createExpandableToolContainer } from './general-tools.js';
 import { showDynamicIslandNotification, hideDynamicIsland } from '../general/dynamic-island-controller.js';
@@ -245,7 +245,7 @@ export function getTimersCount() {
 }
 
 export function getTimerLimit() {
-    return PREMIUM_FEATURES ? 100 : 5;
+    return 100;
 }
 
 function getRunningTimersCount() {

@@ -1,7 +1,6 @@
 // ========== DYNAMIC ISLAND CONTROLLER - IMPROVED APPLE-STYLE ========== 
 
 import { translateElementTree } from './translations-controller.js';
-import { PREMIUM_FEATURES } from '../general/main.js';
 
 let dynamicIslandElement = null;
 let notificationTimeout = null;
@@ -23,7 +22,6 @@ const ICONS = {
     'worldclock': 'schedule',
     'system_info': 'info',
     'system_error': 'error',
-    'system_premium': 'workspace_premium',
     'system_success': 'check_circle',
     'default': 'info'
 };
@@ -144,7 +142,7 @@ function setupNotificationContent(toolType, actionType, messageKey, category, da
     let iconKey = toolType.toLowerCase();
     if (toolType === 'system') {
         if (actionType.includes('error')) iconKey = 'system_error';
-        else if (actionType.includes('premium') || actionType.includes('limit')) iconKey = 'system_premium';
+        else if (actionType.includes('limit')) iconKey = 'system_error'; // Changed from premium
         else if (actionType.includes('success') || actionType.includes('deleted')) iconKey = 'system_success';
         else iconKey = 'system_info';
     }
@@ -156,13 +154,9 @@ function setupNotificationContent(toolType, actionType, messageKey, category, da
 
     if (actionType === 'limit_reached') {
         titleKey = 'limit_reached_title';
-        finalMessageKey = PREMIUM_FEATURES ? 'limit_reached_message_premium' : 'premium_limit_reached_message';
+        finalMessageKey = 'limit_reached_message_premium';
     } else if (toolType === 'system') {
-        if (actionType === 'premium_required') {
-             titleKey = 'premium_required_title';
-        } else {
-             titleKey = `${actionType}_title`;
-        }
+        titleKey = `${actionType}_title`;
     } else {
         titleKey = `${toolType.toLowerCase()}_${actionType}_title`;
     }

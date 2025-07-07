@@ -2,7 +2,6 @@
 
 // ========== IMPORTS ==========
 import { attachTooltipsToNewElements } from '../general/tooltip-controller.js';
-import { PREMIUM_FEATURES } from '../general/main.js';
 
 // ========== CONFIGURATION AND CONSTANTS ==========
 const COLOR_SYSTEM_CONFIG = {
@@ -233,7 +232,7 @@ function initColorTextSystem() {
         isValidForTheme: isValidForTheme,
         getCurrentTheme: () => colorSystemState.currentTheme,
         toggleSectionCollapse: toggleSectionCollapse,
-        arePremiumFeaturesEnabled: () => PREMIUM_FEATURES
+        arePremiumFeaturesEnabled: () => true
     };
 }
 
@@ -312,7 +311,7 @@ function updateColorSectionHeaders() {
         defaultColorsHeader.textContent = getDefaultColorsHeader();
     }
 
-    if (PREMIUM_FEATURES) {
+    if (true) {
         const gradientColorsHeader = document.querySelector('[data-section="gradient-colors"] .menu-content-header span:last-child');
         if (gradientColorsHeader) {
             gradientColorsHeader.textContent = getGradientColorsHeader();
@@ -424,46 +423,6 @@ function loadStoredData() {
             initializeDefaultRecentColors();
         }
 
-        if (!PREMIUM_FEATURES) {
-            let wasModified = false;
-
-            if (isGradientColor(colorSystemState.currentColor)) {
-                console.log('🎨 Premium features disabled. Active gradient color found. Resetting to auto.');
-                colorSystemState.currentColor = 'auto';
-                localStorage.setItem(COLOR_SYSTEM_CONFIG.storageKey, 'auto');
-                localStorage.setItem(COLOR_SYSTEM_CONFIG.activeColorKey, 'auto');
-                localStorage.setItem(COLOR_SYSTEM_CONFIG.activeColorSectionKey, 'auto');
-            }
-
-            const initialRecentCount = colorSystemState.recentColors.length;
-            const nonGradientRecents = colorSystemState.recentColors.filter(
-                color => !isGradientColor(color.hex)
-            );
-
-            if (nonGradientRecents.length < initialRecentCount) {
-                console.log('🎨 Premium features disabled. Removing gradient colors from recent list.');
-                colorSystemState.recentColors = nonGradientRecents;
-                wasModified = true;
-            }
-
-            if (colorSystemState.currentColor === 'auto') {
-                const autoColorHex = getAutoColor();
-                const existingIndex = colorSystemState.recentColors.findIndex(c => c.hex === autoColorHex);
-
-                if (existingIndex > 0) {
-                    const [item] = colorSystemState.recentColors.splice(existingIndex, 1);
-                    colorSystemState.recentColors.unshift(item);
-                    wasModified = true;
-                }
-            }
-
-            if (colorSystemState.recentColors.length === 0) {
-                initializeDefaultRecentColors();
-            } else if (wasModified) {
-                saveRecentColors();
-            }
-        }
-
     } catch (error) {
         console.error('Error loading stored data for color system:', error);
         colorSystemState.currentColor = 'auto';
@@ -511,9 +470,12 @@ function addToRecentColors(colorHex, colorNameForRecent, source = 'manual', forc
         actualName = getTranslatedColorNameFromHex(actualHex);
     }
     else if (isGradientColor(colorHex)) {
-        if (!PREMIUM_FEATURES) return;
-        const gradient = COLOR_SYSTEM_CONFIG.gradientColors.find(g => g.hex === colorHex);
-        actualName = gradient ? gradient.name : colorNameForRecent;
+        if (true) {
+            const gradient = COLOR_SYSTEM_CONFIG.gradientColors.find(g => g.hex === colorHex);
+            actualName = gradient ? gradient.name : colorNameForRecent;
+        } else {
+            return;
+        }
     } else {
         const knownColorName = getTranslatedColorNameFromHex(colorHex);
         if (knownColorName) {
@@ -736,7 +698,7 @@ function renderGradientColors() {
 
     let gradientSection = document.querySelector('[data-section="gradient-colors"]');
 
-    if (PREMIUM_FEATURES) {
+    if (true) {
         if (!gradientSection) {
             gradientSection = document.createElement('div');
             gradientSection.className = 'menu-content';
@@ -964,61 +926,59 @@ function setupCollapsibleSectionEvents() {
         }
     });
 
-    if (!PREMIUM_FEATURES) {
-        return;
-    }
+    if (true) {
+        const collapsibleHeaders = document.querySelectorAll('.menu-content[data-collapsible-section="true"]');
+        collapsibleHeaders.forEach(sectionContainer => {
+            const header = sectionContainer.querySelector('.menu-content-header');
+            let secondaryHeader = header.querySelector('.menu-content-header-secondary');
+            let collapseButton = header.querySelector('.collapse-btn');
 
-    const collapsibleHeaders = document.querySelectorAll('.menu-content[data-collapsible-section="true"]');
-    collapsibleHeaders.forEach(sectionContainer => {
-        const header = sectionContainer.querySelector('.menu-content-header');
-        let secondaryHeader = header.querySelector('.menu-content-header-secondary');
-        let collapseButton = header.querySelector('.collapse-btn');
-
-        if (!secondaryHeader) {
-            secondaryHeader = document.createElement('div');
-            secondaryHeader.className = 'menu-content-header-secondary';
-            header.appendChild(secondaryHeader);
-        }
-
-        if (!collapseButton) {
-            collapseButton = document.createElement('button');
-            collapseButton.className = 'collapse-btn';
-            collapseButton.setAttribute('data-collapsible', 'true');
-            collapseButton.innerHTML = '<span class="material-symbols-rounded expand-icon">expand_more</span>';
-            secondaryHeader.appendChild(collapseButton);
-
-            const sectionId = sectionContainer.getAttribute('data-section');
-            const expandIcon = collapseButton.querySelector('.expand-icon');
-
-            if (expandIcon) {
-                expandIcon.style.transition = 'none';
-                if (colorSystemState.collapsedSections.has(sectionId)) {
-                    expandIcon.style.transform = 'rotate(-90deg)';
-                    collapseButton.setAttribute('aria-expanded', 'false');
-                } else {
-                    expandIcon.style.transform = 'rotate(0deg)';
-                    collapseButton.setAttribute('aria-expanded', 'true');
-                }
-
-                requestAnimationFrame(() => {
-                    expandIcon.style.transition = '';
-                });
+            if (!secondaryHeader) {
+                secondaryHeader = document.createElement('div');
+                secondaryHeader.className = 'menu-content-header-secondary';
+                header.appendChild(secondaryHeader);
             }
-        }
 
-        if (collapseButton._collapseHandler) {
-            collapseButton.removeEventListener('click', collapseButton._collapseHandler);
-        }
+            if (!collapseButton) {
+                collapseButton = document.createElement('button');
+                collapseButton.className = 'collapse-btn';
+                collapseButton.setAttribute('data-collapsible', 'true');
+                collapseButton.innerHTML = '<span class="material-symbols-rounded expand-icon">expand_more</span>';
+                secondaryHeader.appendChild(collapseButton);
 
-        const handler = (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            const sectionId = sectionContainer.getAttribute('data-section');
-            toggleSectionCollapse(sectionId);
-        };
-        collapseButton.addEventListener('click', handler);
-        collapseButton._collapseHandler = handler;
-    });
+                const sectionId = sectionContainer.getAttribute('data-section');
+                const expandIcon = collapseButton.querySelector('.expand-icon');
+
+                if (expandIcon) {
+                    expandIcon.style.transition = 'none';
+                    if (colorSystemState.collapsedSections.has(sectionId)) {
+                        expandIcon.style.transform = 'rotate(-90deg)';
+                        collapseButton.setAttribute('aria-expanded', 'false');
+                    } else {
+                        expandIcon.style.transform = 'rotate(0deg)';
+                        collapseButton.setAttribute('aria-expanded', 'true');
+                    }
+
+                    requestAnimationFrame(() => {
+                        expandIcon.style.transition = '';
+                    });
+                }
+            }
+
+            if (collapseButton._collapseHandler) {
+                collapseButton.removeEventListener('click', collapseButton._collapseHandler);
+            }
+
+            const handler = (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const sectionId = sectionContainer.getAttribute('data-section');
+                toggleSectionCollapse(sectionId);
+            };
+            collapseButton.addEventListener('click', handler);
+            collapseButton._collapseHandler = handler;
+        });
+    }
 }
 
 function setupCollapsibleSections() {
@@ -1027,94 +987,96 @@ function setupCollapsibleSections() {
 }
 
 function toggleSectionCollapse(sectionId) {
-    if (!PREMIUM_FEATURES) return;
+    if (true) {
+        const sectionContainer = document.querySelector(`.menu-content[data-section="${sectionId}"]`);
+        if (!sectionContainer) return;
 
-    const sectionContainer = document.querySelector(`.menu-content[data-section="${sectionId}"]`);
-    if (!sectionContainer) return;
-
-    const contentElement = sectionContainer.querySelector('.menu-content-general');
-    const collapseButton = sectionContainer.querySelector('.collapse-btn');
-    const expandIcon = collapseButton ? collapseButton.querySelector('.expand-icon') : null;
-
-    if (!contentElement || !collapseButton || !expandIcon) return;
-
-    const isCollapsed = contentElement.getAttribute('data-section-collapsed') === 'true';
-
-    if (isCollapsed) {
-        contentElement.classList.remove('collapsed');
-        contentElement.classList.add('expanded');
-        contentElement.setAttribute('data-section-collapsed', 'false');
-        collapseButton.setAttribute('aria-expanded', 'true');
-        expandIcon.style.transform = 'rotate(0deg)';
-        colorSystemState.collapsedSections.delete(sectionId);
-    } else {
-        contentElement.classList.remove('expanded');
-        contentElement.classList.add('collapsed');
-        contentElement.setAttribute('data-section-collapsed', 'true');
-        collapseButton.setAttribute('aria-expanded', 'false');
-        expandIcon.style.transform = 'rotate(-90deg)';
-        colorSystemState.collapsedSections.add(sectionId);
-    }
-
-    saveCollapsedSectionsState();
-}
-
-function loadCollapsedSectionsState() {
-    if (!PREMIUM_FEATURES) return;
-    try {
-        const storedCollapsed = localStorage.getItem(COLOR_SYSTEM_CONFIG.collapsedSectionsKey);
-        if (storedCollapsed) {
-            colorSystemState.collapsedSections = new Set(JSON.parse(storedCollapsed));
-        } else {
-            colorSystemState.collapsedSections = new Set();
-        }
-    } catch (error) {
-        console.error('Error loading collapsed sections state:', error);
-        colorSystemState.collapsedSections = new Set();
-    }
-}
-
-function saveCollapsedSectionsState() {
-    if (!PREMIUM_FEATURES) return;
-    try {
-        localStorage.setItem(COLOR_SYSTEM_CONFIG.collapsedSectionsKey, JSON.stringify(Array.from(colorSystemState.collapsedSections)));
-    }
-    catch (error) {
-        console.error('Error saving collapsed sections state:', error);
-    }
-}
-
-function applyCollapsedSectionsState() {
-    if (!PREMIUM_FEATURES) return;
-
-    document.querySelectorAll('.menu-content[data-collapsible-section="true"]').forEach(sectionContainer => {
-        const sectionId = sectionContainer.getAttribute('data-section');
         const contentElement = sectionContainer.querySelector('.menu-content-general');
         const collapseButton = sectionContainer.querySelector('.collapse-btn');
         const expandIcon = collapseButton ? collapseButton.querySelector('.expand-icon') : null;
 
-        if (contentElement && collapseButton && expandIcon) {
-            expandIcon.style.transition = 'none';
+        if (!contentElement || !collapseButton || !expandIcon) return;
 
-            if (colorSystemState.collapsedSections.has(sectionId)) {
-                contentElement.classList.add('collapsed');
-                contentElement.classList.remove('expanded');
-                contentElement.setAttribute('data-section-collapsed', 'true');
-                collapseButton.setAttribute('aria-expanded', 'false');
-                expandIcon.style.transform = 'rotate(-90deg)';
-            } else {
-                contentElement.classList.remove('collapsed');
-                contentElement.classList.add('expanded');
-                contentElement.setAttribute('data-section-collapsed', 'false');
-                collapseButton.setAttribute('aria-expanded', 'true');
-                expandIcon.style.transform = 'rotate(0deg)';
-            }
+        const isCollapsed = contentElement.getAttribute('data-section-collapsed') === 'true';
 
-            requestAnimationFrame(() => {
-                expandIcon.style.transition = '';
-            });
+        if (isCollapsed) {
+            contentElement.classList.remove('collapsed');
+            contentElement.classList.add('expanded');
+            contentElement.setAttribute('data-section-collapsed', 'false');
+            collapseButton.setAttribute('aria-expanded', 'true');
+            expandIcon.style.transform = 'rotate(0deg)';
+            colorSystemState.collapsedSections.delete(sectionId);
+        } else {
+            contentElement.classList.remove('expanded');
+            contentElement.classList.add('collapsed');
+            contentElement.setAttribute('data-section-collapsed', 'true');
+            collapseButton.setAttribute('aria-expanded', 'false');
+            expandIcon.style.transform = 'rotate(-90deg)';
+            colorSystemState.collapsedSections.add(sectionId);
         }
-    });
+
+        saveCollapsedSectionsState();
+    }
+}
+
+function loadCollapsedSectionsState() {
+    if (true) {
+        try {
+            const storedCollapsed = localStorage.getItem(COLOR_SYSTEM_CONFIG.collapsedSectionsKey);
+            if (storedCollapsed) {
+                colorSystemState.collapsedSections = new Set(JSON.parse(storedCollapsed));
+            } else {
+                colorSystemState.collapsedSections = new Set();
+            }
+        } catch (error) {
+            console.error('Error loading collapsed sections state:', error);
+            colorSystemState.collapsedSections = new Set();
+        }
+    }
+}
+
+function saveCollapsedSectionsState() {
+    if (true) {
+        try {
+            localStorage.setItem(COLOR_SYSTEM_CONFIG.collapsedSectionsKey, JSON.stringify(Array.from(colorSystemState.collapsedSections)));
+        }
+        catch (error) {
+            console.error('Error saving collapsed sections state:', error);
+        }
+    }
+}
+
+function applyCollapsedSectionsState() {
+    if (true) {
+        document.querySelectorAll('.menu-content[data-collapsible-section="true"]').forEach(sectionContainer => {
+            const sectionId = sectionContainer.getAttribute('data-section');
+            const contentElement = sectionContainer.querySelector('.menu-content-general');
+            const collapseButton = sectionContainer.querySelector('.collapse-btn');
+            const expandIcon = collapseButton ? collapseButton.querySelector('.expand-icon') : null;
+
+            if (contentElement && collapseButton && expandIcon) {
+                expandIcon.style.transition = 'none';
+
+                if (colorSystemState.collapsedSections.has(sectionId)) {
+                    contentElement.classList.add('collapsed');
+                    contentElement.classList.remove('expanded');
+                    contentElement.setAttribute('data-section-collapsed', 'true');
+                    collapseButton.setAttribute('aria-expanded', 'false');
+                    expandIcon.style.transform = 'rotate(-90deg)';
+                } else {
+                    contentElement.classList.remove('collapsed');
+                    contentElement.classList.add('expanded');
+                    contentElement.setAttribute('data-section-collapsed', 'false');
+                    collapseButton.setAttribute('aria-expanded', 'true');
+                    expandIcon.style.transform = 'rotate(0deg)';
+                }
+
+                requestAnimationFrame(() => {
+                    expandIcon.style.transition = '';
+                });
+            }
+        });
+    }
 }
 
 // ========== COLOR APPLICATION ==========
@@ -1262,15 +1224,15 @@ function getColorInfo() {
         currentColor: colorSystemState.currentColor,
         activeColorName: activeColorName,
         totalElements: getElementCount(),
-        totalColors: colorSystemState.colorElements.size + (PREMIUM_FEATURES ? COLOR_SYSTEM_CONFIG.gradientColors.length : 0),
+        totalColors: colorSystemState.colorElements.size + (true ? COLOR_SYSTEM_CONFIG.gradientColors.length : 0),
         recentColorsCount: colorSystemState.recentColors.length,
         recentColors: [...colorSystemState.recentColors],
         currentTheme: colorSystemState.currentTheme,
         isThemeChanging: colorSystemState.isThemeChanging,
         isInitialized: colorSystemState.isInitialized,
-        collapsibleSectionsEnabled: PREMIUM_FEATURES,
+        collapsibleSectionsEnabled: true,
         collapsedSections: Array.from(colorSystemState.collapsedSections),
-        gradientColorsSectionEnabled: PREMIUM_FEATURES
+        gradientColorsSectionEnabled: true
     };
 }
 
@@ -1335,7 +1297,7 @@ function createSearchColorElement(colorData) {
 
 function debugColorSystem() {
     console.group('🎨 Color Text Manager Debug (Enhanced with Translations)');
-    console.log('Premium Features Enabled:', PREMIUM_FEATURES);
+    console.log('Premium Features Enabled:', true);
     console.log('Current color:', colorSystemState.currentColor);
     console.log('Current theme:', colorSystemState.currentTheme);
     console.log('Auto color would be:', getAutoColor());
@@ -1350,7 +1312,7 @@ function debugColorSystem() {
     console.log('Last active color section (from localStorage):', localStorage.getItem(COLOR_SYSTEM_CONFIG.activeColorSectionKey));
 
     console.group('Collapsible Sections Debug');
-    console.log('Collapsible sections enabled:', PREMIUM_FEATURES);
+    console.log('Collapsible sections enabled:', true);
     document.querySelectorAll('.menu-content[data-collapsible-section="true"]').forEach(section => {
         const sectionId = section.getAttribute('data-section');
         const content = section.querySelector('.menu-content-general');
@@ -1364,7 +1326,7 @@ function debugColorSystem() {
     console.groupEnd();
 
     console.group('Gradient Colors Section Debug');
-    console.log('Gradient colors section enabled:', PREMIUM_FEATURES);
+    console.log('Gradient colors section enabled:', true);
     const gradientSectionElement = document.querySelector('[data-section="gradient-colors"]');
     console.log('Gradient section element present in DOM:', !!gradientSectionElement);
     console.groupEnd();

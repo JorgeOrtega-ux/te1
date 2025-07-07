@@ -1,5 +1,5 @@
 "use strict";
-import { use24HourFormat, deactivateModule, PREMIUM_FEATURES } from '../general/main.js';
+import { use24HourFormat, deactivateModule } from '../general/main.js';
 import { getTranslation } from '../general/translations-controller.js';
 import { addTimerAndRender, updateTimer, getTimersCount, getTimerLimit } from './timer-controller.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
