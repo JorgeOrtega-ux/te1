@@ -633,11 +633,11 @@
 }
 
 .dark-mode .clock-time {
-    color: #f5f5f7;
+    color: #ffffff;
 }
 
 .dark-mode .clock-date {
-    color: #8d8d92;
+    color: #ffffffe6;
 }
 
 .dark-mode .widget-list-item:hover {

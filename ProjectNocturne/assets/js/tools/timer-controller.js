@@ -1,7 +1,7 @@
 // timer-controller.js - CÓDIGO COMPLETO CON LÓGICA UNIFICADA Y CONSISTENTE
 import { getTranslation } from '../general/translations-controller.js';
 import { activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
-import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
+import { prepareTimerForEdit, prepareCountToDateForEdit } from '../general/menu-interactions.js';
 import { playSound, stopSound, initializeSortable, getAvailableSounds, handleTimerCardAction, getSoundNameById, createExpandableToolContainer } from './general-tools.js';
 import { showDynamicIslandNotification, hideDynamicIsland } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';

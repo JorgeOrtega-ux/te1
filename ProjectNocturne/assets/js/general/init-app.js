@@ -1,12 +1,12 @@
 // ========== APPLICATION MAIN INITIALIZER - UPDATED FOR UNIFIED MODULE MANAGER ==========
 import { initLocationManager, resetLocationSearch } from '../general/location-manager.js';
 
-import { initColorSearchSystem } from '../tools/color-search-system.js';
+import { initColorSearchSystem } from './color-search-system.js';
 import { initializeEverything } from '../tools/everything-controller.js';
-// **MODIFICACIÓN**: Importamos la nueva función de precarga.
+
 import { initializeCategorySliderService, initializeCentralizedFontManager, initializeFullScreenManager, initializeCardEventListeners, initializeScrollShadow, startAudioCachePreload, initDB } from '../tools/general-tools.js';
-import { initColorTextSystem, refreshColorSystem, applyCollapsedSectionsState, setupCollapsibleSectionEvents } from '../tools/palette-colors.js';
-import { initializeZoneInfoTool } from '../tools/zoneinfo-controller.js';
+import { initColorTextSystem, refreshColorSystem, applyCollapsedSectionsState, setupCollapsibleSectionEvents } from '../components/palette-colors.js';
+import { initializeZoneInfoTool } from '../config/zoneinfo-controller.js';
 
 import { initConfirmationModal } from './confirmation-modal-controller.js';
 import { initMobileDragController } from './drag-controller.js';
@@ -15,7 +15,7 @@ import { initModuleManager, updateMenuLabels, applyInitialStates as applyModuleM
 import { initializeTooltipSystem, refreshTooltips, batchMigrateTooltips, initializeMobileSidebarTooltips, updateTooltipTextMap, setTranslationGetter as setTooltipTranslationGetter } from './tooltip-controller.js';
 import { initTranslationSystem, refreshTranslations, updateDynamicMenuLabels, translateElementsWithDataTranslate, getTranslation as getTranslationFunction, getCurrentLanguage as getTranslationCurrentLanguage } from './translations-controller.js';
 
-import { initMenuInteractions } from '../tools/menu-interactions.js';
+import { initMenuInteractions } from './menu-interactions.js';
 
 import { initializeStopwatch } from '../tools/stopwatch-controller.js';
 import { initializeTimerController } from '../tools/timer-controller.js';

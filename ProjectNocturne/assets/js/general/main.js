@@ -2,7 +2,7 @@
 
 import { activateModule, deactivateAllModules, deactivateModule, getActiveModule, isAnyModuleActive, isModuleActive, isModuleCurrentlyChanging, logModuleStates, resetModuleChangeFlag, showControlCenterMenu, showSpecificOverlay, toggleModule } from './module-manager.js';
 import { initializeTextStyleManager } from '../tools/general-tools.js';
-import { isGradientColor } from '../tools/palette-colors.js';
+import { isGradientColor } from '../components/palette-colors.js';
 
 // ========== GLOBAL TIME FORMAT SETTING ==========
 export let use24HourFormat = true;

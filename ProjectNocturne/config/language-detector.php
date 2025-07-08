@@ -72,9 +72,6 @@ function logLanguageDetection($browserLanguage, $detectedLanguage) {
         'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown',
         'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'Unknown'
     ];
-    
-    // Opcional: guardar en archivo de log
-    // file_put_contents('language_detection.log', json_encode($logData) . "\n", FILE_APPEND);
 }
 
 // ========================================

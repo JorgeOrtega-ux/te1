@@ -62,17 +62,19 @@
     <script type="module" src="assets/js/general/drag-controller.js"></script>
     <script type="module" src="assets/js/general/dynamic-island-controller.js"></script>
     <script type="module" src="assets/js/general/confirmation-modal-controller.js"></script>
+    <script type="module" src="assets/js/general/menu-interactions.js"></script>
+    <script type="module" src="assets/js/general/color-search-system.js"></script>
+
+    <script type="module" src="assets/js/components/palette-colors.js"></script>
 
     <script type="module" src="assets/js/tools/general-tools.js"></script>
-    <script type="module" src="assets/js/tools/palette-colors.js"></script>
-    <script type="module" src="assets/js/tools/color-search-system.js"></script>
     <script type="module" src="assets/js/tools/everything-controller.js"></script>
     <script type="module" src="assets/js/tools/alarm-controller.js"></script>
     <script type="module" src="assets/js/tools/timer-controller.js"></script>
     <script type="module" src="assets/js/tools/stopwatch-controller.js"></script>
     <script type="module" src="assets/js/tools/worldClock-controller.js"></script>
-    <script type="module" src="assets/js/tools/menu-interactions.js"></script>
-    <script type="module" src="assets/js/tools/zoneinfo-controller.js"></script>
+
+    <script type="module" src="assets/js/config/zoneinfo-controller.js"></script>
 
 </body>
 

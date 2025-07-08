@@ -2,7 +2,7 @@
 
 // ========== IMPORTS AND DEPENDENCIES ==========
 
-import { initializeMenuForOverlay, resetMenuForOverlay, resetOverlayNavigation } from '../tools/menu-interactions.js';
+import { initializeMenuForOverlay, resetMenuForOverlay, resetOverlayNavigation } from './menu-interactions.js';
 import { applyLanguageStates, getCurrentLanguage, initLanguageManager, isLanguageChanging, resetLanguageStates, setLanguage, setLanguageChangeCallback, setTranslationFunction as setLanguageTranslationFunction, setupLanguageEventListeners, updateLanguageLabel } from './language-manager.js';
 import { applyTheme, applyThemeStates, getCurrentTheme, initThemeManager, isThemeChanging, resetThemeStates, setThemeChangeCallback, setTranslationFunction as setThemeTranslationFunction, setupThemeEventListeners, updateThemeLabel } from './theme-manager.js';
 import { isLocationChanging, cleanLocationChangeStates } from './location-manager.js';

@@ -1,6 +1,6 @@
 import { use24HourFormat, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
-import { prepareWorldClockForEdit } from './menu-interactions.js';
-import { updateZoneInfo } from './zoneinfo-controller.js';
+import { prepareWorldClockForEdit } from '../general/menu-interactions.js';
+import { updateZoneInfo } from '../config/zoneinfo-controller.js';
 import { initializeSortable, handleWorldClockCardAction } from './general-tools.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';

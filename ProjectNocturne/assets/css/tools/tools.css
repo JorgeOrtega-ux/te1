@@ -1028,13 +1028,19 @@
     height: 100%;
     padding: 12px;
     opacity: 0;
-    transition: opacity 0.2s ease-out;
+    transform: scale(0.9);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
     box-sizing: border-box;
 }
 
-.dynamic-island.active .island-notification-content {
+.island-notification-content.content-visible {
     opacity: 1;
-    transition: opacity 0.4s ease-in 0.2s;
+    transform: scale(1);
+    transition: opacity 0.4s ease-in 0.2s, transform 0.4s ease-in 0.2s;
+}
+
+.dynamic-island.active-tool-ringing.small-viewport {
+    width: 320px;
 }
 
 .island-left-group {
@@ -1165,6 +1171,10 @@
 
     .dynamic-island.active-tool-ringing {
         width: 320px;
+    }
+    
+    .dynamic-island.active-tool-ringing.small-viewport {
+        width: 280px;
     }
 
     .island-circle {
@@ -1305,7 +1315,7 @@
 .widget-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1d1d1f;
+    color: #000000e6;
 }
 
 .clock-content {
@@ -1315,7 +1325,7 @@
 .clock-time {
     font-size: 4rem;
     font-weight: 700;
-    color: #1d1d1f;
+    color: #000000e6;
 }
 
 .clock-date {
@@ -1444,7 +1454,7 @@
 }
 
 .custom-select-wrapper--row > .custom-select-content {
-    flex: 1; 
+    flex: 1;
 }
 
 .custom-select-wrapper--row > .menu-action-button {
