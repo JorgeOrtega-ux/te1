@@ -1,4 +1,4 @@
-// ========== APPLICATION MAIN INITIALIZER - UPDATED FOR UNIFIED MODULE MANAGER ==========
+// ========== APPLICATION MAIN INITIALIZER - UPDATED FOR UNIFIED MODAL CONTROLLER ==========
 import { initLocationManager, resetLocationSearch } from '../general/location-manager.js';
 
 import { initColorSearchSystem } from './color-search-system.js';
@@ -8,7 +8,7 @@ import { initializeCategorySliderService, initializeCentralizedFontManager, init
 import { initColorTextSystem, refreshColorSystem, applyCollapsedSectionsState, setupCollapsibleSectionEvents } from '../components/palette-colors.js';
 import { initializeZoneInfoTool } from '../config/zoneinfo-controller.js';
 
-import { initConfirmationModal } from './confirmation-modal-controller.js';
+import { showModal } from '.modal-controller.js'; // Importar la nueva función
 import { initMobileDragController } from './drag-controller.js';
 import { initSidebarMobile, initSidebarSections, initControlCenter, initNewOverlayModules, logAllStates, getAppliedTextStyle, getAppliedColor, getAppliedFontScale } from './main.js';
 import { initModuleManager, updateMenuLabels, applyInitialStates as applyModuleManagerInitialStates, setTranslationFunction as setModuleManagerTranslationFunction, getCurrentLanguage as getModuleManagerCurrentLanguage, getCurrentTheme as getModuleManagerCurrentTheme, isLoading as isModuleManagerLoading } from './module-manager.js';
@@ -22,8 +22,7 @@ import { initializeTimerController } from '../tools/timer-controller.js';
 import { initializeAlarmClock } from '../tools/alarm-controller.js';
 import { initWorldClock } from '../tools/worldClock-controller.js';
 
-// ========== CONFIGURATION CONSTANTS ==========
-
+// ... (El resto de las constantes y la configuración se mantienen igual)
 const TIMING_CONFIG = {
     DEBOUNCE_DELAY: 300,
     FORCE_REFRESH_DELAY: 500,
@@ -103,8 +102,6 @@ const REFRESH_PRESETS = {
     }
 };
 
-// ========== CENTRALIZED SYSTEM STATE ==========
-
 const applicationState = {
     isReady: false,
     isRefreshing: false,
@@ -117,8 +114,6 @@ const applicationState = {
 const debugConfig = {
     enableLogs: false
 };
-
-// ========== UNIFIED REFRESH SYSTEM - SIMPLIFIED ==========
 
 function createRefreshConfig(options = {}) {
     const {
@@ -262,8 +257,6 @@ function debouncedRefresh(callback, delay = TIMING_CONFIG.DEBOUNCE_DELAY) {
     applicationState.refreshTimeout = setTimeout(callback, delay);
 }
 
-// ========== REGISTERED FUNCTIONS SYSTEM ==========
-
 const appFunctions = {
     forceRefresh: forceRefresh,
     updateMenuLabels: updateMenuLabels,
@@ -278,8 +271,6 @@ const appFunctions = {
     getCurrentLanguage: null,
     getCurrentTheme: null
 };
-
-// ========== MAIN INITIALIZATION - SIMPLIFIED WITH UNIFIED MODULE MANAGER ==========
 
 function initApp() {
     if (applicationState.isInitializing) {
@@ -323,8 +314,8 @@ function initApp() {
 }
 
 function initializeMainComponents() {
-    initDB(); // Asegurarse de que la BD se abra pronto.
-    startAudioCachePreload(); // **MODIFICACIÓN**: Iniciamos la precarga de sonidos.
+    initDB();
+    startAudioCachePreload(); 
 
     initSidebarMobile();
     initSidebarSections();
@@ -336,7 +327,7 @@ function initializeMainComponents() {
     initializeEverything();
     applyCollapsedSectionsState();
     setupCollapsibleSectionEvents();
-    initConfirmationModal();
+    // initConfirmationModal(); // Se elimina la llamada
     initializeCategorySliderService();
     initializeCentralizedFontManager();
     initializeFullScreenManager();
@@ -387,8 +378,6 @@ function dispatchAppReadyEvent() {
     });
     document.dispatchEvent(appReadyEvent);
 }
-
-// ========== PERSONALIZATION DATA LOGGER - INTEGRATED ==========
 
 function logPersonalizationData() {
     console.groupCollapsed('🌙 ProjectNocturne - Service (Personalization Data)');
@@ -475,13 +464,18 @@ function getLanguageDisplayName(language) {
     return languageNames[language] || language;
 }
 
-// ========== EVENT LISTENERS CONFIGURATION - OPTIMIZED ==========
-
 function setupEventListeners() {
     setupRefreshEventListeners();
     setupMutationObserver();
 
-    // AÑADE ESTE BLOQUE
+    document.addEventListener(EVENT_NAMES.CLICK, (e) => {
+        const suggestButton = e.target.closest('[data-action="suggest-improvements"]');
+        if (suggestButton) {
+            e.preventDefault();
+            showModal('suggestion');
+        }
+    });
+
     document.addEventListener('moduleDeactivated', (e) => {
         if (e.detail && (e.detail.module === 'controlCenter' || e.detail.module === 'toggleControlCenter')) {
             if (typeof resetLocationSearch === 'function') {
@@ -606,8 +600,6 @@ function handleSidebarButtonClick(e) {
     }, TIMING_CONFIG.SECTION_CHANGE_DELAY);
 }
 
-// ========== DYNAMIC ELEMENTS OBSERVER - SIMPLIFIED ==========
-
 function setupMutationObserver() {
     if (typeof MutationObserver === 'undefined') return;
 
@@ -658,8 +650,6 @@ function shouldRefreshForMutation(mutation) {
     }
     return false;
 }
-
-// ========== DEBUGGING FUNCTIONS ==========
 
 function debugTranslations() {
     console.group('🐛 Translation Debug Information (init-app)');

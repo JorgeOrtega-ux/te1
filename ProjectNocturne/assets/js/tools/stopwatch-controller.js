@@ -73,10 +73,7 @@ function formatTime(milliseconds) {
         timeString += `${hours.toString().padStart(2, '0')}:`;
     }
     
-    if (hours > 0 || minutes > 0) {
-        timeString += `${minutes.toString().padStart(2, '0')}:`;
-    }
-
+    timeString += `${minutes.toString().padStart(2, '0')}:`;
     timeString += `${seconds.toString().padStart(2, '0')}`;
 
     switch (stopwatchState.format) {

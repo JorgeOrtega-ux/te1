@@ -5,7 +5,7 @@ import { initializeSortable, handleWorldClockCardAction } from './general-tools.
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 import { getTranslation } from '../general/translations-controller.js';
-import { showConfirmation } from '../general/confirmation-modal-controller.js';
+import { showModal } from '../general/modal-controller.js';
 
 const clockIntervals = new Map();
 const CLOCKS_STORAGE_KEY = 'world-clocks';
@@ -530,7 +530,7 @@ function deleteClock(clockId) {
 
     const clockTitle = card.dataset.title;
 
-    showConfirmation('world-clock', clockTitle, () => {
+    showModal('world-clock', clockTitle, () => {
         const isPinned = card.querySelector('.card-pin-btn.active');
 
         if (clockIntervals.has(card)) {

@@ -5,7 +5,7 @@ import { playSound as playAlarmSound, stopSound as stopAlarmSound, initializeSor
 import { showDynamicIslandNotification, hideDynamicIsland } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
 import { getTranslation } from '../general/translations-controller.js';
-import { showConfirmation } from '../general/confirmation-modal-controller.js';
+import { showModal } from '../general/modal-controller.js';
 
 const ALARMS_STORAGE_KEY = 'user-alarms';
 const DEFAULT_ALARMS_STORAGE_KEY = 'default-alarms-order';
@@ -901,7 +901,7 @@ function handleDeleteAlarm(alarmId) {
     if (!alarm) return;
 
     const alarmName = alarm.type === 'default' ? getTranslation(alarm.title, 'alarms') : alarm.title;
-    showConfirmation('alarm', alarmName, () => {
+    showModal('alarm', alarmName, () => {
         deleteAlarm(alarmId);
     });
 }

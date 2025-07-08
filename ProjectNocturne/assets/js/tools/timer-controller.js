@@ -5,7 +5,7 @@ import { prepareTimerForEdit, prepareCountToDateForEdit } from '../general/menu-
 import { playSound, stopSound, initializeSortable, getAvailableSounds, handleTimerCardAction, getSoundNameById, createExpandableToolContainer } from './general-tools.js';
 import { showDynamicIslandNotification, hideDynamicIsland } from '../general/dynamic-island-controller.js';
 import { updateEverythingWidgets } from './everything-controller.js';
-import { showConfirmation } from '../general/confirmation-modal-controller.js';
+import { showModal } from '../general/modal-controller.js';
 
 const TIMERS_STORAGE_KEY = 'user-timers';
 const DEFAULT_TIMERS_STORAGE_KEY = 'default-timers-order';
@@ -1312,7 +1312,7 @@ function handleDeleteTimer(timerId) {
 
     const timerName = timerToDelete.id.startsWith('default-timer-') ? getTranslation(timerToDelete.title, 'timer') : timerToDelete.title;
 
-    showConfirmation('timer', timerName, () => {
+    showModal('timer', timerName, () => {
         if (activeTimers.has(timerId)) {
             clearTimeout(activeTimers.get(timerId));
             activeTimers.delete(timerId);

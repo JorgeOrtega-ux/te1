@@ -1,7 +1,7 @@
 // ========== general-tools.js - CÓDIGO COMPLETO ACTUALIZADO ==========
 
 import { getTranslation } from '../general/translations-controller.js';
-import { showConfirmation } from '../general/confirmation-modal-controller.js';
+import { showModal } from '../general/modal-controller.js';
 import { showDynamicIslandNotification } from '../general/dynamic-island-controller.js';
 
 const DB_NAME = 'ProjectNocturneDB';
@@ -141,7 +141,8 @@ async function deleteUserAudio(audioId, callback) {
     const audioToDelete = userAudiosCache.find(audio => audio.id === audioId);
     if (!audioToDelete) return;
 
-    showConfirmation('audio', audioToDelete.name, async () => {
+    // AHORA LLAMAMOS A showModal CON EL TIPO 'confirmation'
+    showModal('confirmation', { type: 'audio', name: audioToDelete.name }, async () => {
         await deleteAudioFromDB(audioId);
         userAudiosCache = userAudiosCache.filter(audio => audio.id !== audioId);
         replaceDeletedAudioInTools(audioId, 'classic_beep');

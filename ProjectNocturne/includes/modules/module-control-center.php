@@ -21,7 +21,7 @@
                         <span data-translate="privacy_policy" data-translate-category="menu" data-translate-target="text"></span>
                     </div>
                 </div>
-                <div class="menu-link">
+                <div class="menu-link" data-action="suggest-improvements">
                     <div class="menu-link-icon">
                         <span class="material-symbols-rounded">emoji_objects</span>
                     </div>

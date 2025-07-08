@@ -61,7 +61,7 @@
     <script type="module" src="assets/js/general/tooltip-controller.js"></script>
     <script type="module" src="assets/js/general/drag-controller.js"></script>
     <script type="module" src="assets/js/general/dynamic-island-controller.js"></script>
-    <script type="module" src="assets/js/general/confirmation-modal-controller.js"></script>
+    <script type="module" src="assets/js/general/modal-controller.js"></script>
     <script type="module" src="assets/js/general/menu-interactions.js"></script>
     <script type="module" src="assets/js/general/color-search-system.js"></script>
 
