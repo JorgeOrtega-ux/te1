@@ -16,7 +16,7 @@
                     data-translate-target="tooltip">
                     <span class="material-symbols-rounded">pause</span>
                 </div>
-                 <div class="header-button"
+                <div class="header-button"
                     data-action="lap"
                     data-translate="lap"
                     data-translate-category="tooltips"
@@ -30,8 +30,7 @@
                     data-translate-target="tooltip">
                     <span class="material-symbols-rounded">refresh</span>
                 </div>
-            </div>
-            <div class="tool-options-content body-title">
+                <div class="separator"></div>
                 <div class="header-button"
                     data-action="change-format"
                     data-translate="change_format"
@@ -46,6 +45,8 @@
                     data-translate-target="tooltip">
                     <span class="material-symbols-rounded">download</span>
                 </div>
+            </div>
+            <div class="tool-options-content body-title">
                 <div class="increse-font-zise">
                     <div class="increse-font-zise-left"
                         data-translate="remove"
@@ -100,7 +101,7 @@
             </div>
         </div>
     </div>
-   <div class="section-bottom disabled">
+    <div class="section-bottom disabled">
         <div class="laps-table-container">
             <table class="laps-table body-title">
                 <thead>

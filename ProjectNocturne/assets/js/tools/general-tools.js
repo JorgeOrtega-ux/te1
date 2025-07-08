@@ -1192,11 +1192,9 @@ export function initializeTextStyleManager() {
 }
 export function initializeScrollShadow() {
     const menus = document.querySelectorAll('[data-menu]');
+    const generalContent = document.querySelector('.general-content');
 
-    menus.forEach(menu => {
-        const topContainer = menu.querySelector('.menu-section-top, .menu-header');
-        const scrollableContainer = menu.querySelector('.overflow-y');
-
+    const setupScrollShadow = (topContainer, scrollableContainer) => {
         if (topContainer && scrollableContainer) {
             const handleScroll = () => {
                 if (scrollableContainer.scrollTop > 0) {
@@ -1205,11 +1203,22 @@ export function initializeScrollShadow() {
                     topContainer.classList.remove('shadow');
                 }
             };
-            
             scrollableContainer.removeEventListener('scroll', handleScroll);
             scrollableContainer.addEventListener('scroll', handleScroll);
         }
+    };
+
+    menus.forEach(menu => {
+        const topContainer = menu.querySelector('.menu-section-top, .menu-header');
+        const scrollableContainer = menu.querySelector('.overflow-y');
+        setupScrollShadow(topContainer, scrollableContainer);
     });
+
+    if (generalContent) {
+        const topContainer = generalContent.querySelector('.general-content-top');
+        const scrollableContainer = generalContent.querySelector('.scrollable-content');
+        setupScrollShadow(topContainer, scrollableContainer);
+    }
 }
 export function initializeFullScreenManager() {
     if (!document.documentElement.requestFullscreen) {
