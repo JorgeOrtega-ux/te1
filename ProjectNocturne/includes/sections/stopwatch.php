@@ -32,6 +32,20 @@
                 </div>
             </div>
             <div class="tool-options-content body-title">
+                <div class="header-button"
+                    data-action="change-format"
+                    data-translate="change_format"
+                    data-translate-category="tooltips"
+                    data-translate-target="tooltip">
+                    <span class="material-symbols-rounded">timer_10_select</span>
+                </div>
+                <div class="header-button"
+                    data-action="export-laps"
+                    data-translate="export_laps"
+                    data-translate-category="tooltips"
+                    data-translate-target="tooltip">
+                    <span class="material-symbols-rounded">download</span>
+                </div>
                 <div class="increse-font-zise">
                     <div class="increse-font-zise-left"
                         data-translate="remove"

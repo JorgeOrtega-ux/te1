@@ -183,7 +183,9 @@
     "stopwatch": "Stopwatch",
     "timer": "Timer",
     "timezone": "Timezone",
-    "world_clock": "World Clock"
+    "world_clock": "World Clock",
+    "change_format": "Change format",
+    "export_laps": "Export laps"
   },
   "stopwatch": {
     "lap_header": "Lap",

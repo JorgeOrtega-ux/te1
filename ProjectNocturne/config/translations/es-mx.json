@@ -183,7 +183,9 @@
     "stopwatch": "Cronómetro",
     "timer": "Temporizador",
     "timezone": "Zona horaria",
-    "world_clock": "Reloj mundial"
+    "world_clock": "Reloj mundial",
+    "change_format": "Cambiar formato",
+    "export_laps": "Exportar vueltas"
   },
   "stopwatch": {
     "lap_header": "Vuelta",

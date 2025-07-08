@@ -18,6 +18,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script src="assets/js/general/initial-theme.js"></script>
 </head>
@@ -50,7 +51,6 @@
         </div>
     </div>
 
-    <!-- General scripts -->
     <script type="module" src="assets/js/general/init-app.js"></script>
     <script type="module" src="assets/js/general/main.js"></script>
     <script type="module" src="assets/js/general/translations-controller.js"></script>
@@ -63,7 +63,6 @@
     <script type="module" src="assets/js/general/dynamic-island-controller.js"></script>
     <script type="module" src="assets/js/general/confirmation-modal-controller.js"></script>
 
-    <!-- Tools scripts -->
     <script type="module" src="assets/js/tools/general-tools.js"></script>
     <script type="module" src="assets/js/tools/palette-colors.js"></script>
     <script type="module" src="assets/js/tools/color-search-system.js"></script>

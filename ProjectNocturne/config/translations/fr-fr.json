@@ -183,7 +183,9 @@
     "stopwatch": "Chronomètre",
     "timer": "Minuteur",
     "timezone": "Fuseau horaire",
-    "world_clock": "Horloge mondiale"
+    "world_clock": "Horloge mondiale",
+    "change_format": "Changer le format",
+    "export_laps": "Exporter les tours"
   },
   "stopwatch": {
     "lap_header": "Tour",
