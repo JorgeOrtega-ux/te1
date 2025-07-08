@@ -9,6 +9,9 @@ const DB_VERSION = 1;
 const AUDIO_STORE_NAME = 'user_audio_store';
 
 let db = null;
+let isCachePopulated = false;
+let userAudiosCache = [];
+let audioCachePromise = null;
 
 function openDB() {
     return new Promise((resolve, reject) => {
@@ -91,14 +94,36 @@ async function deleteAudioFromDB(id) {
     });
 }
 
-let userAudiosCache = [];
-let isCachePopulated = false;
-
+// **MODIFICACIÓN CLAVE**: Esta función ahora gestiona la promesa de carga.
 async function populateAudioCache() {
     if (isCachePopulated) return;
-    userAudiosCache = await getAllAudiosFromDB();
-    isCachePopulated = true;
+    // Si ya hay una promesa de carga en curso, la esperamos.
+    if (audioCachePromise) return audioCachePromise;
+
+    // Creamos una nueva promesa para la carga.
+    audioCachePromise = (async () => {
+        try {
+            userAudiosCache = await getAllAudiosFromDB();
+            isCachePopulated = true;
+            console.log('🔊 Audio cache populated on startup.');
+        } catch (error) {
+            console.error('Failed to populate audio cache:', error);
+            // Asegurarnos de que no reintente infinitamente en caso de error.
+            isCachePopulated = false;
+        } finally {
+            audioCachePromise = null; // Limpiamos la promesa una vez resuelta.
+        }
+    })();
+
+    return audioCachePromise;
 }
+
+// **NUEVA FUNCIÓN EXPORTADA**: Para iniciar la precarga desde init-app.js
+export function startAudioCachePreload() {
+    // No necesitamos `await` aquí, solo queremos que empiece.
+    populateAudioCache();
+}
+
 
 async function saveUserAudio(name, fileBlob) {
     const newAudio = {
@@ -263,8 +288,11 @@ export function stopSound() {
     isPlayingSound = false;
 }
 
+// **MODIFICACIÓN CLAVE**: La función ahora es asíncrona y espera la carga de la caché.
 export async function generateSoundList(uploadElement, listElement, actionName, activeSoundId = null) {
+    // Esperamos a que la caché esté poblada.
     await populateAudioCache();
+
     if (!uploadElement || !listElement) {
         console.error('Sound list generation failed: target elements not found.');
         return;

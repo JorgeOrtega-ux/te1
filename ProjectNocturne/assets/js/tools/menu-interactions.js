@@ -685,7 +685,7 @@ async function populateTimezoneDropdown(parentMenu, countryCode) {
     }
 }
 
-function populateSoundsMenu(context) {
+async function populateSoundsMenu(context) {
     const soundsMenu = document.querySelector('.menu-sounds');
     if (!soundsMenu) return;
     const uploadContainer = soundsMenu.querySelector('#upload-audio-wrapper');
@@ -698,7 +698,10 @@ function populateSoundsMenu(context) {
     } else if (context === 'count_to_date') {
         activeSoundId = state.timer.countTo.sound;
     }
-    generateSoundList(uploadContainer, listContainer, 'selectSound', activeSoundId);
+    
+    // `generateSoundList` ahora es asíncrono y espera la caché,
+    // por lo que esperamos a que termine antes de continuar.
+    await generateSoundList(uploadContainer, listContainer, 'selectSound', activeSoundId);
 }
 
 function setupGlobalEventListeners() {

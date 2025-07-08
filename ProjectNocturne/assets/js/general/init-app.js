@@ -3,7 +3,8 @@ import { initLocationManager, resetLocationSearch } from '../general/location-ma
 
 import { initColorSearchSystem } from '../tools/color-search-system.js';
 import { initializeEverything } from '../tools/everything-controller.js';
-import { initializeCategorySliderService, initializeCentralizedFontManager, initializeFullScreenManager, initializeCardEventListeners, initializeScrollShadow } from '../tools/general-tools.js';
+// **MODIFICACIÓN**: Importamos la nueva función de precarga.
+import { initializeCategorySliderService, initializeCentralizedFontManager, initializeFullScreenManager, initializeCardEventListeners, initializeScrollShadow, startAudioCachePreload, initDB } from '../tools/general-tools.js';
 import { initColorTextSystem, refreshColorSystem, applyCollapsedSectionsState, setupCollapsibleSectionEvents } from '../tools/palette-colors.js';
 import { initializeZoneInfoTool } from '../tools/zoneinfo-controller.js';
 
@@ -322,6 +323,9 @@ function initApp() {
 }
 
 function initializeMainComponents() {
+    initDB(); // Asegurarse de que la BD se abra pronto.
+    startAudioCachePreload(); // **MODIFICACIÓN**: Iniciamos la precarga de sonidos.
+
     initSidebarMobile();
     initSidebarSections();
     initControlCenter();
