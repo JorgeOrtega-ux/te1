@@ -1,4 +1,4 @@
-// timer-controller.js - CÓDIGO COMPLETO CON LÓGICA UNIFICADA
+// timer-controller.js - CÓDIGO COMPLETO CON LÓGICA UNIFICADA Y CONSISTENTE
 import { getTranslation } from '../general/translations-controller.js';
 import { activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareTimerForEdit, prepareCountToDateForEdit } from './menu-interactions.js';
@@ -129,6 +129,9 @@ function getTimerControlsState(timer) {
 function loadAndRestoreTimers() {
     console.log('🔄 Iniciando carga y restauración de timers...');
     
+    const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
+    const lastVisitTime = lastVisit ? parseInt(lastVisit, 10) : null;
+    
     const storedUserTimers = localStorage.getItem(TIMERS_STORAGE_KEY);
     if (storedUserTimers) {
         try {
@@ -158,98 +161,108 @@ function loadAndRestoreTimers() {
 
     console.log(`⏰ Procesando ${allTimers.length} timers para restauración...`);
 
-    allTimers.forEach(timer => {
-        if (timer.type === 'countdown') {
-            if (timer.isRinging) {
-                // ========== TIMER ESTABA SONANDO AL CERRAR WEB ==========
-                console.log(`🔧 RESTAURACIÓN: Timer ${timer.id} estaba sonando cuando se cerró la web`);
-                
-                // ===== ESTRATEGIA MEJORADA PARA CALCULAR CUÁNDO SONÓ =====
-                let whenItRang = now; // fallback final
-                
-                if (timer.targetTime) {
-                    // Caso 1: Tenemos targetTime (momento exacto cuando debía terminar)
-                    whenItRang = timer.targetTime;
-                    console.log(`   - Usando targetTime: ${new Date(timer.targetTime).toLocaleString()}`);
-                } else if (timer.lastTriggered) {
-                    // Caso 2: Tenemos lastTriggered (cuando se activó la alarma)
-                    whenItRang = timer.lastTriggered;
-                    console.log(`   - Usando lastTriggered: ${new Date(timer.lastTriggered).toLocaleString()}`);
-                } else if (timer.remaining <= 0) {
-                    // Caso 3: Timer en 00:00:00, probablemente sonó recientemente
-                    // Estimamos que sonó hace poco tiempo basado en cuándo se cerró la web
-                    const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
-                    if (lastVisit) {
-                        const lastVisitTime = parseInt(lastVisit, 10);
-                        const timeSinceLastVisit = now - lastVisitTime;
-                        
-                        if (timeSinceLastVisit < 60000) { // Menos de 1 minuto
-                            whenItRang = lastVisitTime + 5000; // Estimamos que sonó 5 segundos después de cerrar
-                        } else {
-                            whenItRang = now - Math.min(timeSinceLastVisit / 2, 300000); // Máximo 5 minutos atrás
-                        }
-                        console.log(`   - Estimando basado en última visita: ${new Date(whenItRang).toLocaleString()}`);
-                    } else {
-                        whenItRang = now - (30 * 1000); // Fallback: hace 30 segundos
-                        console.log(`   - Fallback final: hace 30 segundos`);
-                    }
-                } else {
-                    // Caso 4: Timer tiene tiempo restante pero estaba sonando (caso raro)
-                    whenItRang = now - (10 * 1000); // Hace 10 segundos
-                    console.log(`   - Caso raro - timer sonando con tiempo restante: hace 10 segundos`);
-                }
-                
-                timer.rangAt = whenItRang;
-                timer.remaining = timer.initialDuration;
-                timer.isRunning = false;
-                timer.isRinging = false;
-                delete timer.targetTime;
-                
-                console.log(`   ✅ Timer restaurado con tag offline: rangAt=${new Date(timer.rangAt).toLocaleString()}`);
-                
-            } else if (timer.isRunning && timer.targetTime) {
-                const timeWhenFinished = timer.targetTime;
-                
-                if (now >= timeWhenFinished) {
-                    // ========== TIMER TERMINÓ MIENTRAS WEB ESTABA CERRADA ==========
-                    console.log(`🔧 RESTAURACIÓN: Timer ${timer.id} terminó mientras la web estaba cerrada`);
+    // ========== RESTAURACIÓN INTELIGENTE SIMILAR A ALARMAS ==========
+    if (lastVisitTime) {
+        allTimers.forEach(timer => {
+            if (timer.type === 'countdown') {
+                if (timer.isRinging) {
+                    // ========== TIMER ESTABA SONANDO AL CERRAR WEB ==========
+                    console.log(`🔧 RESTAURACIÓN: Timer ${timer.id} estaba sonando cuando se cerró la web`);
                     
-                    timer.rangAt = timeWhenFinished; // Momento exacto cuando terminó
+                    // ===== ESTRATEGIA MEJORADA PARA CALCULAR CUÁNDO SONÓ =====
+                    let whenItRang = now; // fallback final
+                    
+                    if (timer.targetTime) {
+                        // Caso 1: Tenemos targetTime (momento exacto cuando debía terminar)
+                        whenItRang = timer.targetTime;
+                        console.log(`   - Usando targetTime: ${new Date(timer.targetTime).toLocaleString()}`);
+                    } else if (timer.lastTriggered) {
+                        // Caso 2: Tenemos lastTriggered (cuando se activó la alarma)
+                        whenItRang = timer.lastTriggered;
+                        console.log(`   - Usando lastTriggered: ${new Date(timer.lastTriggered).toLocaleString()}`);
+                    } else if (timer.remaining <= 0) {
+                        // Caso 3: Timer en 00:00:00, probablemente sonó recientemente
+                        // Estimamos que sonó hace poco tiempo basado en cuándo se cerró la web
+                        if (lastVisitTime) {
+                            const timeSinceLastVisit = now - lastVisitTime;
+                            
+                            if (timeSinceLastVisit < 60000) { // Menos de 1 minuto
+                                whenItRang = lastVisitTime + 5000; // Estimamos que sonó 5 segundos después de cerrar
+                            } else {
+                                whenItRang = now - Math.min(timeSinceLastVisit / 2, 300000); // Máximo 5 minutos atrás
+                            }
+                            console.log(`   - Estimando basado en última visita: ${new Date(whenItRang).toLocaleString()}`);
+                        } else {
+                            whenItRang = now - (30 * 1000); // Fallback: hace 30 segundos
+                            console.log(`   - Fallback final: hace 30 segundos`);
+                        }
+                    } else {
+                        // Caso 4: Timer tiene tiempo restante pero estaba sonando (caso raro)
+                        whenItRang = now - (10 * 1000); // Hace 10 segundos
+                        console.log(`   - Caso raro - timer sonando con tiempo restante: hace 10 segundos`);
+                    }
+                    
+                    timer.rangAt = whenItRang;
                     timer.remaining = timer.initialDuration;
                     timer.isRunning = false;
                     timer.isRinging = false;
                     delete timer.targetTime;
                     
                     console.log(`   ✅ Timer restaurado con tag offline: rangAt=${new Date(timer.rangAt).toLocaleString()}`);
-                } else {
-                    // Timer aún corriendo normalmente
-                    timer.remaining = timeWhenFinished - now;
-                    startCountdownTimer(timer);
-                    updateTimerCardControls(timer.id);
+                    
+                } else if (timer.isRunning && timer.targetTime) {
+                    const timeWhenFinished = timer.targetTime;
+                    
+                    if (now >= timeWhenFinished) {
+                        // ========== TIMER TERMINÓ MIENTRAS WEB ESTABA CERRADA ==========
+                        console.log(`🔧 RESTAURACIÓN: Timer ${timer.id} terminó mientras la web estaba cerrada`);
+                        
+                        timer.rangAt = timeWhenFinished; // Momento exacto cuando terminó
+                        timer.remaining = timer.initialDuration;
+                        timer.isRunning = false;
+                        timer.isRinging = false;
+                        delete timer.targetTime;
+                        
+                        console.log(`   ✅ Timer restaurado con tag offline: rangAt=${new Date(timer.rangAt).toLocaleString()}`);
+                    } else {
+                        // Timer aún corriendo normalmente - asegurar que remaining no sea negativo
+                        const rawRemaining = timeWhenFinished - now;
+                        timer.remaining = Math.max(0, rawRemaining);
+                        startCountdownTimer(timer);
+                        updateTimerCardControls(timer.id);
+                    }
+                } else if (timer.remaining <= 0 && !timer.rangAt) {
+                    // ========== TIMER EN 00:00:00 SIN CONTEXTO ==========
+                    console.log(`🔧 RESTAURACIÓN: Timer ${timer.id} estaba en 00:00:00 - restaurando a tiempo original`);
+                    
+                    timer.remaining = timer.initialDuration;
+                    timer.isRunning = false;
+                    timer.isRinging = false;
+                    delete timer.targetTime;
+                    
+                    // Estimamos que sonó basándose en la última visita
+                    if (lastVisitTime) {
+                        const timeSinceLastVisit = now - lastVisitTime;
+                        timer.rangAt = now - Math.min(timeSinceLastVisit / 2, 300000); // Máximo 5 minutos atrás
+                    } else {
+                        timer.rangAt = now - (30 * 1000); // Hace 30 segundos por defecto
+                    }
+                    
+                    console.log(`   ✅ Timer restaurado con tag offline estimado: rangAt=${new Date(timer.rangAt).toLocaleString()}`);
                 }
-            } else if (timer.remaining <= 0 && !timer.rangAt) {
-                // ========== TIMER EN 00:00:00 SIN CONTEXTO ==========
-                console.log(`🔧 RESTAURACIÓN: Timer ${timer.id} estaba en 00:00:00 - restaurando a tiempo original`);
-                
-                timer.remaining = timer.initialDuration;
-                timer.isRunning = false;
-                timer.isRinging = false;
-                delete timer.targetTime;
-                timer.rangAt = now - (30 * 1000); // Hace 30 segundos
-                
-                console.log(`   ✅ Timer restaurado con tag offline estimado`);
+            } else if (timer.type === 'count_to_date' && timer.isRunning) {
+                const rawRemaining = new Date(timer.targetDate).getTime() - now;
+                timer.remaining = Math.max(0, rawRemaining);
+                if (timer.remaining <= 0) {
+                    timer.remaining = 0;
+                    timer.isRunning = false;
+                    timer.rangAt = new Date(timer.targetDate).getTime();
+                } else {
+                    startCountToDateTimer(timer);
+                }
             }
-        } else if (timer.type === 'count_to_date' && timer.isRunning) {
-            timer.remaining = new Date(timer.targetDate).getTime() - now;
-            if (timer.remaining <= 0) {
-                timer.remaining = 0;
-                timer.isRunning = false;
-                timer.rangAt = new Date(timer.targetDate).getTime();
-            } else {
-                startCountToDateTimer(timer);
-            }
-        }
-    });
+        });
+    }
 
     // Configurar timer fijado
     let pinnedTimer = allTimers.find(t => t.isPinned);
@@ -304,8 +317,15 @@ function pauseTimer(timerId) {
         activeTimers.delete(timer.id);
     }
 
+    // ========== CORRECCIÓN PARA EVITAR VALORES NEGATIVOS AL PAUSAR ==========
     if(timer.type === 'countdown') {
-        timer.remaining = timer.targetTime - Date.now();
+        // Si el timer ya terminó (targetTime pasó), no calcular tiempo negativo
+        const rawRemaining = timer.targetTime - Date.now();
+        if (rawRemaining <= 0) {
+            timer.remaining = 0; // Ya terminó, mantener en 0
+        } else {
+            timer.remaining = rawRemaining; // Aún hay tiempo restante
+        }
     }
     delete timer.targetTime;
 
@@ -592,9 +612,9 @@ function createTimerCard(timer) {
              </button>
              <div class="card-menu-btn-wrapper">
                  <button class="card-menu-btn" data-action="toggle-timer-options"
-                     data-translate="timer_options"
-                     data-translate-category="timer"
-                     data-translate-target="tooltip">
+                         data-translate="timer_options"
+                         data-translate-category="timer"
+                         data-translate-target="tooltip">
                      <span class="material-symbols-rounded">more_horiz</span>
                  </button>
                  <div class="card-dropdown-menu body-title disabled">
@@ -714,9 +734,9 @@ function createTimerSearchResultItem(timer) {
              </button>
              <div class="card-menu-btn-wrapper">
                  <button class="card-menu-btn" data-action="toggle-item-menu"
-                     data-translate="timer_options"
-                     data-translate-category="timer"
-                     data-translate-target="tooltip">
+                         data-translate="timer_options"
+                         data-translate-category="timer"
+                         data-translate-target="tooltip">
                      <span class="material-symbols-rounded">more_horiz</span>
                  </button>
                  <div class="card-dropdown-menu body-title disabled">
@@ -933,12 +953,16 @@ function startCountdownTimer(timer) {
             return;
         }
 
-        timer.remaining = timer.targetTime - Date.now();
+        // ========== CORRECCIÓN PARA EVITAR TIEMPOS NEGATIVOS ==========
+        // Calcular tiempo restante con protección contra valores negativos
+        const rawRemaining = timer.targetTime - Date.now();
+        timer.remaining = Math.max(0, rawRemaining);
 
         updateCardDisplay(timer.id);
         if (timer.id === pinnedTimerId) updateMainDisplay();
 
-        if (timer.remaining <= 0) {
+        // Verificar si el timer ha terminado usando el valor crudo para mayor precisión
+        if (rawRemaining <= 0) {
             handleTimerEnd(timer.id);
         } else {
             const msUntilNextSecond = 1000 - (new Date().getMilliseconds());
@@ -959,11 +983,13 @@ function startCountToDateTimer(timer) {
             return;
         }
 
-        timer.remaining = new Date(timer.targetDate).getTime() - Date.now();
+        const rawRemaining = new Date(timer.targetDate).getTime() - Date.now();
+        timer.remaining = Math.max(0, rawRemaining);
+        
         updateCardDisplay(timer.id);
         if (timer.id === pinnedTimerId) updateMainDisplay();
 
-        if (timer.remaining <= 0) {
+        if (rawRemaining <= 0) {
             handleTimerEnd(timer.id);
         } else {
             const msUntilNextSecond = 1000 - (new Date().getMilliseconds());
@@ -975,11 +1001,14 @@ function startCountToDateTimer(timer) {
 }
 
 function formatTime(ms, type = 'countdown') {
+    // ========== CORRECCIÓN PARA EVITAR VALORES NEGATIVOS ==========
+    // Asegurar que nunca mostremos tiempos negativos, especialmente durante actualizaciones en tiempo real
     if (ms <= 0) {
         return type === 'count_to_date' ? getTranslation('event_finished', 'timer') || "¡Evento finalizado!" : "00:00:00";
     }
 
-    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    // Usar Math.max para prevenir valores negativos por latencia/timing
+    const totalSeconds = Math.max(0, Math.floor(Math.max(0, ms) / 1000));
 
     if (type === 'count_to_date') {
         const days = Math.floor(totalSeconds / 86400);
@@ -998,8 +1027,7 @@ function formatTime(ms, type = 'countdown') {
     }
 }
 
-// ========== RESTO DE FUNCIONES PRINCIPALES (renderAllTimerCards, updateMainDisplay, etc.) ==========
-// [Las demás funciones continúan igual que en el código original]
+// ========== RESTO DE FUNCIONES PRINCIPALES ==========
 
 export function addTimerAndRender(timerData) {
     const newTimer = {
@@ -1052,8 +1080,6 @@ export function addTimerAndRender(timerData) {
     updateEverythingWidgets();
     dispatchTimerStateChange();
 }
-
-// ========== FUNCIONES DE INICIALIZACIÓN Y MANEJO ==========
 
 function renderAllTimerCards() {
     const userContainer = document.querySelector('.tool-grid[data-timer-grid="user"]');

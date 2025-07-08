@@ -1,4 +1,4 @@
-// alarm-controller.js - CÓDIGO COMPLETO CON LÓGICA UNIFICADA
+// alarm-controller.js - CÓDIGO COMPLETO CON LÓGICA UNIFICADA Y CONSISTENTE
 import { use24HourFormat, activateModule, getCurrentActiveOverlay, allowCardMovement } from '../general/main.js';
 import { prepareAlarmForEdit } from './menu-interactions.js';
 import { playSound as playAlarmSound, stopSound as stopAlarmSound, initializeSortable, getAvailableSounds, handleAlarmCardAction, getSoundNameById, createExpandableToolContainer } from './general-tools.js';
@@ -9,7 +9,7 @@ import { showConfirmation } from '../general/confirmation-modal-controller.js';
 
 const ALARMS_STORAGE_KEY = 'user-alarms';
 const DEFAULT_ALARMS_STORAGE_KEY = 'default-alarms-order';
-const LAST_VISIT_KEY = 'last-visit-timestamp';
+const LAST_VISIT_KEY = 'last-alarm-visit-timestamp';
 
 const DEFAULT_ALARMS = [
     { id: 'default-2', title: 'lunch_time', hour: 13, minute: 0, sound: 'gentle_chime', enabled: false, type: 'default' },
@@ -72,7 +72,6 @@ function getAlarmControlsState(alarm) {
         editDisabled: isRinging,
         
         // Delete: Siempre habilitado excepto si está sonando
-        // Nota: Para alarmas no hay botón "reset" como en timers
         deleteDisabled: isRinging,
         
         // Estados adicionales
@@ -116,7 +115,7 @@ function startClock() {
     });
 }
 
-function loadAlarmsFromStorage() {
+function loadAndRestoreAlarms() {
     console.log('🔄 Iniciando carga y restauración de alarmas...');
     
     const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
@@ -151,8 +150,33 @@ function loadAlarmsFromStorage() {
             if (alarm.isRinging) {
                 // ========== ALARMA ESTABA SONANDO ==========
                 console.log(`🔧 RESTAURACIÓN: Alarma ${alarm.id} estaba sonando cuando se cerró la web`);
+                
+                // Calculamos cuándo debió sonar basándose en datos disponibles
+                let whenItRang = now; // fallback final
+                
+                if (alarm.lastTriggered) {
+                    // Caso 1: Tenemos lastTriggered (momento exacto cuando se activó la alarma)
+                    whenItRang = alarm.lastTriggered;
+                    console.log(`   - Usando lastTriggered: ${new Date(alarm.lastTriggered).toLocaleString()}`);
+                } else {
+                    // Caso 2: Estimamos basándose en la hora programada más reciente
+                    const todayAlarmTime = new Date();
+                    todayAlarmTime.setHours(alarm.hour, alarm.minute, 0, 0);
+                    
+                    if (todayAlarmTime <= now) {
+                        // La alarma de hoy ya pasó
+                        whenItRang = todayAlarmTime.getTime();
+                    } else {
+                        // La alarma de hoy no ha pasado, debe haber sonado ayer
+                        const yesterdayAlarmTime = new Date(todayAlarmTime);
+                        yesterdayAlarmTime.setDate(yesterdayAlarmTime.getDate() - 1);
+                        whenItRang = yesterdayAlarmTime.getTime();
+                    }
+                    console.log(`   - Estimando por horario programado: ${new Date(whenItRang).toLocaleString()}`);
+                }
+                
+                alarm.rangAt = whenItRang;
                 alarm.isRinging = false;
-                alarm.rangAt = alarm.lastTriggered || (now - (30 * 1000)); // Hace 30 segundos como fallback
                 alarm.enabled = false;
                 console.log(`   ✅ Restaurada con tag offline: rangAt=${new Date(alarm.rangAt).toLocaleString()}`);
                 
@@ -163,6 +187,7 @@ function loadAlarmsFromStorage() {
 
                 let lastExpectedRingTime = todayAlarmTime;
                 if (todayAlarmTime > now) {
+                    // Si la alarma de hoy no ha pasado, verificamos la de ayer
                     lastExpectedRingTime.setDate(lastExpectedRingTime.getDate() - 1);
                 }
                 
@@ -382,7 +407,7 @@ function dismissAlarm(alarmId) {
     const alarm = findAlarmById(alarmId);
     if (!alarm) return;
 
-    console.log(`🔕 Descartando alarma ${alarmId} - NO generar tag (suena con web abierta)`);
+    console.log(`🔕 Descartando alarma ${alarmId} - NO generar tag (usuario se enteró del sonido)`);
 
     alarm.isRinging = false;
     // ✅ NO establecer rangAt porque el usuario se enteró del sonido
@@ -917,7 +942,7 @@ export function initializeAlarmClock() {
         wrapper.appendChild(userContainer);
         wrapper.appendChild(defaultContainer);
     }
-    loadAlarmsFromStorage();
+    loadAndRestoreAlarms();
     loadDefaultAlarms();
     renderAllAlarmCards();
     updateAlarmCounts();
