@@ -855,19 +855,6 @@ body {
     align-items: center;
 }
 
-.tool-options-content::-webkit-scrollbar {
-    height: 8px;
-}
-
-.tool-options-content::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.tool-options-content::-webkit-scrollbar-thumb {
-    background: #00000080;
-    border-radius: 4px;
-}
-
 .tool-options-content::-webkit-scrollbar-thumb:hover {
     background: #000000;
 }

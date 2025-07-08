@@ -572,10 +572,6 @@
     background-color: rgba(37, 38, 39, 0.7);
 }
 
-.dark-mode .zoneInfoTool {
-    border-color: #ffffff20;
-}
-
 .dark-mode .expandable-card-header {
     background-color: transparent;
     border-color: #ffffff20;
@@ -640,9 +636,7 @@
     color: #ffffffe6;
 }
 
-.dark-mode .widget-list-item:hover {
-    background-color: #3a3a3c;
-}/* ===== NUEVA REGLA AÑADIDA ===== */
+/* ===== NUEVA REGLA AÑADIDA ===== */
 .dark-mode .menu-content-header-sm {
     background-color: transparent;
     border-color: #ffffff20;
