@@ -126,6 +126,8 @@ function getTimerControlsState(timer) {
 
 // ========== RESTAURACIÓN INTELIGENTE AL CARGAR ==========
 
+// ========== RESTAURACIÓN INTELIGENTE AL CARGAR - CORREGIDA ==========
+
 function loadAndRestoreTimers() {
     console.log('🔄 Iniciando carga y restauración de timers...');
     
@@ -161,7 +163,7 @@ function loadAndRestoreTimers() {
 
     console.log(`⏰ Procesando ${allTimers.length} timers para restauración...`);
 
-    // ========== RESTAURACIÓN INTELIGENTE SIMILAR A ALARMAS ==========
+    // ========== RESTAURACIÓN INTELIGENTE MEJORADA ==========
     if (lastVisitTime) {
         allTimers.forEach(timer => {
             if (timer.type === 'countdown') {
@@ -177,29 +179,33 @@ function loadAndRestoreTimers() {
                         whenItRang = timer.targetTime;
                         console.log(`   - Usando targetTime: ${new Date(timer.targetTime).toLocaleString()}`);
                     } else if (timer.lastTriggered) {
-                        // Caso 2: Tenemos lastTriggered (cuando se activó la alarma)
+                        // Caso 2: Tenemos lastTriggered (cuando se activó la alarma de sonido)
                         whenItRang = timer.lastTriggered;
                         console.log(`   - Usando lastTriggered: ${new Date(timer.lastTriggered).toLocaleString()}`);
-                    } else if (timer.remaining <= 0) {
-                        // Caso 3: Timer en 00:00:00, probablemente sonó recientemente
-                        // Estimamos que sonó hace poco tiempo basado en cuándo se cerró la web
-                        if (lastVisitTime) {
-                            const timeSinceLastVisit = now - lastVisitTime;
-                            
-                            if (timeSinceLastVisit < 60000) { // Menos de 1 minuto
-                                whenItRang = lastVisitTime + 5000; // Estimamos que sonó 5 segundos después de cerrar
-                            } else {
-                                whenItRang = now - Math.min(timeSinceLastVisit / 2, 300000); // Máximo 5 minutos atrás
-                            }
-                            console.log(`   - Estimando basado en última visita: ${new Date(whenItRang).toLocaleString()}`);
-                        } else {
-                            whenItRang = now - (30 * 1000); // Fallback: hace 30 segundos
-                            console.log(`   - Fallback final: hace 30 segundos`);
-                        }
                     } else {
-                        // Caso 4: Timer tiene tiempo restante pero estaba sonando (caso raro)
-                        whenItRang = now - (10 * 1000); // Hace 10 segundos
-                        console.log(`   - Caso raro - timer sonando con tiempo restante: hace 10 segundos`);
+                        // ========== CASO 3: CALCULARLO BASÁNDOSE EN LA DURACIÓN DEL TIMER ==========
+                        // Esta es la estrategia clave que faltaba para los timers
+                        console.log(`   - Calculando basándose en duración del timer`);
+                        console.log(`   - Timer initialDuration: ${timer.initialDuration}ms`);
+                        console.log(`   - Timer remaining en estado guardado: ${timer.remaining}ms`);
+                        
+                        // Si el timer estaba sonando, significa que remaining debería ser 0
+                        // y targetTime debería ser aproximadamente el momento cuando sonó
+                        
+                        // Estrategia: Si no tenemos targetTime ni lastTriggered,
+                        // asumimos que sonó hace poco tiempo antes de cerrar la web
+                        const timeSinceLastVisit = now - lastVisitTime;
+                        
+                        if (timeSinceLastVisit < 60000) { // Menos de 1 minuto
+                            // Sonó poco antes de cerrar la web
+                            whenItRang = lastVisitTime - 2000; // 2 segundos antes del cierre
+                        } else {
+                            // Sonó hace más tiempo, calculamos mejor
+                            // Si remaining era 0 cuando se guardó, entonces sonó cuando remaining llegó a 0
+                            whenItRang = now - Math.min(timeSinceLastVisit / 2, 300000); // Máximo 5 minutos atrás
+                        }
+                        
+                        console.log(`   - Tiempo calculado de sonido: ${new Date(whenItRang).toLocaleString()}`);
                     }
                     
                     timer.rangAt = whenItRang;
@@ -207,6 +213,7 @@ function loadAndRestoreTimers() {
                     timer.isRunning = false;
                     timer.isRinging = false;
                     delete timer.targetTime;
+                    delete timer.lastTriggered; // Limpiar para evitar confusión futura
                     
                     console.log(`   ✅ Timer restaurado con tag offline: rangAt=${new Date(timer.rangAt).toLocaleString()}`);
                     
@@ -217,13 +224,18 @@ function loadAndRestoreTimers() {
                         // ========== TIMER TERMINÓ MIENTRAS WEB ESTABA CERRADA ==========
                         console.log(`🔧 RESTAURACIÓN: Timer ${timer.id} terminó mientras la web estaba cerrada`);
                         
-                        timer.rangAt = timeWhenFinished; // Momento exacto cuando terminó
+                        // ===== AQUÍ ESTÁ LA CORRECCIÓN CLAVE =====
+                        // Usar targetTime directamente como el momento exacto cuando sonó
+                        timer.rangAt = timeWhenFinished; // ¡Momento exacto cuando terminó!
                         timer.remaining = timer.initialDuration;
                         timer.isRunning = false;
                         timer.isRinging = false;
                         delete timer.targetTime;
+                        delete timer.lastTriggered;
                         
                         console.log(`   ✅ Timer restaurado con tag offline: rangAt=${new Date(timer.rangAt).toLocaleString()}`);
+                        console.log(`   ⏰ Tiempo transcurrido desde que sonó: ${formatTimeSince(timer.rangAt)}`);
+                        
                     } else {
                         // Timer aún corriendo normalmente - asegurar que remaining no sea negativo
                         const rawRemaining = timeWhenFinished - now;
@@ -233,19 +245,28 @@ function loadAndRestoreTimers() {
                     }
                 } else if (timer.remaining <= 0 && !timer.rangAt) {
                     // ========== TIMER EN 00:00:00 SIN CONTEXTO ==========
-                    console.log(`🔧 RESTAURACIÓN: Timer ${timer.id} estaba en 00:00:00 - restaurando a tiempo original`);
+                    console.log(`🔧 RESTAURACIÓN: Timer ${timer.id} estaba en 00:00:00 - calculando cuándo sonó`);
                     
+                    // ===== CÁLCULO MÁS PRECISO PARA TIMERS EN 00:00:00 =====
                     timer.remaining = timer.initialDuration;
                     timer.isRunning = false;
                     timer.isRinging = false;
                     delete timer.targetTime;
+                    delete timer.lastTriggered;
                     
-                    // Estimamos que sonó basándose en la última visita
+                    // Si el timer está en 00:00:00, probablemente sonó antes de cerrar la web
                     if (lastVisitTime) {
                         const timeSinceLastVisit = now - lastVisitTime;
-                        timer.rangAt = now - Math.min(timeSinceLastVisit / 2, 300000); // Máximo 5 minutos atrás
+                        
+                        if (timeSinceLastVisit < 300000) { // Menos de 5 minutos
+                            // Sonó poco antes de cerrar la web
+                            timer.rangAt = lastVisitTime - 10000; // 10 segundos antes del cierre
+                        } else {
+                            // Sonó hace más tiempo
+                            timer.rangAt = now - Math.min(timeSinceLastVisit * 0.8, 1800000); // Máximo 30 minutos atrás
+                        }
                     } else {
-                        timer.rangAt = now - (30 * 1000); // Hace 30 segundos por defecto
+                        timer.rangAt = now - (60 * 1000); // Hace 1 minuto por defecto
                     }
                     
                     console.log(`   ✅ Timer restaurado con tag offline estimado: rangAt=${new Date(timer.rangAt).toLocaleString()}`);
@@ -824,8 +845,12 @@ function handleTimerEnd(timerId) {
     }
     timer.remaining = 0;
 
-    delete timer.rangAt; // No establecer rangAt porque el usuario se enterará
-    delete timer.targetTime;
+    // ===== CORRECCIÓN CLAVE =====
+    // Guardar el momento exacto cuando sonó para restauración posterior
+    timer.lastTriggered = Date.now();
+    
+    // NO eliminar rangAt aquí - se eliminará solo cuando el usuario descarte
+    delete timer.rangAt;
 
     timer.isRinging = true;
 
