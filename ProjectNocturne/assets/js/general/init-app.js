@@ -8,7 +8,7 @@ import { initializeCategorySliderService, initializeCentralizedFontManager, init
 import { initColorTextSystem, refreshColorSystem, applyCollapsedSectionsState, setupCollapsibleSectionEvents } from '../components/palette-colors.js';
 import { initializeZoneInfoTool } from '../config/zoneinfo-controller.js';
 
-import { showModal } from '.modal-controller.js'; // Importar la nueva función
+import { showModal } from './modal-controller.js'; // Importar la nueva función
 import { initMobileDragController } from './drag-controller.js';
 import { initSidebarMobile, initSidebarSections, initControlCenter, initNewOverlayModules, logAllStates, getAppliedTextStyle, getAppliedColor, getAppliedFontScale } from './main.js';
 import { initModuleManager, updateMenuLabels, applyInitialStates as applyModuleManagerInitialStates, setTranslationFunction as setModuleManagerTranslationFunction, getCurrentLanguage as getModuleManagerCurrentLanguage, getCurrentTheme as getModuleManagerCurrentTheme, isLoading as isModuleManagerLoading } from './module-manager.js';
