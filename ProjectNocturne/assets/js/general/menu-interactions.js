@@ -96,12 +96,12 @@ function navigateBack() {
     if (currentMenu) {
         currentMenu.classList.remove('active');
         currentMenu.classList.add('disabled');
-        
+
         // Reset search input when navigating away from a menu with a search bar
         const searchInput = currentMenu.querySelector('input[type="text"]');
         if (searchInput && ['sounds', 'country', 'timeZone'].includes(currentMenu.dataset.menu)) {
             searchInput.value = '';
-             // Dispara un evento 'input' para que la lógica de búsqueda se reinicie
+            // Dispara un evento 'input' para que la lógica de búsqueda se reinicie
             searchInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
 
@@ -698,7 +698,7 @@ async function populateSoundsMenu(context) {
     } else if (context === 'count_to_date') {
         activeSoundId = state.timer.countTo.sound;
     }
-    
+
     // `generateSoundList` ahora es asíncrono y espera la caché,
     // por lo que esperamos a que termine antes de continuar.
     await generateSoundList(uploadContainer, listContainer, 'selectSound', activeSoundId);
@@ -724,7 +724,11 @@ function setupGlobalEventListeners() {
         }
     });
 
-   document.body.addEventListener('input', (event) => {
+// CORRECCIÓN PARA EL SISTEMA DE BÚSQUEDA DE SONIDOS
+
+// En menu-interactions.js, reemplazar la sección del event listener 'input' por esto:
+
+document.body.addEventListener('input', (event) => {
     const target = event.target;
     if (!['sound-search-input', 'country-search-input', 'timezone-search-input'].includes(target.id)) return;
 
@@ -734,9 +738,8 @@ function setupGlobalEventListeners() {
     const searchTerm = target.value.toLowerCase();
     const creationWrapper = menu.querySelector('.creation-wrapper');
     const resultsWrapper = menu.querySelector('.search-results-wrapper');
-    const originalListContainer = creationWrapper.querySelector('.menu-list, #sound-list-wrapper');
 
-    if (!creationWrapper || !resultsWrapper || !originalListContainer) return;
+    if (!creationWrapper || !resultsWrapper) return;
 
     if (!searchTerm) {
         resultsWrapper.innerHTML = '';
@@ -749,49 +752,144 @@ function setupGlobalEventListeners() {
     resultsWrapper.classList.remove('disabled');
     resultsWrapper.innerHTML = '';
 
-    const allItems = originalListContainer.querySelectorAll('.menu-link');
-    const filteredItems = Array.from(allItems).filter(item => {
-        const itemName = item.querySelector('.menu-link-text span')?.textContent.toLowerCase();
-        return itemName && itemName.includes(searchTerm);
-    });
+    if (target.id === 'sound-search-input') {
+        // LÓGICA ESPECÍFICA PARA BÚSQUEDA DE SONIDOS
+        const originalListContainer = creationWrapper.querySelector('#sound-list-wrapper');
+        if (!originalListContainer) return;
 
-    if (filteredItems.length > 0) {
-        const newList = document.createElement('div');
-        newList.className = 'menu-list';
-        if (target.id === 'sound-search-input') {
+        const allSoundItems = originalListContainer.querySelectorAll('.menu-link');
+        console.log(`🔍 Búsqueda de sonidos: "${searchTerm}", elementos encontrados: ${allSoundItems.length}`);
+
+        const filteredItems = Array.from(allSoundItems).filter(item => {
+            // Buscar tanto en elementos con data-translate como en texto directo
+            const textSpan = item.querySelector('.menu-link-text span');
+            if (!textSpan) return false;
+
+            let itemName = '';
+            
+            // Si tiene atributo data-translate, usar la traducción
+            const translateKey = textSpan.getAttribute('data-translate');
+            if (translateKey && typeof window.getTranslation === 'function') {
+                itemName = window.getTranslation(translateKey, 'sounds');
+            }
+            
+            // Si no se pudo obtener traducción o no tiene data-translate, usar texto directo
+            if (!itemName || itemName === translateKey) {
+                itemName = textSpan.textContent;
+            }
+
+            const matches = itemName.toLowerCase().includes(searchTerm);
+            console.log(`   - "${itemName}" ${matches ? '✅' : '❌'}`);
+            return matches;
+        });
+
+        console.log(`🎵 Sonidos filtrados: ${filteredItems.length}`);
+
+        if (filteredItems.length > 0) {
+            const newList = document.createElement('div');
+            newList.className = 'menu-list';
+
+            // Buscar encabezados de sección y agrupar resultados
             const headers = originalListContainer.querySelectorAll('.menu-content-header-sm');
-            headers.forEach(header => {
-                const sectionItems = [];
-                let nextElement = header.nextElementSibling;
-                // Recolecta los sonidos de esta sección que coinciden con la búsqueda
-                while (nextElement && !nextElement.classList.contains('menu-content-header-sm')) {
-                    if (filteredItems.includes(nextElement)) {
-                        sectionItems.push(nextElement);
+            
+            if (headers.length > 0) {
+                // Si hay encabezados, agrupar por sección
+                headers.forEach(header => {
+                    const sectionItems = [];
+                    let nextElement = header.nextElementSibling;
+                    
+                    // Recolectar elementos de esta sección que coinciden con la búsqueda
+                    while (nextElement && !nextElement.classList.contains('menu-content-header-sm')) {
+                        if (filteredItems.includes(nextElement)) {
+                            sectionItems.push(nextElement);
+                        }
+                        nextElement = nextElement.nextElementSibling;
                     }
-                    nextElement = nextElement.nextElementSibling;
-                }
-                
-                // El encabezado solo se muestra si tiene elementos que coincidan.
-                // Se ha eliminado la comprobación del texto del propio encabezado.
-                if (sectionItems.length > 0) {
-                    newList.appendChild(header.cloneNode(true));
-                    sectionItems.forEach(item => newList.appendChild(item.cloneNode(true)));
-                }
-            });
+                    
+                    // Solo mostrar la sección si tiene elementos que coinciden
+                    if (sectionItems.length > 0) {
+                        const headerClone = header.cloneNode(true);
+                        newList.appendChild(headerClone);
+                        sectionItems.forEach(item => {
+                            const itemClone = item.cloneNode(true);
+                            newList.appendChild(itemClone);
+                        });
+                    }
+                });
+            } else {
+                // Si no hay encabezados, mostrar todos los elementos filtrados
+                filteredItems.forEach(item => {
+                    const itemClone = item.cloneNode(true);
+                    newList.appendChild(itemClone);
+                });
+            }
 
-        } else {
-            filteredItems.forEach(item => newList.appendChild(item.cloneNode(true)));
-        }
-        if (newList.hasChildNodes()) {
-            resultsWrapper.appendChild(newList);
+            if (newList.hasChildNodes()) {
+                resultsWrapper.appendChild(newList);
+            } else {
+                resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
+            }
         } else {
             resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
         }
 
     } else {
-        resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
+        // LÓGICA PARA OTROS TIPOS DE BÚSQUEDA (países, zonas horarias)
+        const originalListContainer = creationWrapper.querySelector('.menu-list, .country-list-container, .timezone-list-container');
+        if (!originalListContainer) return;
+
+        const allItems = originalListContainer.querySelectorAll('.menu-link');
+        const filteredItems = Array.from(allItems).filter(item => {
+            const itemName = item.querySelector('.menu-link-text span')?.textContent.toLowerCase();
+            return itemName && itemName.includes(searchTerm);
+        });
+
+        if (filteredItems.length > 0) {
+            const newList = document.createElement('div');
+            newList.className = 'menu-list';
+            filteredItems.forEach(item => newList.appendChild(item.cloneNode(true)));
+            resultsWrapper.appendChild(newList);
+        } else {
+            resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
+        }
     }
 });
+
+// FUNCIÓN AUXILIAR PARA DEBUG (opcional)
+function debugSoundSearch() {
+    const soundsMenu = document.querySelector('.menu-sounds');
+    if (!soundsMenu) {
+        console.log('❌ Menu de sonidos no encontrado');
+        return;
+    }
+
+    const listContainer = soundsMenu.querySelector('#sound-list-wrapper');
+    if (!listContainer) {
+        console.log('❌ Contenedor de lista de sonidos no encontrado');
+        return;
+    }
+
+    const allItems = listContainer.querySelectorAll('.menu-link');
+    console.log(`🎵 Total de elementos de sonido: ${allItems.length}`);
+
+    allItems.forEach((item, index) => {
+        const textSpan = item.querySelector('.menu-link-text span');
+        const soundId = item.getAttribute('data-sound-id');
+        const translateKey = textSpan?.getAttribute('data-translate');
+        const directText = textSpan?.textContent;
+        
+        console.log(`   ${index + 1}. ID: ${soundId}, Translate: ${translateKey}, Text: "${directText}"`);
+    });
+
+    const headers = listContainer.querySelectorAll('.menu-content-header-sm');
+    console.log(`📑 Encabezados de sección: ${headers.length}`);
+    headers.forEach((header, index) => {
+        console.log(`   Sección ${index + 1}: "${header.textContent}"`);
+    });
+}
+
+// Para usar el debug en la consola del navegador:
+// debugSoundSearch();
     document.body.addEventListener('click', (event) => {
         const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker');
         if (!parentMenu || autoIncrementState.isActive) return;
@@ -847,7 +945,7 @@ async function handleMenuClick(event, parentMenu) {
 
     if (testSoundActions.includes(action)) {
         event.stopPropagation();
-        
+
         let soundId;
         const soundTestButton = target.closest('.sound-test-btn') || target;
         const menuLink = soundTestButton.closest('.menu-link');
@@ -877,7 +975,7 @@ async function handleMenuClick(event, parentMenu) {
                 if (prevButton) {
                     const prevIcon = prevButton.querySelector('.material-symbols-rounded');
                     if (prevIcon) prevIcon.textContent = 'play_arrow';
-                    
+
                     const prevLink = prevButton.closest('.menu-link');
                     if (prevLink) {
                         prevLink.classList.remove('sound-playing');
@@ -898,7 +996,7 @@ async function handleMenuClick(event, parentMenu) {
             soundTimeout = setTimeout(() => {
                 if (currentlyPlayingSound && currentlyPlayingSound.id === soundId) {
                     stopSound();
-                    
+
                     if (icon) icon.textContent = 'play_arrow';
                     if (menuLink) {
                         menuLink.classList.remove('sound-playing');
@@ -908,7 +1006,7 @@ async function handleMenuClick(event, parentMenu) {
                             actionsContainer.classList.remove('active');
                         }
                     }
-                    
+
                     currentlyPlayingSound = null;
                 }
             }, 3000);
