@@ -724,75 +724,74 @@ function setupGlobalEventListeners() {
         }
     });
 
-    document.body.addEventListener('input', (event) => {
-        const target = event.target;
-        if (!['sound-search-input', 'country-search-input', 'timezone-search-input'].includes(target.id)) return;
+   document.body.addEventListener('input', (event) => {
+    const target = event.target;
+    if (!['sound-search-input', 'country-search-input', 'timezone-search-input'].includes(target.id)) return;
 
-        const menu = target.closest('.menu-sounds, .menu-country, .menu-timeZone');
-        if (!menu) return;
+    const menu = target.closest('.menu-sounds, .menu-country, .menu-timeZone');
+    if (!menu) return;
 
-        const searchTerm = target.value.toLowerCase();
-        const creationWrapper = menu.querySelector('.creation-wrapper');
-        const resultsWrapper = menu.querySelector('.search-results-wrapper');
-        const originalListContainer = creationWrapper.querySelector('.menu-list, #sound-list-wrapper');
+    const searchTerm = target.value.toLowerCase();
+    const creationWrapper = menu.querySelector('.creation-wrapper');
+    const resultsWrapper = menu.querySelector('.search-results-wrapper');
+    const originalListContainer = creationWrapper.querySelector('.menu-list, #sound-list-wrapper');
 
-        if (!creationWrapper || !resultsWrapper || !originalListContainer) return;
+    if (!creationWrapper || !resultsWrapper || !originalListContainer) return;
 
-        if (!searchTerm) {
-            resultsWrapper.innerHTML = '';
-            resultsWrapper.classList.add('disabled');
-            creationWrapper.classList.remove('disabled');
-            return;
-        }
-
-        creationWrapper.classList.add('disabled');
-        resultsWrapper.classList.remove('disabled');
+    if (!searchTerm) {
         resultsWrapper.innerHTML = '';
+        resultsWrapper.classList.add('disabled');
+        creationWrapper.classList.remove('disabled');
+        return;
+    }
 
-        const allItems = originalListContainer.querySelectorAll('.menu-link');
-        const filteredItems = Array.from(allItems).filter(item => {
-            const itemName = item.querySelector('.menu-link-text span')?.textContent.toLowerCase();
-            return itemName && itemName.includes(searchTerm);
-        });
+    creationWrapper.classList.add('disabled');
+    resultsWrapper.classList.remove('disabled');
+    resultsWrapper.innerHTML = '';
 
-        if (filteredItems.length > 0) {
-            const newList = document.createElement('div');
-            newList.className = 'menu-list';
-            if (target.id === 'sound-search-input') {
-                const headers = originalListContainer.querySelectorAll('.menu-content-header-sm');
-                headers.forEach(header => {
-                    const sectionItems = [];
-                    let nextElement = header.nextElementSibling;
-                    while (nextElement && !nextElement.classList.contains('menu-content-header-sm')) {
-                        if (filteredItems.includes(nextElement)) {
-                            sectionItems.push(nextElement);
-                        }
-                        nextElement = nextElement.nextElementSibling;
+    const allItems = originalListContainer.querySelectorAll('.menu-link');
+    const filteredItems = Array.from(allItems).filter(item => {
+        const itemName = item.querySelector('.menu-link-text span')?.textContent.toLowerCase();
+        return itemName && itemName.includes(searchTerm);
+    });
+
+    if (filteredItems.length > 0) {
+        const newList = document.createElement('div');
+        newList.className = 'menu-list';
+        if (target.id === 'sound-search-input') {
+            const headers = originalListContainer.querySelectorAll('.menu-content-header-sm');
+            headers.forEach(header => {
+                const sectionItems = [];
+                let nextElement = header.nextElementSibling;
+                // Recolecta los sonidos de esta sección que coinciden con la búsqueda
+                while (nextElement && !nextElement.classList.contains('menu-content-header-sm')) {
+                    if (filteredItems.includes(nextElement)) {
+                        sectionItems.push(nextElement);
                     }
-                    if (sectionItems.length > 0) {
-                        newList.appendChild(header.cloneNode(true));
-                        sectionItems.forEach(item => newList.appendChild(item.cloneNode(true)));
-                    }
-                });
-                const uploadLink = originalListContainer.querySelector('[data-action="upload-audio"]');
-                if (uploadLink && uploadLink.textContent.toLowerCase().includes(searchTerm)) {
-                    newList.prepend(uploadLink.cloneNode(true));
+                    nextElement = nextElement.nextElementSibling;
                 }
+                
+                // El encabezado solo se muestra si tiene elementos que coincidan.
+                // Se ha eliminado la comprobación del texto del propio encabezado.
+                if (sectionItems.length > 0) {
+                    newList.appendChild(header.cloneNode(true));
+                    sectionItems.forEach(item => newList.appendChild(item.cloneNode(true)));
+                }
+            });
 
-            } else {
-                filteredItems.forEach(item => newList.appendChild(item.cloneNode(true)));
-            }
-            if (newList.hasChildNodes()) {
-                resultsWrapper.appendChild(newList);
-            } else {
-                resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
-            }
-
+        } else {
+            filteredItems.forEach(item => newList.appendChild(item.cloneNode(true)));
+        }
+        if (newList.hasChildNodes()) {
+            resultsWrapper.appendChild(newList);
         } else {
             resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
         }
-    });
 
+    } else {
+        resultsWrapper.innerHTML = `<p class="no-results-message">${getTranslation('no_results', 'search')} "${searchTerm}"</p>`;
+    }
+});
     document.body.addEventListener('click', (event) => {
         const parentMenu = event.target.closest('.menu-alarm, .menu-timer, .menu-worldClock, .menu-sounds, .menu-country, .menu-timeZone, .menu-calendar, .menu-timePicker');
         if (!parentMenu || autoIncrementState.isActive) return;

@@ -400,7 +400,18 @@ function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
             const testButton = document.createElement('div');
             testButton.className = 'interactive-icon sound-test-btn';
             testButton.dataset.action = 'test-sound';
-            testButton.innerHTML = `<span class="material-symbols-rounded">play_arrow</span>`;
+            
+            const currentlyPlayingId = window.getCurrentlyPlayingSoundId ? window.getCurrentlyPlayingSoundId() : null;
+            const isThisSoundPlaying = currentlyPlayingId === sound.id;
+            const isAnotherSoundPlaying = currentlyPlayingId !== null && !isThisSoundPlaying;
+            
+            const iconName = isThisSoundPlaying ? 'stop' : 'play_arrow';
+            testButton.innerHTML = `<span class="material-symbols-rounded">${iconName}</span>`;
+
+            // FIX: Deshabilitar el botón si otro sonido ya está sonando
+            if (isAnotherSoundPlaying) {
+                testButton.classList.add('disabled-interactive');
+            }
             
             actionsDiv.appendChild(testButton);
             menuLink.appendChild(actionsDiv);
@@ -408,7 +419,10 @@ function createSoundMenuItem(sound, actionName, activeSoundId, isCustom) {
 
         menuLink.addEventListener('mouseleave', () => {
             const actionsDiv = menuLink.querySelector('.menu-link-actions-container');
-            if (actionsDiv) {
+            const currentlyPlayingId = window.getCurrentlyPlayingSoundId ? window.getCurrentlyPlayingSoundId() : null;
+            const isThisSoundPlaying = currentlyPlayingId === sound.id;
+
+            if (actionsDiv && !isThisSoundPlaying) {
                 actionsDiv.remove();
             }
         });

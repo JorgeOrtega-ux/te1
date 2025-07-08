@@ -4,15 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
+
+    <title>ProjectNocturne - Home</title>
+    <meta name="description" content="Use ProjectNocturne to access useful tools like a world clock, custom alarms, timers, and stopwatches — all from your browser.">
+    <meta name="keywords" content="online clock, online alarm, timer, stopwatch, tools, ProjectNocturne, web tools, online timer, free alarm, world clock">
+
+    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" />
     <link rel="stylesheet" type="text/css" href="assets/css/general/styles.css">
     <link rel="stylesheet" type="text/css" href="assets/css/general/dark-mode.css">
     <link rel="stylesheet" type="text/css" href="assets/css/tools/tools.css">
-    <script src="assets/js/general/initial-theme.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <title>ProjectNocturne - Home</title>
+
+    <script src="assets/js/general/initial-theme.js"></script>
 </head>
+
 
 <body>
     <div class="page-wrapper">
